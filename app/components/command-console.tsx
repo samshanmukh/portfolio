@@ -180,7 +180,7 @@ export function CommandConsole() {
                 className="pointer-events-none absolute top-1/2 -translate-y-1/2"
                 style={{ left: `${input.length}ch` }}
               >
-                <span className="cursor" />
+                <span className="cursor cursor-green" />
               </span>
             </div>
             {hints.length > 0 && (

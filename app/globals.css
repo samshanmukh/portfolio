@@ -203,6 +203,12 @@ body {
   animation: blink 1.1s steps(1) infinite;
 }
 
+/* green phosphor cursor for the interactive command bar (stands out) */
+.cursor-green {
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.7);
+}
+
 /* equalizer bars for the music toggle */
 @keyframes eq {
   0%,
