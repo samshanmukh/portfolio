@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { profile } from './lib/data'
+import { InteractiveBackground } from './components/interactive-background'
 
 export const metadata: Metadata = {
   title: `${profile.name} — ${profile.role}`,
@@ -32,7 +33,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <InteractiveBackground />
+        {children}
+      </body>
     </html>
   )
 }

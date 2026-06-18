@@ -3,21 +3,12 @@ import { profile, socials } from '../lib/data'
 
 export function Hero() {
   return (
-    <section className="bg-dots relative overflow-hidden pt-36 pb-24">
-      <div
-        aria-hidden
-        className="animate-float pointer-events-none absolute -top-20 -left-24 h-72 w-72 rounded-full bg-primary/25 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="animate-float pointer-events-none absolute top-10 right-0 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl [animation-delay:-7s]"
-      />
-
+    <section className="relative overflow-hidden pt-36 pb-24">
       <div className="relative mx-auto flex max-w-4xl flex-col items-start gap-10 px-6 md:flex-row md:items-center md:justify-between">
         <div className="max-w-2xl">
           {profile.available && (
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs text-muted">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+              <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400 shadow-[0_0_8px_2px_rgba(245,158,11,0.6)]" />
               Open to ML / AI roles & collaborations
             </div>
           )}
@@ -40,7 +31,7 @@ export function Hero() {
           <div className="mt-8 flex flex-wrap gap-3">
             <a
               href="#projects"
-              className="rounded-lg bg-gradient-to-r from-primary to-cyan-400 px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              className="rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
             >
               See my work
             </a>
@@ -64,7 +55,7 @@ export function Hero() {
         </div>
 
         <div className="relative shrink-0">
-          <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-primary to-cyan-400 opacity-30 blur-xl" />
+          <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 opacity-40 blur-xl" />
           <Image
             src={profile.avatar}
             alt={profile.name}

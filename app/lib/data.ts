@@ -16,12 +16,12 @@ export const profile = {
 }
 
 export const socials = {
-  email: 's_karri1@u.pacific.edu',
+  email: 'shanmukhsain@gmail.com',
   github: 'https://github.com/samshanmukh',
   linkedin: 'https://www.linkedin.com/in/shanmukhsain',
   twitter: 'https://x.com/samshanmukh',
-  // TODO: drop a hosted PDF link here (or /resume.pdf in /public)
-  resume: '#',
+  // Put your PDF at /public/resume.pdf and this just works. Or swap in any URL.
+  resume: '/resume.pdf',
 }
 
 export const skills: { group: string; items: string[] }[] = [
