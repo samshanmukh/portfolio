@@ -64,12 +64,12 @@ body {
 }
 @media (min-width: 1024px) {
   .wrap {
-    padding-inline: 12%;
+    padding-inline: 8%;
   }
 }
 @media (min-width: 1280px) {
   .wrap {
-    padding-inline: 20%; /* full-width content with 20% margins each side */
+    padding-inline: 10%; /* full-width content with 10% margins each side */
   }
 }
 
@@ -96,10 +96,10 @@ body {
     linear-gradient(
       to right,
       #000 0%,
-      #000 16%,
-      transparent 34%,
-      transparent 66%,
-      #000 84%,
+      #000 7%,
+      transparent 15%,
+      transparent 85%,
+      #000 93%,
       #000 100%
     ),
     linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
@@ -108,10 +108,10 @@ body {
     linear-gradient(
       to right,
       #000 0%,
-      #000 16%,
-      transparent 34%,
-      transparent 66%,
-      #000 84%,
+      #000 7%,
+      transparent 15%,
+      transparent 85%,
+      #000 93%,
       #000 100%
     ),
     linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
