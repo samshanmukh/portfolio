@@ -1,14 +1,14 @@
 @import 'tailwindcss';
 
 :root {
-  /* dark & mysterious — amber on near-black, single palette */
-  --background: #0a0805;
-  --surface: #14100a;
-  --foreground: #ece6da;
-  --muted: #8f8576;
-  --primary: #f59e0b; /* amber */
-  --primary-2: #fb923c; /* warm orange */
-  --accent: #f59e0b;
+  /* dark & mysterious — monochrome cool silver to match the avatar */
+  --background: #07080a;
+  --surface: #111316;
+  --foreground: #e9edf2;
+  --muted: #8a929c;
+  --primary: #c2ccd6; /* cool silver */
+  --primary-2: #8f9aa6; /* deeper steel-grey */
+  --accent: #c2ccd6;
 }
 
 @theme inline {
@@ -35,10 +35,10 @@ body {
 
 ::selection {
   background: var(--primary);
-  color: #1a1206;
+  color: #0b0d10;
 }
 
-/* gradient text helper (amber → orange) */
+/* gradient text helper (silver → steel-grey) */
 .text-gradient {
   background-image: linear-gradient(90deg, var(--primary), var(--primary-2));
   -webkit-background-clip: text;
@@ -70,8 +70,8 @@ body {
   inset: -10%;
   background: radial-gradient(
     520px circle at var(--mx) var(--my),
-    rgba(245, 158, 11, 0.16),
-    rgba(245, 158, 11, 0.04) 35%,
+    rgba(194, 204, 214, 0.14),
+    rgba(194, 204, 214, 0.04) 35%,
     transparent 60%
   );
   transition: background 0.18s ease-out;
@@ -90,7 +90,7 @@ body {
   height: 36rem;
   top: -10rem;
   left: -8rem;
-  background: rgba(245, 158, 11, 0.14);
+  background: rgba(150, 165, 182, 0.12);
   transform: translate3d(var(--px), var(--py), 0);
 }
 .bg-blob-2 {
@@ -98,7 +98,7 @@ body {
   height: 32rem;
   bottom: -12rem;
   right: -8rem;
-  background: rgba(217, 119, 6, 0.12);
+  background: rgba(110, 124, 140, 0.12);
   transform: translate3d(var(--px2), var(--py2), 0);
 }
 
@@ -106,7 +106,7 @@ body {
 .bg-grid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(245, 158, 11, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(200, 210, 225, 0.05) 1px, transparent 1px);
   background-size: 26px 26px;
   -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, #000, transparent 90%);
   mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, #000, transparent 90%);

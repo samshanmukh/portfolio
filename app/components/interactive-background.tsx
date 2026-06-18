@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 
 /**
  * Fixed, full-viewport backdrop that reacts to the cursor:
- *  - an amber glow that follows the mouse
+ *  - a cool silver glow that follows the mouse
  *  - two ambient blobs that parallax (move at different depths)
  * Driven by CSS custom properties, updated inside a rAF for smoothness.
  */

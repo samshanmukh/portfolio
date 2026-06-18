@@ -13,7 +13,7 @@ export function Contact() {
     <section id="contact" className="scroll-mt-24 py-16">
       <div className="mx-auto max-w-4xl px-6">
         <SectionHeading index="05" eyebrow="Contact" title="Let's build something" />
-        <div className="rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 via-surface to-surface p-8 sm:p-10">
+        <div className="rounded-3xl border border-slate-400/20 bg-gradient-to-br from-slate-400/10 via-surface to-surface p-8 sm:p-10">
           <p className="max-w-md text-foreground/90">
             Hiring, collaborating, or just want to talk shop about agents and
             computer vision? My inbox is open — I usually reply within a day.
