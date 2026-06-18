@@ -4,7 +4,7 @@ import { experience, education, certifications, languages } from '../lib/data'
 export function Experience() {
   return (
     <section id="experience" className="scroll-mt-24 py-16">
-      <div className="mx-auto max-w-4xl px-6">
+      <div className="wrap">
         <Prompt command="git log --oneline --all" comment="experience & education" />
 
         <ol className="relative border-l border-white/10 pl-6">

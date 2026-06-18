@@ -16,8 +16,8 @@ function Cmd({ children }: { children: React.ReactNode }) {
 
 export function Hero() {
   return (
-    <section className="px-4 pt-28 pb-16">
-      <div className="mx-auto max-w-4xl">
+    <section className="pt-28 pb-16">
+      <div className="wrap">
         <div className="term">
           <div className="term-bar">
             <span className="term-dot" />
@@ -111,13 +111,11 @@ export function Hero() {
               </p>
             )}
 
-            <div className="text-sm">
-              <span className="text-primary">sam@portfolio</span>
-              <span className="text-muted">:</span>
-              <span className="text-foreground/60">~</span>
-              <span className="text-muted">$ </span>
-              <span className="cursor" aria-hidden />
-            </div>
+            <p className="text-xs text-muted">
+              <span className="text-muted/60"># </span>
+              tip: use the command bar at the bottom — try{' '}
+              <span className="text-foreground/70">help</span>
+            </p>
           </div>
         </div>
       </div>

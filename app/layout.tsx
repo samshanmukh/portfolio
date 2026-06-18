@@ -3,6 +3,7 @@ import './globals.css'
 import { profile } from './lib/data'
 import { InteractiveBackground } from './components/interactive-background'
 import { MusicPlayer } from './components/music-player'
+import { CommandConsole } from './components/command-console'
 
 export const metadata: Metadata = {
   title: `${profile.name} — ${profile.role}`,
@@ -34,10 +35,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen">
+      <body className="min-h-screen pb-14">
         <InteractiveBackground />
         {children}
         <MusicPlayer />
+        <CommandConsole />
       </body>
     </html>
   )

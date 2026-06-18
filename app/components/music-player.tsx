@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * Terminal-style soundtrack toggle (fixed, bottom-right).
@@ -28,6 +28,14 @@ export function MusicPlayer() {
     }
   }
 
+  // let the command console trigger the soundtrack via `play_soundtrack.sh`
+  useEffect(() => {
+    const handler = () => void toggle()
+    window.addEventListener('portfolio:toggle-music', handler)
+    return () => window.removeEventListener('portfolio:toggle-music', handler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, missing])
+
   const label = missing
     ? 'no theme.mp3 found'
     : playing
@@ -47,7 +55,7 @@ export function MusicPlayer() {
         onClick={toggle}
         disabled={missing}
         aria-label="Toggle soundtrack"
-        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-md border border-white/15 bg-surface/80 px-3 py-2 text-xs text-foreground backdrop-blur transition-colors hover:border-white/30 disabled:cursor-not-allowed disabled:text-muted"
+        className="fixed bottom-16 right-4 z-50 flex items-center gap-2 rounded-md border border-white/15 bg-surface/80 px-3 py-2 text-xs text-foreground backdrop-blur transition-colors hover:border-white/30 disabled:cursor-not-allowed disabled:text-muted"
       >
         <span className="text-muted">$</span>
         {playing ? (

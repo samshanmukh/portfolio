@@ -11,7 +11,7 @@ const links = [
 export function Contact() {
   return (
     <section id="contact" className="scroll-mt-24 py-16">
-      <div className="mx-auto max-w-4xl px-6">
+      <div className="wrap">
         <Prompt command="./connect.sh" comment="let's build something" />
         <div className="rounded-3xl border border-slate-400/20 bg-gradient-to-br from-slate-400/10 via-surface to-surface p-8 sm:p-10">
           <p className="max-w-md text-foreground/90">

@@ -4,7 +4,7 @@ import { skills } from '../lib/data'
 export function About() {
   return (
     <section id="about" className="scroll-mt-24 py-16">
-      <div className="mx-auto max-w-4xl px-6">
+      <div className="wrap">
         <Prompt command="cat skills.json" comment="what I work with" />
         <div className="grid gap-4 sm:grid-cols-3">
           {skills.map((s) => (

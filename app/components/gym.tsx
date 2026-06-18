@@ -4,7 +4,7 @@ import { gym } from '../lib/data'
 export function Gym() {
   return (
     <section id="gym" className="scroll-mt-24 py-16">
-      <div className="mx-auto max-w-4xl px-6">
+      <div className="wrap">
         <Prompt command="./gym.sh --status" comment={gym.tagline} />
 
         <div className="relative overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/10 via-surface to-surface p-8 sm:p-10">

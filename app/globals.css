@@ -48,6 +48,32 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
+   Content wrapper — full width with responsive side margins.
+   Targets ~20% margins (60% content) on desktop, scaling down so it stays
+   usable on phones/tablets. No fixed max-width.
+--------------------------------------------------------------------------- */
+.wrap {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.25rem; /* phones */
+}
+@media (min-width: 640px) {
+  .wrap {
+    padding-inline: 2.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .wrap {
+    padding-inline: 12%;
+  }
+}
+@media (min-width: 1280px) {
+  .wrap {
+    padding-inline: 20%; /* full-width content with 20% margins each side */
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Background — flat dark with a faint dotted grid + very subtle scanlines.
 --------------------------------------------------------------------------- */
 .bg-interactive {

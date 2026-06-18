@@ -10,7 +10,7 @@ const links = [
 export function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-lg">
-      <nav className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3 text-sm">
+      <nav className="wrap flex items-center justify-between py-3 text-sm">
         <a href="#" className="text-foreground">
           <span className="text-primary">sam@portfolio</span>
           <span className="text-muted">:~$</span>
