@@ -1,13 +1,8 @@
-import { ZodiacStars } from './zodiac-stars'
-
 /**
- * App backdrop — dark warm base with a soft glow (.bg-app in globals.css)
- * and faint, dynamic zodiac constellations.
+ * App backdrop — warm dark with a soft brown glow and a faint, static grid
+ * that fades toward the page (styles in globals.css under .bg-app). Clean and
+ * motionless on purpose.
  */
 export function InteractiveBackground() {
-  return (
-    <div aria-hidden className="bg-app">
-      <ZodiacStars />
-    </div>
-  )
+  return <div aria-hidden className="bg-app" />
 }

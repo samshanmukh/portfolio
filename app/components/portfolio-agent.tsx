@@ -3,6 +3,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { ask, SUGGESTIONS, type Source } from '../lib/agent'
 import { profile } from '../lib/data'
+import { systemPrompt } from '../lib/knowledge'
+import {
+  getEngine,
+  chatStream,
+  webgpuSupported,
+  MODEL_LABEL,
+  type ChatMsg,
+} from '../lib/webllm'
 
 type Msg = {
   role: 'user' | 'agent'
@@ -13,20 +21,20 @@ type Msg = {
   shown?: number
 }
 
+type LlmState = 'idle' | 'loading' | 'ready' | 'error' | 'unsupported'
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export function PortfolioAgent() {
-  const [messages, setMessages] = useState<Msg[]>([
-    {
-      role: 'agent',
-      tool: 'init()',
-      text: `Hi — I'm ${profile.shortName}'s portfolio agent. Ask me anything about his work, or tap a suggestion.`,
-      status: 'done',
-      shown: Infinity,
-    },
-  ])
+  const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState(true)
+  const [started, setStarted] = useState(false)
+  const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
+  const [llm, setLlm] = useState<LlmState>('idle')
+  const [prog, setProg] = useState(0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const engineRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -34,42 +42,131 @@ export function PortfolioAgent() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [messages])
 
+  useEffect(() => {
+    if (!webgpuSupported()) setLlm('unsupported')
+  }, [])
+
   const patchLast = (patch: Partial<Msg>) =>
     setMessages((prev) => prev.map((m, i) => (i === prev.length - 1 ? { ...m, ...patch } : m)))
+
+  // typed reveal for the (instant) keyword agent
+  const streamKeyword = async (reply: { tool: string; text: string; sources?: Source[] }) => {
+    setMessages((prev) => [
+      ...prev,
+      { role: 'agent', tool: reply.tool, text: reply.text, sources: reply.sources, status: 'thinking', shown: 0 },
+    ])
+    await sleep(reply.tool === 'init()' ? 280 : 560)
+    patchLast({ status: 'typing' })
+    const total = reply.text.length
+    for (let n = 2; n <= total; n += 2) {
+      await sleep(11)
+      patchLast({ shown: n })
+    }
+    patchLast({ shown: total, status: 'done' })
+  }
+
+  // proactive intro on landing (always the instant keyword agent)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      setBusy(true)
+      await streamKeyword({
+        tool: 'init()',
+        text: `Hi — I'm ${profile.shortName}'s portfolio agent. I can tell you about his work in real time.`,
+      })
+      if (cancelled) return
+      await sleep(300)
+      await streamKeyword(ask('what has he built'))
+      if (cancelled) return
+      setBusy(false)
+      setStarted(true)
+      inputRef.current?.focus()
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const enableSmart = async () => {
+    if (llm === 'ready') {
+      setMode('llm')
+      return
+    }
+    if (!webgpuSupported()) {
+      setLlm('unsupported')
+      return
+    }
+    setLlm('loading')
+    setProg(0)
+    try {
+      const engine = await getEngine((p) => setProg(Math.round(p.progress * 100)))
+      engineRef.current = engine
+      setLlm('ready')
+      setMode('llm')
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'agent',
+          tool: MODEL_LABEL,
+          text: `Smart mode on — I'm now a small Llama-3.2 model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
+          status: 'done',
+          shown: Infinity,
+        },
+      ])
+    } catch {
+      setLlm('error')
+      setMode('keyword')
+    }
+  }
+
+  const runLLM = async (q: string) => {
+    const history: ChatMsg[] = messages
+      .filter((m) => m.text && m.status !== 'thinking')
+      .slice(-4)
+      .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
+    const msgs: ChatMsg[] = [
+      { role: 'system', content: systemPrompt() },
+      ...history,
+      { role: 'user', content: q },
+    ]
+    setMessages((prev) => [
+      ...prev,
+      { role: 'agent', tool: MODEL_LABEL, text: '', status: 'thinking', shown: Infinity },
+    ])
+    try {
+      let first = true
+      await chatStream(engineRef.current, msgs, (full) => {
+        if (first) {
+          first = false
+          patchLast({ status: 'typing' })
+        }
+        patchLast({ text: full })
+      })
+      patchLast({ status: 'done' })
+    } catch {
+      patchLast({ text: '(local model hiccup — back to quick answers)', status: 'done' })
+      setMode('keyword')
+    }
+  }
 
   const run = async (raw: string) => {
     const q = raw.trim()
     if (!q || busy) return
     setBusy(true)
     setInput('')
-    const reply = ask(q)
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', text: q },
-      {
-        role: 'agent',
-        tool: reply.tool,
-        text: reply.text,
-        sources: reply.sources,
-        status: 'thinking',
-        shown: 0,
-      },
-    ])
-
-    await sleep(600) // "thinking" on the tool call
-    patchLast({ status: 'typing' })
-
-    const total = reply.text.length
-    for (let n = 2; n <= total; n += 2) {
-      await sleep(12)
-      patchLast({ shown: n })
+    setMessages((prev) => [...prev, { role: 'user', text: q }])
+    if (mode === 'llm' && llm === 'ready' && engineRef.current) {
+      await runLLM(q)
+    } else {
+      await streamKeyword(ask(q))
     }
-    patchLast({ shown: total, status: 'done' })
     setBusy(false)
+    inputRef.current?.focus()
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface/80 shadow-2xl shadow-black/40 backdrop-blur">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-transparent shadow-2xl shadow-black/30 backdrop-blur-sm">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.02] px-4 py-3">
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-xs font-bold text-[#1c130a]">
@@ -77,61 +174,72 @@ export function PortfolioAgent() {
         </span>
         <span className="text-sm font-medium">portfolio-agent</span>
         <span className="flex items-center gap-1.5 text-xs text-muted">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#dcbb8e]" /> online
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#dcbb8e]" />
+          {busy ? 'working' : 'online'}
         </span>
-        <span className="ml-auto font-mono text-[10px] text-muted">powered by Sam’s data</span>
+        <div className="ml-auto">
+          <SmartToggle
+            llm={llm}
+            mode={mode}
+            prog={prog}
+            onEnable={enableSmart}
+            onDisable={() => setMode('keyword')}
+          />
+        </div>
       </div>
 
-      {/* messages */}
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-        {messages.map((m, i) =>
-          m.role === 'user' ? (
-            <div key={i} className="flex justify-end">
-              <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary/15 px-3.5 py-2 text-sm text-foreground">
-                {m.text}
+      {/* messages (bottom-anchored so there's no dead space) */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex min-h-full flex-col justify-end gap-4">
+          {messages.map((m, i) =>
+            m.role === 'user' ? (
+              <div key={i} className="flex justify-end">
+                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary/15 px-3.5 py-2 text-sm text-foreground">
+                  {m.text}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div key={i} className="flex gap-2.5">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-[11px] font-bold text-[#1c130a]">
-                ◆
-              </span>
-              <div className="min-w-0 max-w-[88%] space-y-2">
-                {m.tool && m.tool !== 'init()' && (
-                  <div className="inline-flex items-center gap-1.5 rounded-md border border-primary/25 bg-primary/10 px-2 py-0.5 font-mono text-[11px] text-primary">
-                    <span>⚙</span>
-                    {m.tool}
+            ) : (
+              <div key={i} className="flex gap-2.5">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-[11px] font-bold text-[#1c130a]">
+                  ◆
+                </span>
+                <div className="min-w-0 max-w-[88%] space-y-2">
+                  {m.tool && m.tool !== 'init()' && (
+                    <div className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-[11px] text-primary">
+                      <span>⚙</span>
+                      {m.tool}
+                    </div>
+                  )}
+                  <div className="rounded-2xl rounded-tl-sm bg-white/[0.04] px-3.5 py-2.5 text-sm leading-relaxed text-foreground/90">
+                    {m.status === 'thinking' ? (
+                      <span className="inline-flex gap-1 align-middle">
+                        <span className="dot" />
+                        <span className="dot [animation-delay:150ms]" />
+                        <span className="dot [animation-delay:300ms]" />
+                      </span>
+                    ) : (
+                      <>
+                        {m.shown === Infinity ? m.text : m.text.slice(0, m.shown)}
+                        {m.status === 'typing' && <span className="caret" />}
+                      </>
+                    )}
                   </div>
-                )}
-                <div className="rounded-2xl rounded-tl-sm bg-white/[0.04] px-3.5 py-2.5 text-sm leading-relaxed text-foreground/90">
-                  {m.status === 'thinking' ? (
-                    <span className="inline-flex gap-1 align-middle">
-                      <span className="dot" />
-                      <span className="dot [animation-delay:150ms]" />
-                      <span className="dot [animation-delay:300ms]" />
-                    </span>
-                  ) : (
-                    <>
-                      {m.shown === Infinity ? m.text : m.text.slice(0, m.shown)}
-                      {m.status === 'typing' && <span className="caret" />}
-                    </>
+                  {m.status === 'done' && m.sources && m.sources.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {m.sources.map((s, j) => (
+                        <SourceChip key={j} source={s} />
+                      ))}
+                    </div>
                   )}
                 </div>
-                {m.status === 'done' && m.sources && m.sources.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {m.sources.map((s, j) => (
-                      <SourceChip key={j} source={s} />
-                    ))}
-                  </div>
-                )}
               </div>
-            </div>
-          )
-        )}
+            )
+          )}
+        </div>
       </div>
 
       {/* suggestions */}
-      {!busy && (
+      {started && !busy && (
         <div className="flex flex-wrap gap-1.5 px-4 pb-2">
           {SUGGESTIONS.map((s) => (
             <button
@@ -161,7 +269,7 @@ export function PortfolioAgent() {
           disabled={busy}
           spellCheck={false}
           autoComplete="off"
-          placeholder="ask me anything about Sam…"
+          placeholder={busy ? 'agent is talking…' : 'ask me anything about Sam…'}
           aria-label="Ask the portfolio agent"
           className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted/60 disabled:opacity-60"
         />
@@ -174,6 +282,56 @@ export function PortfolioAgent() {
         </button>
       </form>
     </div>
+  )
+}
+
+function SmartToggle({
+  llm,
+  mode,
+  prog,
+  onEnable,
+  onDisable,
+}: {
+  llm: LlmState
+  mode: 'keyword' | 'llm'
+  prog: number
+  onEnable: () => void
+  onDisable: () => void
+}) {
+  const base =
+    'flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-[10px] transition-colors'
+  if (llm === 'unsupported') {
+    return (
+      <span
+        title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
+        className={`${base} cursor-not-allowed border-white/10 text-muted/60`}
+      >
+        ⚡ no WebGPU
+      </span>
+    )
+  }
+  if (llm === 'loading') {
+    return (
+      <span className={`${base} border-primary/40 text-primary`}>
+        ⚡ loading {prog}%
+      </span>
+    )
+  }
+  if (mode === 'llm') {
+    return (
+      <button onClick={onDisable} className={`${base} border-primary/50 bg-primary/10 text-primary`}>
+        ⚡ smart: on
+      </button>
+    )
+  }
+  return (
+    <button
+      onClick={onEnable}
+      title="Load a small LLM that runs free in your browser (~0.9 GB, one-time)."
+      className={`${base} border-white/15 text-muted hover:border-primary/40 hover:text-foreground`}
+    >
+      ⚡ smart mode
+    </button>
   )
 }
 

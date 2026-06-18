@@ -23,7 +23,7 @@ export function Hero() {
                 alt={profile.name}
                 width={300}
                 height={400}
-                className="aspect-[3/4] w-28 rounded-lg object-cover object-top sm:w-36 lg:w-40"
+                className="aspect-[3/4] w-32 rounded-lg object-cover object-top sm:w-44 lg:w-52"
                 priority
                 unoptimized
               />
