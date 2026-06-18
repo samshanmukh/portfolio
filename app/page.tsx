@@ -22,8 +22,8 @@ export default function Home() {
       <footer className="border-t border-white/5 py-8">
         <div className="wrap text-xs text-muted">
           <span className="text-muted/60"># </span>
-          {new Date().getFullYear()} {profile.name} — built with low-level
-          coding.
+          {new Date().getFullYear()} {profile.name} — built from scratch with
+          low level coding. all rights reserved.
         </div>
       </footer>
     </>
