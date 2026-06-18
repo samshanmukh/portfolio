@@ -33,6 +33,7 @@ export function PortfolioAgent() {
   const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
   const [llm, setLlm] = useState<LlmState>('idle')
   const [prog, setProg] = useState(0)
+  const [loadText, setLoadText] = useState('')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const engineRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -99,24 +100,47 @@ export function PortfolioAgent() {
     }
     setLlm('loading')
     setProg(0)
+    setLoadText('initializing…')
     try {
-      const engine = await getEngine((p) => setProg(Math.round(p.progress * 100)))
+      // fail fast with a clear message if there's no usable GPU adapter
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const adapter = await (navigator as any).gpu?.requestAdapter?.()
+      if (!adapter) throw new Error('WebGPU is present but no GPU adapter is available')
+
+      const engine = await getEngine((p) => {
+        setProg(Math.round(p.progress * 100))
+        setLoadText(p.text || '')
+        console.log('[smart-mode]', Math.round(p.progress * 100) + '%', p.text)
+      })
       engineRef.current = engine
       setLlm('ready')
       setMode('llm')
+      setLoadText('')
       setMessages((prev) => [
         ...prev,
         {
           role: 'agent',
           tool: MODEL_LABEL,
-          text: `Smart mode on — I'm now a small Llama-3.2 model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
+          text: `Smart mode on — I'm now a small language model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
           status: 'done',
           shown: Infinity,
         },
       ])
-    } catch {
+    } catch (e) {
+      console.error('[smart-mode] failed to load', e)
       setLlm('error')
       setMode('keyword')
+      const msg = e instanceof Error ? e.message : 'unknown error'
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'agent',
+          tool: 'error',
+          text: `Couldn't start the local model (${msg}). No worries — I'll keep using quick answers, which are instant and work on any device.`,
+          status: 'done',
+          shown: Infinity,
+        },
+      ])
     }
   }
 
@@ -238,8 +262,27 @@ export function PortfolioAgent() {
         </div>
       </div>
 
+      {/* model loading progress */}
+      {llm === 'loading' && (
+        <div className="border-t border-white/10 px-4 py-2.5">
+          <div className="mb-1.5 flex items-center justify-between text-[11px]">
+            <span className="text-muted">⚡ booting on-device LLM — one-time download, then cached</span>
+            <span className="font-mono text-primary">{prog}%</span>
+          </div>
+          <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-primary to-[#dcbb8e] transition-all duration-300"
+              style={{ width: `${prog}%` }}
+            />
+          </div>
+          {loadText && (
+            <div className="mt-1.5 truncate font-mono text-[10px] text-muted/70">{loadText}</div>
+          )}
+        </div>
+      )}
+
       {/* suggestions */}
-      {started && !busy && (
+      {started && !busy && llm !== 'loading' && (
         <div className="flex flex-wrap gap-1.5 px-4 pb-2">
           {SUGGESTIONS.map((s) => (
             <button

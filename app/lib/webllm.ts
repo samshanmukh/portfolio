@@ -3,9 +3,11 @@
 // model weights are only fetched when a visitor opts into "Smart mode".
 // ---------------------------------------------------------------------------
 
-// Small, decent-quality instruct model (~0.9 GB quantized, cached after first load).
-export const MODEL_ID = 'Llama-3.2-1B-Instruct-q4f16_1-MLC'
-export const MODEL_LABEL = 'llama-3.2-1b · local'
+// Small instruct model chosen for a FAST first download (~0.4 GB quantized,
+// cached after first load). Swap to 'Llama-3.2-1B-Instruct-q4f16_1-MLC' for
+// better quality at ~0.9 GB, or 'Llama-3.2-3B-Instruct-q4f16_1-MLC' (~1.9 GB).
+export const MODEL_ID = 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC'
+export const MODEL_LABEL = 'qwen2.5-0.5b · local'
 
 export type Progress = { progress: number; text: string }
 
