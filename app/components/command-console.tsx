@@ -101,8 +101,8 @@ export function CommandConsole() {
     <>
       {/* live output — fixed near the top of the screen */}
       {open && entries.length > 0 && (
-        <div className="fixed inset-x-0 top-[49px] z-40 px-3 sm:px-6">
-          <div className="wrap !px-0">
+        <div className="fixed inset-x-0 top-[49px] z-40">
+          <div className="wrap">
             <div className="term overflow-hidden">
               <div className="term-bar">
                 <span className="term-dot" />
