@@ -1,5 +1,5 @@
 import { Prompt } from './prompt'
-import { projects } from '../lib/data'
+import { projects, socials } from '../lib/data'
 
 export function Projects() {
   return (
@@ -44,6 +44,18 @@ export function Projects() {
             </a>
           ))}
         </div>
+        <p className="mt-5 text-sm text-muted">
+          <span className="text-muted/60">$ </span>
+          <a
+            href={socials.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
+          >
+            ls ~/projects --all
+          </a>{' '}
+          → 70+ more repos on GitHub ↗
+        </p>
       </div>
     </section>
   )

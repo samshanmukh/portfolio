@@ -18,7 +18,9 @@ export function Experience() {
                 </h3>
                 <span className="font-mono text-xs text-muted">{e.period}</span>
               </div>
-              <p className="mt-1 text-sm text-muted">{e.note}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-foreground/75">
+                {e.note}
+              </p>
             </li>
           ))}
         </ol>

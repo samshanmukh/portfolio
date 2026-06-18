@@ -82,23 +82,9 @@ export type Project = {
 }
 
 // Real repositories — github.com/samshanmukh
+// Ordered to lead with the most substantial engineering, then the memorable
+// gym-AI work, then experiments.
 export const projects: Project[] = [
-  {
-    name: 'RepRight',
-    blurb:
-      'An AI personal trainer that watches your form in real time — corrects technique and highlights which muscles you’re activating live on screen.',
-    tags: ['Computer Vision', 'Flutter', 'Pose Estimation'],
-    href: 'https://github.com/samshanmukh/RepRight',
-    featured: true,
-  },
-  {
-    name: 'VoiceCoach',
-    blurb:
-      'An AI trainer that reads posture, fatigue, and injury risk from your voice alone — no camera, no wearables. Powered by Grok / the xAI API.',
-    tags: ['LLM', 'xAI / Grok', 'Audio'],
-    href: 'https://github.com/samshanmukh/voicecoach-grok',
-    featured: true,
-  },
   {
     name: 'Enterprise Memory Agent',
     blurb:
@@ -108,11 +94,27 @@ export const projects: Project[] = [
     featured: true,
   },
   {
+    name: 'RepRight',
+    blurb:
+      'An AI personal trainer that watches your form in real time — corrects technique and highlights which muscles you’re activating live on screen.',
+    tags: ['Computer Vision', 'Flutter', 'Pose Estimation'],
+    href: 'https://github.com/samshanmukh/RepRight',
+    featured: true,
+  },
+  {
     name: 'Vitis-AI Porting Advisor',
     blurb:
       'Scans a model for DPU compatibility and generates two AI-powered refactoring proposals to get it hardware-ready.',
     tags: ['Edge AI', 'Python', 'Tooling'],
     href: 'https://github.com/samshanmukh/Vitis-AI-Porting-Advisor',
+    featured: true,
+  },
+  {
+    name: 'VoiceCoach',
+    blurb:
+      'An AI trainer that reads posture, fatigue, and injury risk from your voice alone — no camera, no wearables. Powered by Grok / the xAI API.',
+    tags: ['LLM', 'xAI / Grok', 'Audio'],
+    href: 'https://github.com/samshanmukh/voicecoach-grok',
   },
   {
     name: 'Verdict',
