@@ -188,7 +188,7 @@ export const certifications = [
 export const languages = ['English', 'Hindi', 'Spanish']
 
 export const gym = {
-  tagline: 'Outside the terminal',
+  tagline: 'Away from the keyboard',
   blurb:
     "I lift. A lot. The gym is where I problem-solve away from a screen — and it's the reason half my side projects are AI coaches. Form checks, progressive overload, and the occasional ego lift.",
   // Fun, editable stats — tweak to taste.

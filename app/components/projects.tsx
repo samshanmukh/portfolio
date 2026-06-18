@@ -1,11 +1,11 @@
-import { Prompt } from './prompt'
+import { SectionHeading } from './section-heading'
 import { projects, socials } from '../lib/data'
 
 export function Projects() {
   return (
     <section id="projects" className="scroll-mt-24 py-16">
       <div className="wrap">
-        <Prompt command="ls -la ~/projects" comment="things I've built & shipped" />
+        <SectionHeading eyebrow="Work" title="Selected projects" />
         <div className="grid gap-4 sm:grid-cols-2">
           {projects.map((p) => (
             <a
@@ -44,17 +44,15 @@ export function Projects() {
             </a>
           ))}
         </div>
-        <p className="mt-5 text-sm text-muted">
-          <span className="text-muted/60">$ </span>
+        <p className="mt-6 text-sm text-muted">
           <a
             href={socials.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
+            className="text-primary underline-offset-4 hover:underline"
           >
-            ls ~/projects --all
-          </a>{' '}
-          → 70+ more repos on GitHub ↗
+            70+ more repositories on GitHub ↗
+          </a>
         </p>
       </div>
     </section>

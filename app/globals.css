@@ -1,25 +1,26 @@
 @import 'tailwindcss';
 
 :root {
-  /* monochrome terminal — cool silver on near-black (matches the avatar) */
-  --background: #07080a;
-  --surface: #0d0f12;
-  --foreground: #e3e8ee;
-  --muted: #9aa3ae;
-  --primary: #c2ccd6; /* cool silver */
-  --primary-2: #8f9aa6; /* deeper steel-grey */
-  --accent: #c2ccd6;
-  --line: rgba(255, 255, 255, 0.1);
+  /* warm dark + brown & white only */
+  --background: #15100b;
+  --surface: #1f1810;
+  --surface-2: #271e14;
+  --foreground: #f4efe6; /* warm white */
+  --muted: #ab9d88; /* muted tan */
+  --primary: #b9895a; /* brown / tan */
+  --primary-2: #dcbb8e; /* light tan */
+  --line: rgba(200, 180, 150, 0.14);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-primary: var(--primary);
-  --color-accent: var(--accent);
-  --font-sans: 'JetBrains Mono', ui-monospace, monospace;
+  --color-accent: var(--primary);
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
@@ -30,16 +31,16 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  /* terminal theme — monospace everywhere */
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
   background: var(--primary);
-  color: #0b0d10;
+  color: #1c130a;
 }
 
+/* gradient text helper (brown → light tan) */
 .text-gradient {
   background-image: linear-gradient(90deg, var(--primary), var(--primary-2));
   -webkit-background-clip: text;
@@ -47,15 +48,11 @@ body {
   color: transparent;
 }
 
-/* ---------------------------------------------------------------------------
-   Content wrapper — full width with responsive side margins.
-   Targets ~20% margins (60% content) on desktop, scaling down so it stays
-   usable on phones/tablets. No fixed max-width.
---------------------------------------------------------------------------- */
+/* content wrapper — full width with ~10% side margins, responsive */
 .wrap {
   width: 100%;
   margin-inline: auto;
-  padding-inline: 1.25rem; /* phones */
+  padding-inline: 1.25rem;
 }
 @media (min-width: 640px) {
   .wrap {
@@ -69,120 +66,39 @@ body {
 }
 @media (min-width: 1280px) {
   .wrap {
-    padding-inline: 10%; /* full-width content with 10% margins each side */
+    padding-inline: 10%;
   }
 }
 
 /* ---------------------------------------------------------------------------
-   Background — flat dark with a faint dotted grid + very subtle scanlines.
+   App backdrop — warm dark with a soft brown glow.
 --------------------------------------------------------------------------- */
-.bg-interactive {
+.bg-app {
   position: fixed;
   inset: 0;
   z-index: -10;
-  overflow: hidden;
   pointer-events: none;
+  overflow: hidden;
+}
+.bg-app::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 80% -8%, rgba(185, 137, 90, 0.14), transparent 70%),
+    radial-gradient(55% 45% at 6% 2%, rgba(220, 187, 142, 0.07), transparent 70%);
 }
 
-/* digital rain canvas — masked to the side gutters so it stays out from
-   behind the central content column, and fades top/bottom */
-.matrix-canvas {
+/* zodiac constellation canvas — faint backdrop */
+.zodiac-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.7;
-  -webkit-mask-image:
-    linear-gradient(
-      to right,
-      #000 0%,
-      #000 7%,
-      transparent 15%,
-      transparent 85%,
-      #000 93%,
-      #000 100%
-    ),
-    linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(
-      to right,
-      #000 0%,
-      #000 7%,
-      transparent 15%,
-      transparent 85%,
-      #000 93%,
-      #000 100%
-    ),
-    linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
-  mask-composite: intersect;
+  opacity: 0.55;
 }
 
-/* on narrow screens the gutters vanish, so just fade top/bottom */
-@media (max-width: 1023px) {
-  .matrix-canvas {
-    opacity: 0.45;
-    -webkit-mask-image: linear-gradient(
-      to bottom,
-      transparent 0%,
-      #000 12%,
-      #000 88%,
-      transparent 100%
-    );
-    -webkit-mask-composite: source-over;
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0%,
-      #000 12%,
-      #000 88%,
-      transparent 100%
-    );
-    mask-composite: add;
-  }
-}
-
-/* faint CRT scanlines for the terminal feel */
-.bg-scanlines {
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.018) 0px,
-    rgba(255, 255, 255, 0.018) 1px,
-    transparent 1px,
-    transparent 3px
-  );
-}
-
-/* ---------------------------------------------------------------------------
-   Terminal window chrome
---------------------------------------------------------------------------- */
-.term {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: rgba(13, 15, 18, 0.7);
-  backdrop-filter: blur(6px);
-  overflow: hidden;
-}
-.term-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.9rem;
-  border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-}
-.term-dot {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-}
-.term-body {
-  padding: 1.4rem 1.4rem 1.6rem;
-}
-
-/* blinking block cursor */
+/* streaming caret for the agent's typing animation */
 @keyframes blink {
   0%,
   49% {
@@ -193,42 +109,40 @@ body {
     opacity: 0;
   }
 }
-.cursor {
+.caret {
   display: inline-block;
-  width: 0.6ch;
-  height: 1.05em;
+  width: 0.5ch;
+  height: 1em;
+  margin-left: 1px;
   background: var(--primary);
-  margin-left: 2px;
   vertical-align: text-bottom;
-  animation: blink 1.1s steps(1) infinite;
+  animation: blink 1s steps(1) infinite;
 }
 
-/* green phosphor cursor for the interactive command bar (stands out) */
-.cursor-green {
-  background: #4ade80;
-  box-shadow: 0 0 6px rgba(74, 222, 128, 0.7);
-}
-
-/* equalizer bars for the music toggle */
-@keyframes eq {
+/* a small "thinking" dot pulse */
+@keyframes pulse-dot {
   0%,
   100% {
-    height: 25%;
+    opacity: 0.3;
+    transform: translateY(0);
   }
   50% {
-    height: 100%;
+    opacity: 1;
+    transform: translateY(-2px);
   }
 }
-.eq-bar {
-  width: 2px;
-  background: var(--primary);
-  align-self: flex-end;
-  animation: eq 0.8s ease-in-out infinite;
+.dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--muted);
+  animation: pulse-dot 1s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cursor,
-  .eq-bar {
+  .caret,
+  .dot {
     animation: none;
   }
 }

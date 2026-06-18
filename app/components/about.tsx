@@ -1,11 +1,11 @@
-import { Prompt } from './prompt'
+import { SectionHeading } from './section-heading'
 import { skills } from '../lib/data'
 
 export function About() {
   return (
     <section id="about" className="scroll-mt-24 py-16">
       <div className="wrap">
-        <Prompt command="cat skills.json" comment="what I work with" />
+        <SectionHeading eyebrow="Toolkit" title="What I work with" />
         <div className="grid gap-4 sm:grid-cols-3">
           {skills.map((s) => (
             <div

@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { profile } from './lib/data'
 import { InteractiveBackground } from './components/interactive-background'
-import { MusicPlayer } from './components/music-player'
-import { CommandConsole } from './components/command-console'
 
 export const metadata: Metadata = {
   // TODO: set this to your real deployed URL so link previews resolve correctly.
@@ -43,11 +41,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen pb-14">
+      <body className="min-h-screen">
         <InteractiveBackground />
         {children}
-        <MusicPlayer />
-        <CommandConsole />
       </body>
     </html>
   )
