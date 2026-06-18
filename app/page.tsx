@@ -23,8 +23,8 @@ export default function Home() {
         <div className="wrap flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
           <span>
             <span className="text-muted/60"># </span>
-            {new Date().getFullYear()} {profile.name} — built from scratch with
-            low level coding. all rights reserved.
+            {new Date().getFullYear()} {profile.name} — hand-coded from scratch,
+            no templates. all rights reserved.
           </span>
           <a
             href={socials.sourceRepo}

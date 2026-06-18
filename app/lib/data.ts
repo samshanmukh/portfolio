@@ -8,7 +8,8 @@ export const profile = {
   shortName: 'Sam',
   role: 'Machine Learning & AI Engineer',
   location: 'San Francisco, CA',
-  avatar: 'https://avatars.githubusercontent.com/u/25922277?v=4',
+  avatar: '/avatar.jpg', // color portrait, used large in the hero
+  logo: 'https://avatars.githubusercontent.com/u/25922277?v=4', // illustration, used for nav + favicon
   headline:
     'I turn messy data into AI that ships — production ML pipelines, computer vision, and GenAI/RAG systems.',
   bio: `I'm an ML/AI engineer and data scientist with 8+ years taking models out of notebooks and into production — recommendation engines, healthcare computer-vision pipelines, and RAG chatbots that real users depend on. Lately I'm deep in LLM agents and generative AI. Outside work you'll find me in the gym, which is exactly why half my side projects are AI coaches.`,
@@ -93,7 +94,7 @@ export const projects: Project[] = [
   {
     name: 'VoiceCoach',
     blurb:
-      'The first AI trainer that reads posture, fatigue, and injury risk from your voice alone — no camera, no wearables. Powered by Grok / the xAI API.',
+      'An AI trainer that reads posture, fatigue, and injury risk from your voice alone — no camera, no wearables. Powered by Grok / the xAI API.',
     tags: ['LLM', 'xAI / Grok', 'Audio'],
     href: 'https://github.com/samshanmukh/voicecoach-grok',
     featured: true,

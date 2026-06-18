@@ -6,12 +6,20 @@ import { MusicPlayer } from './components/music-player'
 import { CommandConsole } from './components/command-console'
 
 export const metadata: Metadata = {
+  // TODO: set this to your real deployed URL so link previews resolve correctly.
+  metadataBase: new URL('https://samshanmukh.github.io'),
   title: `${profile.name} — ${profile.role}`,
   description: profile.headline,
   openGraph: {
     title: `${profile.name} — ${profile.role}`,
     description: profile.headline,
     type: 'website',
+    images: [{ url: profile.avatar, width: 1860, height: 2480, alt: profile.name }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${profile.name} — ${profile.role}`,
+    description: profile.headline,
     images: [profile.avatar],
   },
 }

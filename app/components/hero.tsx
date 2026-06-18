@@ -116,19 +116,19 @@ export function Hero() {
               <aside className="shrink-0 lg:w-72">
                 <div className="flex items-start gap-4 lg:flex-col lg:items-stretch">
                   <div className="shrink-0">
-                    <div className="inline-block rounded-md border border-white/15 p-1">
+                    <div className="overflow-hidden rounded-md border border-white/15 p-1">
                       <Image
                         src={profile.avatar}
                         alt={profile.name}
-                        width={140}
-                        height={140}
-                        className="h-24 w-24 rounded object-cover grayscale sm:h-28 sm:w-28 lg:h-32 lg:w-32"
+                        width={372}
+                        height={496}
+                        className="aspect-[3/4] w-32 rounded object-cover object-top sm:w-40 lg:w-full"
                         priority
                         unoptimized
                       />
                     </div>
                     <p className="mt-1 text-center text-[10px] text-muted">
-                      ./avatar.png
+                      ./sam.jpg
                     </p>
                   </div>
 

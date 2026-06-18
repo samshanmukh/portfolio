@@ -1,4 +1,5 @@
-import { socials } from '../lib/data'
+import Image from 'next/image'
+import { profile, socials } from '../lib/data'
 
 const links = [
   { href: '#projects', label: 'works' },
@@ -11,9 +12,19 @@ export function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-lg">
       <nav className="wrap flex items-center justify-between py-3 text-sm">
-        <a href="#" className="text-foreground">
-          <span className="text-primary">sam@portfolio</span>
-          <span className="text-muted">:~$</span>
+        <a href="#" className="flex items-center gap-2 text-foreground">
+          <Image
+            src={profile.logo}
+            alt={profile.name}
+            width={28}
+            height={28}
+            className="h-6 w-6 rounded border border-white/15 object-cover"
+            unoptimized
+          />
+          <span>
+            <span className="text-primary">sam@portfolio</span>
+            <span className="text-muted">:~$</span>
+          </span>
         </a>
         <ul className="hidden items-center gap-4 text-muted sm:flex">
           {links.map((l) => (
