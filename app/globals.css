@@ -84,13 +84,61 @@ body {
   pointer-events: none;
 }
 
-.bg-grid {
+/* digital rain canvas — masked to the side gutters so it stays out from
+   behind the central content column, and fades top/bottom */
+.matrix-canvas {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(200, 210, 225, 0.04) 1px, transparent 1px);
-  background-size: 26px 26px;
-  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 35%, #000, transparent 85%);
-  mask-image: radial-gradient(ellipse 75% 70% at 50% 35%, #000, transparent 85%);
+  width: 100%;
+  height: 100%;
+  opacity: 0.7;
+  -webkit-mask-image:
+    linear-gradient(
+      to right,
+      #000 0%,
+      #000 16%,
+      transparent 34%,
+      transparent 66%,
+      #000 84%,
+      #000 100%
+    ),
+    linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(
+      to right,
+      #000 0%,
+      #000 16%,
+      transparent 34%,
+      transparent 66%,
+      #000 84%,
+      #000 100%
+    ),
+    linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* on narrow screens the gutters vanish, so just fade top/bottom */
+@media (max-width: 1023px) {
+  .matrix-canvas {
+    opacity: 0.45;
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 12%,
+      #000 88%,
+      transparent 100%
+    );
+    -webkit-mask-composite: source-over;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 12%,
+      #000 88%,
+      transparent 100%
+    );
+    mask-composite: add;
+  }
 }
 
 /* faint CRT scanlines for the terminal feel */

@@ -1,11 +1,13 @@
+import { MatrixRain } from './matrix-rain'
+
 /**
- * Clean, flat dark backdrop — just a faint dotted grid for subtle texture.
- * (Previous ambient blobs / cursor glow removed.)
+ * Backdrop — subtle Matrix digital rain (masked to the side gutters) plus
+ * very faint CRT scanlines, on a flat dark base.
  */
 export function InteractiveBackground() {
   return (
     <div aria-hidden className="bg-interactive">
-      <div className="bg-grid" />
+      <MatrixRain />
       <div className="bg-scanlines" />
     </div>
   )
