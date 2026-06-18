@@ -1,11 +1,11 @@
-import { SectionHeading } from './section-heading'
+import { Prompt } from './prompt'
 import { experience, education, certifications, languages } from '../lib/data'
 
 export function Experience() {
   return (
     <section id="experience" className="scroll-mt-24 py-16">
       <div className="mx-auto max-w-4xl px-6">
-        <SectionHeading index="03" eyebrow="Path" title="Experience & education" />
+        <Prompt command="git log --oneline --all" comment="experience & education" />
 
         <ol className="relative border-l border-white/10 pl-6">
           {experience.map((e, i) => (

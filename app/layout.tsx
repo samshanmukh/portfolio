@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { profile } from './lib/data'
 import { InteractiveBackground } from './components/interactive-background'
+import { MusicPlayer } from './components/music-player'
 
 export const metadata: Metadata = {
   title: `${profile.name} — ${profile.role}`,
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className="min-h-screen">
         <InteractiveBackground />
         {children}
+        <MusicPlayer />
       </body>
     </html>
   )

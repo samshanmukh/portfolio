@@ -1,15 +1,11 @@
-import { SectionHeading } from './section-heading'
+import { Prompt } from './prompt'
 import { projects } from '../lib/data'
 
 export function Projects() {
   return (
     <section id="projects" className="scroll-mt-24 py-16">
       <div className="mx-auto max-w-4xl px-6">
-        <SectionHeading
-          index="02"
-          eyebrow="Work"
-          title="Things I've built & shipped"
-        />
+        <Prompt command="ls -la ~/projects" comment="things I've built & shipped" />
         <div className="grid gap-4 sm:grid-cols-2">
           {projects.map((p) => (
             <a

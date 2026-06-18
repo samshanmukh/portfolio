@@ -6,6 +6,7 @@ export function InteractiveBackground() {
   return (
     <div aria-hidden className="bg-interactive">
       <div className="bg-grid" />
+      <div className="bg-scanlines" />
     </div>
   )
 }

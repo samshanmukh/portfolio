@@ -1,36 +1,39 @@
 import { socials } from '../lib/data'
 
 const links = [
-  { href: '#projects', label: 'Work' },
-  { href: '#experience', label: 'Experience' },
-  { href: '#gym', label: 'Off-screen' },
-  { href: '#contact', label: 'Contact' },
+  { href: '#projects', label: 'works' },
+  { href: '#experience', label: 'experience' },
+  { href: '#gym', label: 'off-screen' },
+  { href: '#contact', label: 'contact' },
 ]
 
 export function Nav() {
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-background/70 backdrop-blur-lg">
-      <nav className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-        <a href="#" className="font-mono text-sm font-semibold tracking-tight">
-          <span className="text-gradient">~/sam</span>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/5 bg-background/80 backdrop-blur-lg">
+      <nav className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3 text-sm">
+        <a href="#" className="text-foreground">
+          <span className="text-primary">sam@portfolio</span>
+          <span className="text-muted">:~$</span>
         </a>
-        <ul className="hidden items-center gap-1 text-sm text-muted sm:flex">
+        <ul className="hidden items-center gap-4 text-muted sm:flex">
           {links.map((l) => (
             <li key={l.href}>
               <a
                 href={l.href}
-                className="rounded-md px-3 py-1.5 transition-colors hover:bg-white/5 hover:text-foreground"
+                className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
               >
-                {l.label}
+                ./{l.label}
               </a>
             </li>
           ))}
           <li>
             <a
               href={socials.resume}
-              className="ml-2 rounded-md border border-white/10 px-3 py-1.5 text-foreground transition-colors hover:border-white/25"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground underline-offset-4 hover:underline"
             >
-              Résumé
+              resume.pdf
             </a>
           </li>
         </ul>

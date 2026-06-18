@@ -20,9 +20,10 @@ export default function Home() {
         <Contact />
       </main>
       <footer className="border-t border-white/5 py-8">
-        <div className="mx-auto max-w-4xl px-6 font-mono text-sm text-muted">
-          © {new Date().getFullYear()} {profile.name}. Built from scratch with
-          Next.js & Tailwind.
+        <div className="mx-auto max-w-4xl px-6 text-xs text-muted">
+          <span className="text-muted/60"># </span>
+          {new Date().getFullYear()} {profile.name} — built from scratch with
+          next.js + tailwind. all rights reserved.
         </div>
       </footer>
     </>

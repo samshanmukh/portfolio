@@ -1,11 +1,11 @@
-import { SectionHeading } from './section-heading'
+import { Prompt } from './prompt'
 import { gym } from '../lib/data'
 
 export function Gym() {
   return (
     <section id="gym" className="scroll-mt-24 py-16">
       <div className="mx-auto max-w-4xl px-6">
-        <SectionHeading index="04" eyebrow="Off-screen" title={gym.tagline} />
+        <Prompt command="./gym.sh --status" comment={gym.tagline} />
 
         <div className="relative overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/10 via-surface to-surface p-8 sm:p-10">
           <div

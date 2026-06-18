@@ -1,14 +1,15 @@
 @import 'tailwindcss';
 
 :root {
-  /* dark & mysterious — monochrome cool silver to match the avatar */
+  /* monochrome terminal — cool silver on near-black (matches the avatar) */
   --background: #07080a;
-  --surface: #111316;
-  --foreground: #e9edf2;
-  --muted: #8a929c;
+  --surface: #0d0f12;
+  --foreground: #d7dde4;
+  --muted: #79818c;
   --primary: #c2ccd6; /* cool silver */
   --primary-2: #8f9aa6; /* deeper steel-grey */
   --accent: #c2ccd6;
+  --line: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
@@ -18,7 +19,7 @@
   --color-muted: var(--muted);
   --color-primary: var(--primary);
   --color-accent: var(--accent);
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'JetBrains Mono', ui-monospace, monospace;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 
@@ -29,7 +30,8 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  /* terminal theme — monospace everywhere */
+  font-family: var(--font-mono);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -38,7 +40,6 @@ body {
   color: #0b0d10;
 }
 
-/* gradient text helper (silver → steel-grey) */
 .text-gradient {
   background-image: linear-gradient(90deg, var(--primary), var(--primary-2));
   -webkit-background-clip: text;
@@ -47,7 +48,7 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Background — clean flat dark with a faint dotted grid for subtle texture.
+   Background — flat dark with a faint dotted grid + very subtle scanlines.
 --------------------------------------------------------------------------- */
 .bg-interactive {
   position: fixed;
@@ -57,7 +58,6 @@ body {
   pointer-events: none;
 }
 
-/* faint dotted grid, masked toward the edges so it fades out */
 .bg-grid {
   position: absolute;
   inset: 0;
@@ -67,3 +67,88 @@ body {
   mask-image: radial-gradient(ellipse 75% 70% at 50% 35%, #000, transparent 85%);
 }
 
+/* faint CRT scanlines for the terminal feel */
+.bg-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.018) 0px,
+    rgba(255, 255, 255, 0.018) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   Terminal window chrome
+--------------------------------------------------------------------------- */
+.term {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(13, 15, 18, 0.7);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+.term-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+.term-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.term-body {
+  padding: 1.4rem 1.4rem 1.6rem;
+}
+
+/* blinking block cursor */
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.cursor {
+  display: inline-block;
+  width: 0.6ch;
+  height: 1.05em;
+  background: var(--primary);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1.1s steps(1) infinite;
+}
+
+/* equalizer bars for the music toggle */
+@keyframes eq {
+  0%,
+  100% {
+    height: 25%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+.eq-bar {
+  width: 2px;
+  background: var(--primary);
+  align-self: flex-end;
+  animation: eq 0.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor,
+  .eq-bar {
+    animation: none;
+  }
+}

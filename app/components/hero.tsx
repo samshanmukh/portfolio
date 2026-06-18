@@ -1,70 +1,124 @@
 import Image from 'next/image'
 import { profile, socials } from '../lib/data'
+import { Typewriter } from './typewriter'
+
+function Cmd({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-sm">
+      <span className="text-primary">sam@portfolio</span>
+      <span className="text-muted">:</span>
+      <span className="text-foreground/60">~</span>
+      <span className="text-muted">$ </span>
+      <span className="text-foreground">{children}</span>
+    </div>
+  )
+}
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden pt-36 pb-24">
-      <div className="relative mx-auto flex max-w-4xl flex-col items-start gap-10 px-6 md:flex-row md:items-center md:justify-between">
-        <div className="max-w-2xl">
-          {profile.available && (
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs text-muted">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-slate-200 shadow-[0_0_8px_2px_rgba(194,204,214,0.5)]" />
-              Open to ML / AI roles & collaborations
-            </div>
-          )}
-
-          <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
-            {profile.name.split(' ')[0]}{' '}
-            <span className="text-gradient">{profile.name.split(' ').slice(1).join(' ')}</span>
-          </h1>
-          <p className="mt-3 font-mono text-sm text-primary">
-            {profile.role} · {profile.location}
-          </p>
-
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-foreground/90">
-            {profile.headline}
-          </p>
-          <p className="mt-4 max-w-xl leading-relaxed text-muted">
-            {profile.bio}
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href="#projects"
-              className="rounded-lg bg-gradient-to-r from-slate-200 to-slate-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition-opacity hover:opacity-90"
-            >
-              See my work
-            </a>
-            <a
-              href={socials.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
-            >
-              GitHub
-            </a>
-            <a
-              href={socials.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
-            >
-              LinkedIn
-            </a>
+    <section className="px-4 pt-28 pb-16">
+      <div className="mx-auto max-w-4xl">
+        <div className="term">
+          <div className="term-bar">
+            <span className="term-dot" />
+            <span className="term-dot" />
+            <span className="term-dot" />
+            <span className="ml-2 text-xs text-muted">sam@portfolio: ~ — zsh</span>
           </div>
-        </div>
 
-        <div className="relative shrink-0">
-          <div className="absolute -inset-3 rounded-full bg-gradient-to-tr from-slate-300 to-slate-500 opacity-30 blur-xl" />
-          <Image
-            src={profile.avatar}
-            alt={profile.name}
-            width={160}
-            height={160}
-            className="relative h-36 w-36 rounded-full border border-white/10 object-cover sm:h-40 sm:w-40"
-            priority
-            unoptimized
-          />
+          <div className="term-body space-y-5 text-sm leading-relaxed">
+            <div className="flex flex-col-reverse gap-6 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-5">
+                <div>
+                  <Cmd>whoami</Cmd>
+                  <p className="mt-1 text-xl font-bold text-foreground sm:text-2xl">
+                    <Typewriter text={profile.name} />
+                  </p>
+                </div>
+
+                <div>
+                  <Cmd>cat role.txt</Cmd>
+                  <p className="mt-1 text-foreground/80">
+                    {profile.role} · {profile.location}
+                  </p>
+                </div>
+              </div>
+
+              <div className="shrink-0">
+                <div className="rounded-md border border-white/15 p-1">
+                  <Image
+                    src={profile.avatar}
+                    alt={profile.name}
+                    width={120}
+                    height={120}
+                    className="h-24 w-24 rounded object-cover grayscale sm:h-28 sm:w-28"
+                    priority
+                    unoptimized
+                  />
+                </div>
+                <p className="mt-1 text-center text-[10px] text-muted">
+                  ./avatar.png
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <Cmd>cat bio.txt</Cmd>
+              <p className="mt-1 max-w-2xl text-foreground/80">{profile.headline}</p>
+              <p className="mt-2 max-w-2xl text-muted">{profile.bio}</p>
+            </div>
+
+            <div>
+              <Cmd>ls links/</Cmd>
+              <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5">
+                <a
+                  href="#projects"
+                  className="text-foreground underline-offset-4 hover:underline"
+                >
+                  ./works
+                </a>
+                <a
+                  href={socials.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline-offset-4 hover:underline"
+                >
+                  github
+                </a>
+                <a
+                  href={socials.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline-offset-4 hover:underline"
+                >
+                  linkedin
+                </a>
+                <a
+                  href={socials.resume}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground underline-offset-4 hover:underline"
+                >
+                  resume.pdf
+                </a>
+              </div>
+            </div>
+
+            {profile.available && (
+              <p className="text-xs text-muted">
+                <span className="text-muted/60"># </span>
+                status: open to ML / AI roles &amp; collaborations
+              </p>
+            )}
+
+            <div className="text-sm">
+              <span className="text-primary">sam@portfolio</span>
+              <span className="text-muted">:</span>
+              <span className="text-foreground/60">~</span>
+              <span className="text-muted">$ </span>
+              <span className="cursor" aria-hidden />
+            </div>
+          </div>
         </div>
       </div>
     </section>
