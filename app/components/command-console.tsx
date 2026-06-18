@@ -52,6 +52,7 @@ export function CommandConsole() {
       return
     }
     if (res.action === 'resume') window.open(socials.resume, '_blank')
+    if (res.action === 'source') window.open(socials.sourceRepo, '_blank')
     if (res.action === 'email') window.location.href = `mailto:${socials.email}`
     if (res.action === 'music')
       window.dispatchEvent(new CustomEvent('portfolio:toggle-music'))

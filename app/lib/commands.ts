@@ -18,7 +18,7 @@ export type CmdResult = {
   /** Output lines to print under the echoed command. */
   lines: string[]
   /** Optional side effects handled by the console component. */
-  action?: 'clear' | 'resume' | 'music' | 'email'
+  action?: 'clear' | 'resume' | 'music' | 'email' | 'source'
   /** Optional element id to scroll into view. */
   scrollTo?: string
   /** Marks an error (unknown command) for styling. */
@@ -37,6 +37,7 @@ export const COMMANDS: { cmd: string; desc: string }[] = [
   { cmd: './gym.sh --status', desc: 'life outside the terminal' },
   { cmd: './connect.sh', desc: 'how to reach me' },
   { cmd: 'play_soundtrack.sh', desc: 'toggle the soundtrack' },
+  { cmd: 'source', desc: 'how this site was built (+ source code)' },
   { cmd: 'resume.pdf', desc: 'open my résumé' },
   { cmd: 'clear', desc: 'clear the output' },
   { cmd: 'help', desc: 'list commands' },
@@ -147,6 +148,21 @@ reg(['./connect.sh', 'connect', 'contact', './connect.sh'], () => ({
   lines: contactLines(),
   scrollTo: 'contact',
 }))
+reg(
+  ['source', 'proof', 'view source', 'cat build.txt', 'how', 'stack'],
+  () => ({
+    lines: [
+      'built from scratch — hand-coded, no template & no page builder.',
+      '',
+      `${bullet} stack     Next.js · React · TypeScript · Tailwind CSS`,
+      `${bullet} source    ${socials.sourceRepo}`,
+      `${bullet} hosting   Vercel`,
+      '',
+      'every line is public — inspect the repo above to verify.',
+    ],
+    action: 'source',
+  })
+)
 reg(['clear', 'cls'], () => ({ lines: [], action: 'clear' }))
 reg(['resume.pdf', 'resume', 'open resume', 'cat resume.pdf'], () => ({
   lines: ['opening resume.pdf …'],

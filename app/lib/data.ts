@@ -22,6 +22,8 @@ export const socials = {
   twitter: 'https://x.com/samshanmukh',
   // Put your PDF at /public/resume.pdf and this just works. Or swap in any URL.
   resume: '/resume.pdf',
+  // Public source — proof the site is hand-coded from scratch.
+  sourceRepo: 'https://github.com/samshanmukh/portfolio',
 }
 
 export const skills: { group: string; items: string[] }[] = [

@@ -28,6 +28,16 @@ export function Nav() {
           ))}
           <li>
             <a
+              href={socials.sourceRepo}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              src
+            </a>
+          </li>
+          <li>
+            <a
               href={socials.resume}
               target="_blank"
               rel="noopener noreferrer"
