@@ -1,30 +1,31 @@
 import { SectionHeading } from './section-heading'
+import { socials } from '../lib/data'
 
-const socials = [
-  { label: 'Email', href: 'mailto:sam@runcoach.com' },
-  { label: 'GitHub', href: 'https://github.com/samshanmukh' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/' },
-  { label: 'X', href: 'https://x.com/' },
+const links = [
+  { label: 'Email', href: `mailto:${socials.email}` },
+  { label: 'GitHub', href: socials.github },
+  { label: 'LinkedIn', href: socials.linkedin },
+  { label: 'X / Twitter', href: socials.twitter },
 ]
 
 export function Contact() {
   return (
-    <section id="contact" className="scroll-mt-24 py-20">
-      <div className="mx-auto max-w-3xl px-6">
-        <SectionHeading eyebrow="Contact" title="Let's build something" />
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 to-fuchsia-500/10 p-8">
-          <p className="max-w-md text-neutral-300">
-            Have an idea, a role, or just want to say hi? My inbox is always
-            open — I&apos;ll try to get back to you within a day or two.
+    <section id="contact" className="scroll-mt-24 py-16">
+      <div className="mx-auto max-w-4xl px-6">
+        <SectionHeading index="05" eyebrow="Contact" title="Let's build something" />
+        <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-primary/10 to-cyan-500/10 p-8 sm:p-10">
+          <p className="max-w-md text-foreground/90">
+            Hiring, collaborating, or just want to talk shop about agents and
+            computer vision? My inbox is open — I usually reply within a day.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            {socials.map((s) => (
+            {links.map((s) => (
               <a
                 key={s.label}
                 href={s.href}
                 target={s.href.startsWith('http') ? '_blank' : undefined}
                 rel="noopener noreferrer"
-                className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-neutral-200 transition-colors hover:bg-white/10 hover:text-white"
+                className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-foreground transition-colors hover:bg-white/10"
               >
                 {s.label}
               </a>

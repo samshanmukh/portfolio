@@ -1,59 +1,49 @@
 import { SectionHeading } from './section-heading'
-
-const projects = [
-  {
-    title: 'Project One',
-    description:
-      'A short description of what this project does and the problem it solves. Replace with your real work.',
-    tags: ['Next.js', 'TypeScript', 'Postgres'],
-    href: '#',
-  },
-  {
-    title: 'Project Two',
-    description:
-      'Another highlight from your portfolio. Mention impact, scale, or what made it interesting to build.',
-    tags: ['React', 'Tailwind', 'API'],
-    href: '#',
-  },
-  {
-    title: 'Project Three',
-    description:
-      'A side project or open-source contribution. Link it out so people can explore the code or demo.',
-    tags: ['Node', 'CLI'],
-    href: '#',
-  },
-]
+import { projects } from '../lib/data'
 
 export function Projects() {
   return (
-    <section id="projects" className="scroll-mt-24 py-20">
-      <div className="mx-auto max-w-3xl px-6">
-        <SectionHeading eyebrow="Work" title="Selected projects" />
+    <section id="projects" className="scroll-mt-24 py-16">
+      <div className="mx-auto max-w-4xl px-6">
+        <SectionHeading
+          index="02"
+          eyebrow="Work"
+          title="Things I've built & shipped"
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           {projects.map((p) => (
             <a
-              key={p.title}
+              key={p.name}
               href={p.href}
-              className="group relative rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-colors hover:border-white/20 hover:bg-white/[0.06]"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`group relative flex flex-col rounded-2xl border border-white/10 bg-surface p-6 transition-colors hover:border-primary/40 hover:bg-white/[0.04] ${
+                p.featured ? 'sm:col-span-1' : ''
+              }`}
             >
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-white">{p.title}</h3>
-                <span className="text-neutral-500 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">
-                  ↗
-                </span>
+                <h3 className="font-semibold text-foreground">{p.name}</h3>
+                {p.featured && (
+                  <span className="rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent">
+                    Featured
+                  </span>
+                )}
               </div>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-400">
-                {p.description}
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
+                {p.blurb}
               </p>
-              <div className="mt-4 flex flex-wrap gap-1.5">
+              <div className="mt-4 flex flex-wrap items-center gap-1.5">
                 {p.tags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-md bg-white/5 px-2 py-0.5 text-xs text-neutral-400"
+                    className="rounded-md bg-white/5 px-2 py-0.5 font-mono text-[11px] text-foreground/70"
                   >
                     {t}
                   </span>
                 ))}
+                <span className="ml-auto text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+                  ↗
+                </span>
               </div>
             </a>
           ))}

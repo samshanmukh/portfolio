@@ -30,3 +30,8 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+# LinkedIn data export (sensitive — never commit)
+linkedin_export.zip/
+linkedin_export.zip
+*.linkedin.csv
