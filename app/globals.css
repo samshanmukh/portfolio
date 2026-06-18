@@ -47,8 +47,7 @@ body {
 }
 
 /* ---------------------------------------------------------------------------
-   Interactive background — mouse-follow glow + parallax blobs (see
-   components/interactive-background.tsx which drives the CSS variables).
+   Background — clean flat dark with a faint dotted grid for subtle texture.
 --------------------------------------------------------------------------- */
 .bg-interactive {
   position: fixed;
@@ -56,81 +55,15 @@ body {
   z-index: -10;
   overflow: hidden;
   pointer-events: none;
-  --mx: 50%;
-  --my: 28%;
-  --px: 0px;
-  --py: 0px;
-  --px2: 0px;
-  --py2: 0px;
 }
 
-/* glow that tracks the cursor */
-.bg-glow {
-  position: absolute;
-  inset: -10%;
-  background: radial-gradient(
-    520px circle at var(--mx) var(--my),
-    rgba(194, 204, 214, 0.14),
-    rgba(194, 204, 214, 0.04) 35%,
-    transparent 60%
-  );
-  transition: background 0.18s ease-out;
-}
-
-/* deep ambient blobs that parallax with the cursor */
-.bg-blob {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(90px);
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
-.bg-blob-1 {
-  width: 36rem;
-  height: 36rem;
-  top: -10rem;
-  left: -8rem;
-  background: rgba(150, 165, 182, 0.12);
-  transform: translate3d(var(--px), var(--py), 0);
-}
-.bg-blob-2 {
-  width: 32rem;
-  height: 32rem;
-  bottom: -12rem;
-  right: -8rem;
-  background: rgba(110, 124, 140, 0.12);
-  transform: translate3d(var(--px2), var(--py2), 0);
-}
-
-/* faint dotted grid, masked toward the edges for depth */
+/* faint dotted grid, masked toward the edges so it fades out */
 .bg-grid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(200, 210, 225, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(200, 210, 225, 0.04) 1px, transparent 1px);
   background-size: 26px 26px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, #000, transparent 90%);
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, #000, transparent 90%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 35%, #000, transparent 85%);
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 35%, #000, transparent 85%);
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(18px, -26px) scale(1.08);
-  }
-}
-.animate-float {
-  animation: float 14s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bg-blob,
-  .bg-glow {
-    transition: none;
-  }
-  .animate-float {
-    animation: none;
-  }
-}
