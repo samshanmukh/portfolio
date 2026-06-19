@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { profile, socials, siteUrl, skills, education, languages } from './lib/data'
 import { InteractiveBackground } from './components/interactive-background'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const SEO_DESCRIPTION = `${profile.name} — ${profile.role} in San Francisco. 8+ years building LLM agents, RAG systems & computer-vision pipelines. ${profile.lookingFor}. Chat with my AI agent.`
 
@@ -129,6 +131,8 @@ export default function RootLayout({
         />
         <InteractiveBackground />
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.84",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

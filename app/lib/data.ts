@@ -106,6 +106,8 @@ export type Project = {
   tags: string[]
   href: string
   featured?: boolean
+  metric?: string // quantified impact, e.g. "cut hallucinations ~40% on a 10k-doc store"
+  demo?: string // live demo / video URL
 }
 
 // Real repositories — github.com/samshanmukh
