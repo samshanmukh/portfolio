@@ -97,6 +97,7 @@ const jsonLd = {
       url: siteUrl,
       name: `${profile.name} — ${profile.role}`,
       isPartOf: { '@id': `${siteUrl}/#website` },
+      mainEntity: { '@id': `${siteUrl}/#person` },
       about: { '@id': `${siteUrl}/#person` },
     },
   ],
