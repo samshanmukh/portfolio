@@ -2,9 +2,11 @@ import { Nav } from './components/nav'
 import { Hero } from './components/hero'
 import { About } from './components/about'
 import { Projects } from './components/projects'
+import { GithubNow } from './components/github-now'
 import { Experience } from './components/experience'
 import { Testimonials } from './components/testimonials'
 import { Gym } from './components/gym'
+import { RepCounter } from './components/rep-counter'
 import { Contact } from './components/contact'
 import { profile, socials } from './lib/data'
 
@@ -16,9 +18,11 @@ export default function Home() {
         <Hero />
         <About />
         <Projects />
+        <GithubNow />
         <Experience />
         <Testimonials />
         <Gym />
+        <RepCounter />
         <Contact />
       </main>
       <footer className="border-t border-white/5 py-8">
