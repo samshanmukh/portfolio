@@ -1,14 +1,14 @@
 @import 'tailwindcss';
 
 :root {
-  /* warm dark + brown & white only */
+  /* warm dark + brown & white */
   --background: #15100b;
   --surface: #1f1810;
   --surface-2: #271e14;
-  --foreground: #f4efe6; /* warm white */
-  --muted: #ab9d88; /* muted tan */
-  --primary: #b9895a; /* brown / tan */
-  --primary-2: #dcbb8e; /* light tan */
+  --foreground: #f4efe6;
+  --muted: #ab9d88;
+  --primary: #b9895a;
+  --primary-2: #dcbb8e;
   --line: rgba(200, 180, 150, 0.14);
 }
 
@@ -48,7 +48,7 @@ body {
   color: transparent;
 }
 
-/* content wrapper — full width with ~10% side margins, responsive */
+/* content wrapper — full width with responsive side margins */
 .wrap {
   width: 100%;
   margin-inline: auto;
@@ -70,15 +70,12 @@ body {
   }
 }
 
-/* ---------------------------------------------------------------------------
-   App backdrop — warm dark with a soft brown glow.
---------------------------------------------------------------------------- */
+/* app backdrop — warm dark with a soft brown glow */
 .bg-app {
   position: fixed;
   inset: 0;
   z-index: -10;
   pointer-events: none;
-  overflow: hidden;
 }
 .bg-app::before {
   content: '';
@@ -88,20 +85,8 @@ body {
     radial-gradient(60% 50% at 80% -8%, rgba(185, 137, 90, 0.14), transparent 70%),
     radial-gradient(55% 45% at 6% 2%, rgba(220, 187, 142, 0.07), transparent 70%);
 }
-/* faint static grid, fading out toward the page */
-.bg-app::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(200, 180, 150, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(200, 180, 150, 0.035) 1px, transparent 1px);
-  background-size: 54px 54px;
-  -webkit-mask-image: radial-gradient(ellipse 100% 58% at 50% -4%, #000, transparent 72%);
-  mask-image: radial-gradient(ellipse 100% 58% at 50% -4%, #000, transparent 72%);
-}
 
-/* streaming caret for the agent's typing animation */
+/* streaming caret + thinking dots (agent) */
 @keyframes blink {
   0%,
   49% {
@@ -121,8 +106,6 @@ body {
   vertical-align: text-bottom;
   animation: blink 1s steps(1) infinite;
 }
-
-/* a small "thinking" dot pulse */
 @keyframes pulse-dot {
   0%,
   100% {
@@ -148,4 +131,67 @@ body {
   .dot {
     animation: none;
   }
+}
+
+/* rendered markdown (blog posts) */
+.prose-blog {
+  color: rgba(244, 239, 230, 0.86);
+  line-height: 1.7;
+}
+.prose-blog h2 {
+  margin: 1.8rem 0 0.6rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.prose-blog h3 {
+  margin: 1.4rem 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+.prose-blog p {
+  margin: 0.9rem 0;
+}
+.prose-blog a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-blog ul {
+  margin: 0.9rem 0;
+  padding-left: 1.2rem;
+  list-style: disc;
+}
+.prose-blog li {
+  margin: 0.35rem 0;
+}
+.prose-blog strong {
+  color: var(--foreground);
+}
+.prose-blog code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+.prose-blog pre {
+  margin: 1.1rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.prose-blog pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85rem;
+}
+.prose-blog blockquote {
+  margin: 1.1rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--primary);
+  color: var(--muted);
 }

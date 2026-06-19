@@ -25,7 +25,6 @@ export default function OpengraphImage() {
           fontFamily: 'sans-serif',
         }}
       >
-        {/* subtle brown glow */}
         <div
           style={{
             position: 'absolute',

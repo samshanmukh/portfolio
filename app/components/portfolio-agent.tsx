@@ -74,7 +74,7 @@ export function PortfolioAgent() {
       setBusy(true)
       await streamKeyword({
         tool: 'init()',
-        text: `Hi — I'm ${profile.shortName}'s portfolio agent. I can tell you about his work in real time.`,
+        text: `Yo, I'm ${profile.shortName} 👋 ML/AI engineer — this is me, ask me anything. Fair warning: I run on sarcasm, dad jokes, and unpopular opinions (tabs > spaces).`,
       })
       if (cancelled) return
       await sleep(300)
@@ -197,7 +197,7 @@ export function PortfolioAgent() {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-transparent shadow-2xl shadow-black/30 backdrop-blur-sm">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.02] px-4 py-3">
+      <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-3">
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-xs font-bold text-[#1c130a]">
           ◆
         </span>

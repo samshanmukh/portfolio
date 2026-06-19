@@ -4,7 +4,8 @@ import { profile, socials } from '../lib/data'
 const links = [
   { href: '#projects', label: 'Work' },
   { href: '#experience', label: 'Experience' },
-  { href: '#gym', label: 'Beyond' },
+  { href: '#trainer', label: 'Demos' },
+  { href: '/blog', label: 'Writing' },
   { href: '#contact', label: 'Contact' },
 ]
 

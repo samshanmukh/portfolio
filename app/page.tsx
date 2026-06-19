@@ -6,7 +6,8 @@ import { GithubNow } from './components/github-now'
 import { Experience } from './components/experience'
 import { Testimonials } from './components/testimonials'
 import { Gym } from './components/gym'
-import { RepCounter } from './components/rep-counter'
+import { AiTrainer } from './components/ai-trainer'
+import { VoiceCoach } from './components/voice-coach'
 import { Contact } from './components/contact'
 import { profile, socials } from './lib/data'
 
@@ -22,7 +23,8 @@ export default function Home() {
         <Experience />
         <Testimonials />
         <Gym />
-        <RepCounter />
+        <AiTrainer />
+        <VoiceCoach />
         <Contact />
       </main>
       <footer className="border-t border-white/5 py-8">

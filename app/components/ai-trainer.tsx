@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { SectionHeading } from './section-heading'
 
 type Status = 'idle' | 'loading' | 'active' | 'denied' | 'error'
+type P = { x: number; y: number }
 
 const WASM = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm'
 const MODEL =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task'
 
-// angle (degrees) at point b formed by a-b-c
 function angle(a: P, b: P, c: P) {
   const abx = a.x - b.x
   const aby = a.y - b.y
@@ -19,9 +19,8 @@ function angle(a: P, b: P, c: P) {
   const mag = Math.hypot(abx, aby) * Math.hypot(cbx, cby) || 1
   return (Math.acos(Math.max(-1, Math.min(1, dot / mag))) * 180) / Math.PI
 }
-type P = { x: number; y: number }
 
-export function RepCounter() {
+export function AiTrainer() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,11 +32,15 @@ export function RepCounter() {
   const lastT = useRef(-1)
   const phase = useRef<'up' | 'down'>('up')
   const minAngle = useRef(180)
+  const repsRef = useRef(0)
   const fbRef = useRef('')
+  const voiceRef = useRef(true)
 
   const [status, setStatus] = useState<Status>('idle')
   const [reps, setReps] = useState(0)
-  const [feedback, setFeedback] = useState('Stand back so your whole body is in frame')
+  const [feedback, setFeedback] = useState('Stand side-on so your whole body is in frame')
+  const [coachLine, setCoachLine] = useState('Your AI coach will hype you up as you go 💪')
+  const [voiceOn, setVoiceOn] = useState(true)
   const [note, setNote] = useState('loading model…')
 
   const setFb = (t: string) => {
@@ -45,6 +48,48 @@ export function RepCounter() {
       fbRef.current = t
       setFeedback(t)
     }
+  }
+
+  const speak = (t: string) => {
+    if (!voiceRef.current) return
+    try {
+      const s = window.speechSynthesis
+      s.cancel()
+      const u = new SpeechSynthesisUtterance(t)
+      u.rate = 1.06
+      u.pitch = 1.05
+      s.speak(u)
+    } catch {}
+  }
+
+  // Grok-powered motivational line (secure /api/coach route), with fallback.
+  const grokHype = async (n: number, deep: boolean) => {
+    let line = ''
+    try {
+      const res = await fetch('/api/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `I just hit ${n} squats. My depth has been ${
+            deep ? 'good and deep' : 'a bit shallow'
+          }. Give me one short hype line to keep going.`,
+        }),
+      })
+      const data = await res.json()
+      line = data?.reply || ''
+    } catch {}
+    if (!line)
+      line = deep
+        ? `${n} reps — beautiful depth. Keep that pace!`
+        : `${n} reps! Sink a little lower and finish strong!`
+    setCoachLine(line)
+    speak(line)
+  }
+
+  const onRep = (n: number, deep: boolean) => {
+    setFb(deep ? `💪 Rep ${n} — deep!` : `Rep ${n} — go a bit deeper`)
+    if (n % 5 === 0) grokHype(n, deep)
+    else speak(deep ? `${n}. Strong rep!` : `${n}. Go deeper.`)
   }
 
   const stop = () => {
@@ -55,10 +100,17 @@ export function RepCounter() {
       lmRef.current?.close?.()
     } catch {}
     lmRef.current = null
+    try {
+      window.speechSynthesis?.cancel()
+    } catch {}
     setStatus('idle')
   }
 
   useEffect(() => () => stop(), [])
+  useEffect(() => {
+    voiceRef.current = voiceOn
+    if (!voiceOn) try { window.speechSynthesis?.cancel() } catch {}
+  }, [voiceOn])
 
   const loop = () => {
     rafRef.current = requestAnimationFrame(loop)
@@ -91,7 +143,6 @@ export function RepCounter() {
       setFb('No person detected — step into frame')
       return
     }
-
     try {
       const du = new vision.DrawingUtils(ctx)
       du.drawConnectors(pose, vision.PoseLandmarker.POSE_CONNECTIONS, {
@@ -101,7 +152,6 @@ export function RepCounter() {
       du.drawLandmarks(pose, { radius: 3, color: '#dcbb8e' })
     } catch {}
 
-    // knee angle from the more-visible leg
     const vis = (i: number) => pose[i].visibility ?? 0
     const lScore = (vis(23) + vis(25) + vis(27)) / 3
     const rScore = (vis(24) + vis(26) + vis(28)) / 3
@@ -113,22 +163,21 @@ export function RepCounter() {
     const knee =
       lScore >= rScore ? angle(sc(23), sc(25), sc(27)) : angle(sc(24), sc(26), sc(28))
 
-    // squat rep state machine
     if (phase.current === 'up') {
       if (knee < 100) {
         phase.current = 'down'
         minAngle.current = knee
         setFb('Down — now drive up! ⬆')
-      } else {
-        setFb(knee > 160 ? 'Ready — squat down ⬇' : 'Keep lowering…')
-      }
+      } else setFb(knee > 160 ? 'Ready — squat down ⬇' : 'Keep lowering…')
     } else {
       minAngle.current = Math.min(minAngle.current, knee)
       if (knee > 155) {
         phase.current = 'up'
         const deep = minAngle.current < 95
-        setReps((r) => r + 1)
-        setFb(deep ? '💪 Deep rep — nice!' : 'Rep! Try to go a bit deeper')
+        const n = repsRef.current + 1
+        repsRef.current = n
+        setReps(n)
+        onRep(n, deep)
         minAngle.current = 180
       }
     }
@@ -137,10 +186,11 @@ export function RepCounter() {
   const start = async () => {
     setStatus('loading')
     setReps(0)
+    repsRef.current = 0
     phase.current = 'up'
     minAngle.current = 180
     try {
-      if (!navigator.mediaDevices?.getUserMedia) throw new Error('no-camera-api')
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error('no-camera')
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user', width: 640, height: 480 },
         audio: false,
@@ -160,12 +210,13 @@ export function RepCounter() {
         numPoses: 1,
       })
       setStatus('active')
+      speak("Let's go! Show me your squats.")
       rafRef.current = requestAnimationFrame(loop)
     } catch (e) {
       const name = (e as Error)?.name
       if (name === 'NotAllowedError' || name === 'PermissionDeniedError') setStatus('denied')
       else {
-        console.error('[rep-counter]', e)
+        console.error('[ai-trainer]', e)
         setStatus('error')
       }
       streamRef.current?.getTracks().forEach((t) => t.stop())
@@ -173,14 +224,14 @@ export function RepCounter() {
   }
 
   return (
-    <section id="demo" className="scroll-mt-24 py-16">
+    <section id="trainer" className="scroll-mt-24 py-16">
       <div className="wrap">
         <SectionHeading
-          eyebrow="Live demo · runs in your browser"
-          title="Try my computer vision — squat rep counter"
+          eyebrow="Live demo · computer vision + voice, in your browser"
+          title="AI personal trainer — it watches your form and coaches you out loud"
         />
 
-        <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+        <div className="grid items-stretch gap-6 lg:grid-cols-[1.4fr_1fr]">
           {/* camera stage */}
           <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
             <video
@@ -195,10 +246,18 @@ export function RepCounter() {
             />
 
             {status === 'active' && (
-              <div className="absolute left-3 top-3 rounded-xl border border-white/15 bg-black/60 px-4 py-2 backdrop-blur">
-                <div className="font-mono text-4xl font-bold text-primary tabular-nums">{reps}</div>
-                <div className="font-mono text-[10px] uppercase tracking-widest text-muted">reps</div>
-              </div>
+              <>
+                <div className="absolute left-3 top-3 rounded-xl border border-white/15 bg-black/60 px-4 py-2 backdrop-blur">
+                  <div className="font-mono text-4xl font-bold text-primary tabular-nums">{reps}</div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted">reps</div>
+                </div>
+                <button
+                  onClick={() => setVoiceOn((v) => !v)}
+                  className="absolute right-3 top-3 rounded-lg border border-white/15 bg-black/60 px-3 py-1.5 font-mono text-xs text-foreground backdrop-blur"
+                >
+                  {voiceOn ? '🔊 coach on' : '🔇 coach off'}
+                </button>
+              </>
             )}
 
             {status !== 'active' && (
@@ -207,13 +266,13 @@ export function RepCounter() {
                   <p className="font-mono text-sm text-primary">{note}</p>
                 ) : status === 'denied' ? (
                   <p className="max-w-xs text-sm text-muted">
-                    Camera permission was blocked. Allow it in your browser and try again — the
-                    video never leaves your device.
+                    Camera permission was blocked. Allow it and try again — the video never leaves
+                    your device.
                   </p>
                 ) : status === 'error' ? (
                   <p className="max-w-xs text-sm text-muted">
-                    Couldn&apos;t start the model here (needs a modern desktop browser with WebGL).
-                    See the real app →{' '}
+                    Couldn&apos;t start here (needs a modern desktop browser with WebGL). See the real
+                    apps →{' '}
                     <a
                       href="https://github.com/samshanmukh/RepRight"
                       target="_blank"
@@ -224,47 +283,49 @@ export function RepCounter() {
                     </a>
                   </p>
                 ) : (
-                  <>
-                    <p className="max-w-sm text-sm text-muted">
-                      Turn on your camera, stand side-on, and do a few squats — a pose model counts
-                      your reps and checks depth, live.
-                    </p>
-                  </>
+                  <p className="max-w-sm text-sm text-muted">
+                    Turn on your camera, stand side-on, and squat — it counts your reps, checks depth,
+                    and <span className="text-foreground">talks you through it</span> like a real
+                    coach.
+                  </p>
                 )}
                 {status !== 'loading' && (
                   <button
                     onClick={start}
                     className="rounded-lg bg-gradient-to-r from-primary to-[#dcbb8e] px-5 py-2.5 text-sm font-semibold text-[#1c130a] transition-opacity hover:opacity-90"
                   >
-                    {status === 'idle' ? '▶ Start camera' : 'Try again'}
+                    {status === 'idle' ? '▶ Start training' : 'Try again'}
                   </button>
                 )}
               </div>
             )}
           </div>
 
-          {/* side panel */}
-          <div className="flex flex-col justify-between gap-4 rounded-2xl border border-white/10 bg-surface p-6">
+          {/* coaching panel */}
+          <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-surface p-6">
             <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-primary">coach feedback</p>
-              <p className="mt-2 text-lg text-foreground">{status === 'active' ? feedback : '—'}</p>
+              <p className="font-mono text-xs uppercase tracking-widest text-primary">form check</p>
+              <p className="mt-1 text-lg text-foreground">{status === 'active' ? feedback : '—'}</p>
+            </div>
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <p className="font-mono text-xs uppercase tracking-widest text-primary">
+                🎙 coach says
+              </p>
+              <p className="mt-1 leading-relaxed text-foreground">{coachLine}</p>
             </div>
             <ul className="space-y-1.5 text-sm text-muted">
-              <li>› Pose estimation with MediaPipe (33 body landmarks)</li>
-              <li>› Knee-angle tracking → rep count + depth check</li>
-              <li>› Same idea as my <span className="text-foreground">RepRight</span> app</li>
+              <li>
+                › <span className="text-foreground">Sees you</span> — pose estimation counts reps +
+                checks depth (my <span className="text-foreground">RepRight</span>)
+              </li>
+              <li>
+                › <span className="text-foreground">Talks to you</span> — voice coaching powered by
+                Grok / xAI (my <span className="text-foreground">VoiceCoach</span>)
+              </li>
             </ul>
-            <p className="text-xs text-muted/80">
-              🔒 100% on-device — your camera feed never leaves your browser, nothing is recorded.
+            <p className="mt-auto text-xs text-muted/80">
+              🔒 Camera + voice run in your browser; your video never leaves your device.
             </p>
-            {status === 'active' && (
-              <button
-                onClick={stop}
-                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-foreground transition-colors hover:bg-white/5"
-              >
-                ◼ Stop camera
-              </button>
-            )}
           </div>
         </div>
       </div>
