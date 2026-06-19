@@ -12,7 +12,7 @@ export const profile = {
   logo: 'https://avatars.githubusercontent.com/u/25922277?v=4', // illustration, used for nav + favicon
   headline:
     'I turn messy data into AI that ships — production ML pipelines, computer vision, and GenAI/RAG systems.',
-  bio: `I'm an ML/AI engineer and data scientist with 8+ years taking models out of notebooks and into production — recommendation engines, healthcare computer-vision pipelines, and RAG chatbots that real users depend on. Lately I'm deep in LLM agents and generative AI. Outside work you'll find me in the gym, which is exactly why half my side projects are AI coaches.`,
+  bio: `I'm an ML/AI engineer and data scientist with 6+ years taking models out of notebooks and into production — recommendation engines, healthcare computer-vision pipelines, and RAG chatbots that real users depend on. Lately I'm deep in LLM agents and generative AI. Outside work you'll find me in the gym, which is exactly why half my side projects are AI coaches.`,
   available: true,
   // Edit to taste (add work-authorization status if you want recruiters to know).
   lookingFor: 'Open to ML / AI Engineer roles · San Francisco or remote',

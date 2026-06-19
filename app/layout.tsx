@@ -5,7 +5,7 @@ import { InteractiveBackground } from './components/interactive-background'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const SEO_DESCRIPTION = `${profile.name} — ${profile.role} in San Francisco. 8+ years building LLM agents, RAG systems & computer-vision pipelines. ${profile.lookingFor}. Chat with my AI agent.`
+const SEO_DESCRIPTION = `${profile.name} — ${profile.role} in San Francisco. 6+ years building LLM agents, RAG systems & computer-vision pipelines. ${profile.lookingFor}. Chat with my AI agent.`
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

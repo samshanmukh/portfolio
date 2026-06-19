@@ -83,7 +83,7 @@ export function ask(question: string): AgentReply {
   if (has(q, 'experience', 'work', 'worked', 'job', 'career', 'company', 'companies', 'history', 'role')) {
     const cur = experience[0]
     const text =
-      `Sam has 8+ years across data science and ML engineering. Currently ${cur.role} at ${cur.company} (${cur.period}), ` +
+      `Sam has 6+ years across data science and ML engineering. Currently ${cur.role} at ${cur.company} (${cur.period}), ` +
       `building RAG chatbots and computer-vision pipelines. Before that: ${experience
         .slice(1, 3)
         .map((e) => e.company)
