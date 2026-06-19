@@ -40,6 +40,9 @@ export const testimonials = [
   },
 ]
 
+// Deployed site URL (used for SEO, sitemap, OG, JSON-LD).
+export const siteUrl = 'https://samkarri.com'
+
 export const socials = {
   email: 'shanmukhsain@gmail.com',
   github: 'https://github.com/samshanmukh',

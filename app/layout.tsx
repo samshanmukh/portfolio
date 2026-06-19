@@ -1,53 +1,104 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { profile, socials } from './lib/data'
+import { profile, socials, siteUrl, skills, education, languages } from './lib/data'
 import { InteractiveBackground } from './components/interactive-background'
 
+const SEO_DESCRIPTION = `${profile.name} — ${profile.role} in San Francisco. 8+ years building LLM agents, RAG systems & computer-vision pipelines. ${profile.lookingFor}. Chat with my AI agent.`
+
 export const metadata: Metadata = {
-  // TODO: set this to your real deployed URL so link previews resolve correctly.
-  metadataBase: new URL('https://samshanmukh.github.io'),
-  title: `${profile.name} — ${profile.role}`,
-  description: profile.headline,
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: `${profile.name} — ${profile.role}`,
+    template: `%s — ${profile.name}`,
+  },
+  description: SEO_DESCRIPTION,
+  applicationName: `${profile.name} · Portfolio`,
+  category: 'technology',
   keywords: [
+    profile.name,
+    'Sam Karri',
     'Machine Learning Engineer',
     'AI Engineer',
     'Data Scientist',
     'LLM agents',
+    'Agentic AI',
     'RAG',
     'Computer Vision',
-    profile.name,
+    'Generative AI',
+    'San Francisco',
+    'hire ML engineer',
   ],
-  authors: [{ name: profile.name }],
+  authors: [{ name: profile.name, url: socials.linkedin }],
+  creator: profile.name,
+  alternates: { canonical: '/' },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+  },
   openGraph: {
     title: `${profile.name} — ${profile.role}`,
-    description: profile.headline,
-    type: 'website',
+    description: SEO_DESCRIPTION,
+    url: siteUrl,
+    siteName: `${profile.name} · Portfolio`,
+    type: 'profile',
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
     title: `${profile.name} — ${profile.role}`,
-    description: profile.headline,
+    description: SEO_DESCRIPTION,
+    creator: '@samshanmukh',
   },
 }
 
-// JSON-LD structured data so search engines / recruiter tools understand the page.
-const personJsonLd = {
+export const viewport: Viewport = {
+  themeColor: '#15100b',
+}
+
+// Rich JSON-LD graph so search engines / recruiter tools fully understand the page.
+const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Person',
-  name: profile.name,
-  jobTitle: profile.role,
-  url: 'https://samshanmukh.github.io',
-  image: '/avatar.jpg',
-  email: `mailto:${socials.email}`,
-  address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressRegion: 'CA' },
-  sameAs: [socials.github, socials.linkedin, socials.twitter],
-  knowsAbout: [
-    'Machine Learning',
-    'Deep Learning',
-    'LLM Agents',
-    'Generative AI',
-    'Computer Vision',
-    'Data Science',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': `${siteUrl}/#person`,
+      name: profile.name,
+      alternateName: 'Sam Karri',
+      jobTitle: profile.role,
+      description: profile.headline,
+      url: siteUrl,
+      image: `${siteUrl}/avatar.jpg`,
+      email: `mailto:${socials.email}`,
+      address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressRegion: 'CA', addressCountry: 'US' },
+      sameAs: [socials.github, socials.linkedin, socials.twitter, socials.sourceRepo],
+      knowsLanguage: languages,
+      knowsAbout: skills.flatMap((s) => s.items),
+      alumniOf: education.map((e) => ({ '@type': 'CollegeOrUniversity', name: e.school })),
+      hasOccupation: {
+        '@type': 'Occupation',
+        name: profile.role,
+        occupationLocation: { '@type': 'City', name: 'San Francisco' },
+        skills: skills.flatMap((s) => s.items).join(', '),
+      },
+      seeks: { '@type': 'Demand', name: profile.lookingFor },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      url: siteUrl,
+      name: `${profile.name} · Portfolio`,
+      inLanguage: 'en-US',
+      about: { '@id': `${siteUrl}/#person` },
+    },
+    {
+      '@type': 'ProfilePage',
+      '@id': `${siteUrl}/#webpage`,
+      url: siteUrl,
+      name: `${profile.name} — ${profile.role}`,
+      isPartOf: { '@id': `${siteUrl}/#website` },
+      about: { '@id': `${siteUrl}/#person` },
+    },
   ],
 }
 
@@ -73,7 +124,7 @@ export default function RootLayout({
       <body className="min-h-screen">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <InteractiveBackground />
         {children}
