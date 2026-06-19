@@ -30,6 +30,7 @@ export function PortfolioAgent() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(true)
   const [started, setStarted] = useState(false)
+  const [chips, setChips] = useState<string[]>(SUGGESTIONS)
   const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
   const [llm, setLlm] = useState<LlmState>('idle')
   const [prog, setProg] = useState(0)
@@ -77,8 +78,10 @@ export function PortfolioAgent() {
       })
       if (cancelled) return
       await sleep(300)
-      await streamKeyword(ask('what has he built'))
+      const highlight = ask('what has he built')
+      await streamKeyword(highlight)
       if (cancelled) return
+      setChips(highlight.followups ?? SUGGESTIONS)
       setBusy(false)
       setStarted(true)
       inputRef.current?.focus()
@@ -183,7 +186,9 @@ export function PortfolioAgent() {
     if (mode === 'llm' && llm === 'ready' && engineRef.current) {
       await runLLM(q)
     } else {
-      await streamKeyword(ask(q))
+      const reply = ask(q)
+      await streamKeyword(reply)
+      setChips(reply.followups ?? SUGGESTIONS)
     }
     setBusy(false)
     inputRef.current?.focus()
@@ -281,18 +286,27 @@ export function PortfolioAgent() {
         </div>
       )}
 
-      {/* suggestions */}
+      {/* suggestions (contextual) + smart-mode hint */}
       {started && !busy && llm !== 'loading' && (
-        <div className="flex flex-wrap gap-1.5 px-4 pb-2">
-          {SUGGESTIONS.map((s) => (
-            <button
-              key={s}
-              onClick={() => run(s)}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted transition-colors hover:border-primary/40 hover:text-foreground"
-            >
-              {s}
-            </button>
-          ))}
+        <div className="px-4 pb-2">
+          <div className="flex flex-wrap gap-1.5">
+            {chips.map((s) => (
+              <button
+                key={s}
+                onClick={() => run(s)}
+                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted transition-colors hover:border-primary/40 hover:text-foreground"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          {mode === 'keyword' && (llm === 'idle' || llm === 'error') && (
+            <p className="mt-2 text-[10px] text-muted/70">
+              instant answers · tap{' '}
+              <span className="font-mono text-primary">⚡ smart mode</span> (top right) for a
+              free LLM that runs in your browser
+            </p>
+          )}
         </div>
       )}
 

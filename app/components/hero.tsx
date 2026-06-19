@@ -43,6 +43,8 @@ export function Hero() {
 
           <p className="mt-6 max-w-xl leading-relaxed text-muted">{profile.bio}</p>
 
+          <p className="mt-4 text-sm text-primary">{profile.lookingFor}</p>
+
           <div className="mt-7 flex flex-wrap gap-3">
             <a
               href="#projects"

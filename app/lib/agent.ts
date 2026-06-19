@@ -10,6 +10,7 @@ import {
   experience,
   education,
   gym,
+  testimonials,
 } from './data'
 
 export type Source = { label: string; href?: string; scrollTo?: string }
@@ -19,6 +20,7 @@ export type AgentReply = {
   sources?: Source[]
   action?: 'resume' | 'email' | 'source'
   scrollTo?: string
+  followups?: string[] // contextual suggestion chips after the answer
 }
 
 export const SUGGESTIONS = [
@@ -40,8 +42,27 @@ export function ask(question: string): AgentReply {
     }
   }
 
+  // greeting
+  if (/^(hi|hey|hello|yo|sup|howdy|hiya)\b/.test(q)) {
+    return {
+      tool: 'init()',
+      text: `Hey! I'm ${profile.shortName}'s portfolio agent. Want to hear about his projects, experience, or how to reach him?`,
+      followups: SUGGESTIONS,
+    }
+  }
+
+  // what is he looking for / availability
+  if (has(q, 'looking for', 'looking', 'available', 'remote', 'relocat', 'onsite', 'on-site', 'visa', 'sponsor')) {
+    return {
+      tool: 'read(status)',
+      text: `${profile.lookingFor}. He's actively open and usually replies within a day.`,
+      followups: ['How do I reach him?', 'View his résumé', 'What has he built?'],
+      sources: [{ label: 'email', href: `mailto:${socials.email}` }],
+    }
+  }
+
   // projects
-  if (has(q, 'build', 'built', 'project', 'ship', 'work on', 'made', 'portfolio of', 'agent', 'model')) {
+  if (has(q, 'build', 'built', 'project', 'ship', 'work on', 'made', 'portfolio of', 'agent', 'model', 'favorite', 'best')) {
     const featured = projects.filter((p) => p.featured)
     const text =
       `Sam ships applied AI end-to-end. The headliner is ${featured[0].name} — ${featured[0].blurb.toLowerCase()} ` +
@@ -54,6 +75,7 @@ export function ask(question: string): AgentReply {
       text,
       scrollTo: 'projects',
       sources: projects.slice(0, 4).map((p) => ({ label: p.name, href: p.href })),
+      followups: ["What's his stack?", 'Where has he worked?', 'How do I reach him?'],
     }
   }
 
@@ -71,6 +93,7 @@ export function ask(question: string): AgentReply {
       text,
       scrollTo: 'experience',
       sources: experience.slice(0, 3).map((e) => ({ label: e.company, scrollTo: 'experience' })),
+      followups: ['What has he built?', "What's his education?", 'What do people say?'],
     }
   }
 
@@ -81,7 +104,23 @@ export function ask(question: string): AgentReply {
       `${skills[1].items.slice(0, 4).join(', ')} for data, and ships with ${skills[2].items
         .slice(0, 3)
         .join(', ')}. Full breakdown below.`
-    return { tool: 'read(skills.json)', text, scrollTo: 'about' }
+    return {
+      tool: 'read(skills.json)',
+      text,
+      scrollTo: 'about',
+      followups: ['What has he built?', 'Where has he worked?'],
+    }
+  }
+
+  // testimonials / recommendations
+  if (has(q, 'recommend', 'testimonial', 'people say', 'say about', 'reference', 'vouch', 'review', 'what do people')) {
+    const t = testimonials[0]
+    return {
+      tool: 'fetch(recommendations)',
+      text: `People love working with him. ${t.name} (${t.title}) said: “${t.quote}”`,
+      scrollTo: 'testimonials',
+      followups: ['What has he built?', 'How do I reach him?'],
+    }
   }
 
   // education
@@ -103,6 +142,7 @@ export function ask(question: string): AgentReply {
         { label: 'linkedin', href: socials.linkedin },
         { label: 'github', href: socials.github },
       ],
+      followups: ['View his résumé', 'What has he built?', 'What do people say?'],
     }
   }
 
@@ -113,6 +153,7 @@ export function ask(question: string): AgentReply {
       text: 'Opening his résumé now — it has the full detail on roles, dates, and stack.',
       action: 'resume',
       sources: [{ label: 'resume.pdf', href: socials.resume }],
+      followups: ['Where has he worked?', 'How do I reach him?'],
     }
   }
 
@@ -147,6 +188,7 @@ export function ask(question: string): AgentReply {
   // fallback
   return {
     tool: 'no_match',
-    text: `I can tell you about Sam's projects, experience, skills, education, or how to reach him. Try one of the suggestions below.`,
+    text: `I can tell you about Sam's projects, experience, skills, education, recommendations, or how to reach him. Try one of these:`,
+    followups: SUGGESTIONS,
   }
 }

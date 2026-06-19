@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { profile } from './lib/data'
+import { profile, socials } from './lib/data'
 import { InteractiveBackground } from './components/interactive-background'
 
 export const metadata: Metadata = {
@@ -8,18 +8,47 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://samshanmukh.github.io'),
   title: `${profile.name} — ${profile.role}`,
   description: profile.headline,
+  keywords: [
+    'Machine Learning Engineer',
+    'AI Engineer',
+    'Data Scientist',
+    'LLM agents',
+    'RAG',
+    'Computer Vision',
+    profile.name,
+  ],
+  authors: [{ name: profile.name }],
   openGraph: {
     title: `${profile.name} — ${profile.role}`,
     description: profile.headline,
     type: 'website',
-    images: [{ url: profile.avatar, width: 1860, height: 2480, alt: profile.name }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${profile.name} — ${profile.role}`,
     description: profile.headline,
-    images: [profile.avatar],
   },
+}
+
+// JSON-LD structured data so search engines / recruiter tools understand the page.
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.role,
+  url: 'https://samshanmukh.github.io',
+  image: '/avatar.jpg',
+  email: `mailto:${socials.email}`,
+  address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressRegion: 'CA' },
+  sameAs: [socials.github, socials.linkedin, socials.twitter],
+  knowsAbout: [
+    'Machine Learning',
+    'Deep Learning',
+    'LLM Agents',
+    'Generative AI',
+    'Computer Vision',
+    'Data Science',
+  ],
 }
 
 export default function RootLayout({
@@ -42,6 +71,10 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
         <InteractiveBackground />
         {children}
       </body>

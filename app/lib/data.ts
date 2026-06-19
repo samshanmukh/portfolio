@@ -14,7 +14,31 @@ export const profile = {
     'I turn messy data into AI that ships — production ML pipelines, computer vision, and GenAI/RAG systems.',
   bio: `I'm an ML/AI engineer and data scientist with 8+ years taking models out of notebooks and into production — recommendation engines, healthcare computer-vision pipelines, and RAG chatbots that real users depend on. Lately I'm deep in LLM agents and generative AI. Outside work you'll find me in the gym, which is exactly why half my side projects are AI coaches.`,
   available: true,
+  // Edit to taste (add work-authorization status if you want recruiters to know).
+  lookingFor: 'Open to ML / AI Engineer roles · San Francisco or remote',
 }
+
+// Real LinkedIn recommendations (lightly trimmed). Source: LinkedIn export.
+export const testimonials = [
+  {
+    quote:
+      "A fast learner who isn't afraid to step outside his comfort zone — he regularly raised helpful points and asked the right “why” questions. He'll be an asset to any organization looking for a bright data scientist.",
+    name: 'Yoed Nehoran',
+    title: 'CEO, QQ Tech',
+  },
+  {
+    quote:
+      "An incredible asset to the dev team. I can always count on him to roll up his sleeves — whether it's debugging or development, he's accountable to the project and his team. A joy to work with.",
+    name: 'Hiruni Wijayaratne',
+    title: 'Senior Manager, Omada Health',
+  },
+  {
+    quote:
+      'Dedicated and passionate, always up for challenges and quick to learn. We worked together on a health & fitness project providing automated coach training.',
+    name: 'Saiprasad Gupta',
+    title: 'Senior Software Engineer, ixigo',
+  },
+]
 
 export const socials = {
   email: 'shanmukhsain@gmail.com',
