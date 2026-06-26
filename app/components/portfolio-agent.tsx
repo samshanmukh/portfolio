@@ -74,7 +74,7 @@ export function PortfolioAgent() {
       setBusy(true)
       await streamKeyword({
         tool: 'init()',
-        text: `Yo, I'm ${profile.shortName} 👋 ML/AI engineer — this is me, ask me anything. Fair warning: I run on sarcasm, dad jokes, and unpopular opinions (tabs > spaces).`,
+        text: `Yo, I'm ${profile.shortName} 👋 forward deployed engineer — I embed with teams and ship AI into production. This is me, ask me anything. Fair warning: I run on sarcasm, dad jokes, and unpopular opinions (tabs > spaces).`,
       })
       if (cancelled) return
       await sleep(300)
@@ -194,16 +194,41 @@ export function PortfolioAgent() {
     inputRef.current?.focus()
   }
 
+  // questions seeded from the hero's chat box (queued until the intro finishes)
+  const runRef = useRef(run)
+  runRef.current = run
+  const pendingRef = useRef<string | null>(null)
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      pendingRef.current = (e as CustomEvent<string>).detail
+      if (!busy) {
+        const q = pendingRef.current
+        pendingRef.current = null
+        if (q) runRef.current(q)
+      }
+    }
+    window.addEventListener('portfolio:ask', onAsk)
+    return () => window.removeEventListener('portfolio:ask', onAsk)
+  }, [busy])
+
+  useEffect(() => {
+    if (!busy && pendingRef.current) {
+      const q = pendingRef.current
+      pendingRef.current = null
+      runRef.current(q)
+    }
+  }, [busy])
+
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-transparent shadow-2xl shadow-black/30 backdrop-blur-sm">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-3">
-        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-xs font-bold text-[#1c130a]">
+        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary-2 text-xs font-bold text-on-primary">
           ◆
         </span>
         <span className="text-sm font-medium">portfolio-agent</span>
         <span className="flex items-center gap-1.5 text-xs text-muted">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#dcbb8e]" />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-2" />
           {busy ? 'working' : 'online'}
         </span>
         <div className="ml-auto">
@@ -229,7 +254,7 @@ export function PortfolioAgent() {
               </div>
             ) : (
               <div key={i} className="flex gap-2.5">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-[11px] font-bold text-[#1c130a]">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary-2 text-[11px] font-bold text-on-primary">
                   ◆
                 </span>
                 <div className="min-w-0 max-w-[88%] space-y-2">
@@ -276,7 +301,7 @@ export function PortfolioAgent() {
           </div>
           <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-[#dcbb8e] transition-all duration-300"
+              className="h-full rounded-full bg-gradient-to-r from-primary to-primary-2 transition-all duration-300"
               style={{ width: `${prog}%` }}
             />
           </div>
@@ -333,7 +358,7 @@ export function PortfolioAgent() {
         <button
           type="submit"
           disabled={busy || !input.trim()}
-          className="rounded-lg bg-gradient-to-r from-primary to-[#dcbb8e] px-3 py-1.5 text-xs font-semibold text-[#1c130a] transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="rounded-lg bg-gradient-to-r from-primary to-primary-2 px-3 py-1.5 text-xs font-semibold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           send
         </button>

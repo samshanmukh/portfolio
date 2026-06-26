@@ -5,7 +5,7 @@ import { InteractiveBackground } from './components/interactive-background'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const SEO_DESCRIPTION = `${profile.name} — ${profile.role} in San Francisco. 6+ years building LLM agents, RAG systems & computer-vision pipelines. ${profile.lookingFor}. Chat with my AI agent.`
+const SEO_DESCRIPTION = `${profile.name} — ${profile.role} in San Francisco. 6+ years embedding with teams to ship LLM agents, RAG systems & computer-vision pipelines into production. ${profile.lookingFor}. Chat with my AI agent.`
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   category: 'technology',
   keywords: [
     profile.name,
-    'Sam Karri',
+    'Shanmukh Karri',
+    'Forward Deployed Engineer',
+    'FDE',
     'Machine Learning Engineer',
     'AI Engineer',
     'Data Scientist',
@@ -66,7 +68,7 @@ const jsonLd = {
       '@type': 'Person',
       '@id': `${siteUrl}/#person`,
       name: profile.name,
-      alternateName: 'Sam Karri',
+      alternateName: 'Shanmukh Karri',
       jobTitle: profile.role,
       description: profile.headline,
       url: siteUrl,
@@ -120,7 +122,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
       </head>

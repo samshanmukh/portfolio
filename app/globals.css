@@ -9,6 +9,7 @@
   --muted: #ab9d88;
   --primary: #b9895a;
   --primary-2: #dcbb8e;
+  --on-primary: #1c130a; /* ink color for text/icons sitting on a primary fill */
   --line: rgba(200, 180, 150, 0.14);
 }
 
@@ -19,13 +20,17 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-primary: var(--primary);
+  --color-primary-2: var(--primary-2);
+  --color-on-primary: var(--on-primary);
   --color-accent: var(--primary);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-serif: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable; /* keep layout width constant when a scrollbar appears */
 }
 
 body {
@@ -38,6 +43,35 @@ body {
 ::selection {
   background: var(--primary);
   color: #1c130a;
+}
+
+/* editorial serif display — story headlines + hero name */
+.font-display {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+/* scroll-reveal: content fades/rises as each chapter enters the viewport */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* gradient text helper (brown → light tan) */
@@ -85,6 +119,15 @@ body {
     radial-gradient(60% 50% at 80% -8%, rgba(185, 137, 90, 0.14), transparent 70%),
     radial-gradient(55% 45% at 6% 2%, rgba(220, 187, 142, 0.07), transparent 70%);
 }
+/* faint film grain for editorial depth */
+.bg-app::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
 /* streaming caret + thinking dots (agent) */
 @keyframes blink {
@@ -127,8 +170,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .caret,
-  .dot {
+  .dot,
+  .animate-bounce,
+  .animate-pulse {
     animation: none;
   }
 }

@@ -33,7 +33,18 @@ async function getRecentRepos(): Promise<Repo[] | null> {
     )
     if (!res.ok) return null
     const repos: Repo[] = await res.json()
-    return repos.filter((r) => !r.fork).slice(0, 4)
+    // drop forks + collapse near-duplicate names (e.g. "CHIP-8-Eval" vs "chip8-eval"),
+    // keeping the most recently pushed since the list is already sorted by pushed desc
+    const seen = new Set<string>()
+    return repos
+      .filter((r) => !r.fork)
+      .filter((r) => {
+        const key = r.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      .slice(0, 4)
   } catch {
     return null
   }
@@ -44,9 +55,13 @@ export async function GithubNow() {
   if (!repos || repos.length === 0) return null
 
   return (
-    <section id="now" className="scroll-mt-24 py-16">
+    <section id="now" className="scroll-mt-24 py-24 sm:py-28">
       <div className="wrap">
-        <SectionHeading eyebrow="Now · live from GitHub" title="What I'm building lately" />
+        <SectionHeading
+          eyebrow="Now · live from GitHub"
+          title="Still shipping."
+          lead="Pulled live from my GitHub — the most recent things I’ve pushed."
+        />
         <div className="grid gap-3 sm:grid-cols-2">
           {repos.map((r) => (
             <a
@@ -83,7 +98,7 @@ export async function GithubNow() {
         </div>
         <p className="mt-4 text-xs text-muted">
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#dcbb8e]" />
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-2" />
             auto-updates hourly from{' '}
             <a
               href={socials.github}

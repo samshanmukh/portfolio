@@ -10,13 +10,18 @@ const links = [
 
 export function Contact() {
   return (
-    <section id="contact" className="scroll-mt-24 py-16">
+    <section id="contact" className="scroll-mt-24 py-24 sm:py-28">
       <div className="wrap">
-        <SectionHeading eyebrow="Contact" title="Let's build something" />
+        <SectionHeading
+          eyebrow="Contact"
+          title="Let’s deploy something."
+          lead="Got a problem that needs someone to embed and ship? Let’s talk."
+        />
         <div className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-surface to-surface p-8 sm:p-10">
           <p className="max-w-md text-foreground/90">
-            Hiring, collaborating, or just want to talk shop about agents and
-            computer vision? My inbox is open — I usually reply within a day.
+            Hiring an FDE, collaborating, or just want to talk shop about
+            shipping agents and computer vision into production? My inbox is
+            open — I usually reply within a day.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             {links.map((s) => (

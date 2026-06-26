@@ -39,7 +39,7 @@ export default function OpengraphImage() {
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#b9895a', fontSize: 26, fontWeight: 600 }}>
             <div style={{ width: 28, height: 2, background: '#b9895a' }} />
-            AGENTIC AI BUILDER
+            EMBED · SHIP · ITERATE
           </div>
           <div style={{ marginTop: 18, fontSize: 76, fontWeight: 800, lineHeight: 1.05 }}>
             {profile.name}

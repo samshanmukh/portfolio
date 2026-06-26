@@ -357,11 +357,13 @@ export function AiTrainer() {
   }
 
   return (
-    <section id="trainer" className="scroll-mt-24 py-16">
+    <section id="trainer" className="scroll-mt-24 py-24 sm:py-28">
       <div className="wrap">
         <SectionHeading
-          eyebrow="Live demo · computer vision + real-time voice"
-          title="AI personal trainer — it watches your form and coaches you in Grok's voice"
+          chapter="03"
+          eyebrow="Proof, live"
+          title="I don’t pitch AI. I deploy it — here’s one running right now."
+          lead="Computer vision + real-time voice, in your browser: it watches your form, counts reps, and coaches you out loud. My RepRight and VoiceCoach, wired into one demo."
         />
 
         <div className="grid items-stretch gap-6 lg:grid-cols-[1.4fr_1fr]">
@@ -379,7 +381,7 @@ export function AiTrainer() {
                 <div className="absolute right-3 top-3 flex items-center gap-2 rounded-lg border border-white/15 bg-black/60 px-3 py-1.5 font-mono text-xs text-foreground backdrop-blur">
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
-                      voice === 'live' ? 'bg-[#dcbb8e]' : voice === 'error' ? 'bg-red-400' : 'bg-muted'
+                      voice === 'live' ? 'bg-primary-2' : voice === 'error' ? 'bg-red-400' : 'bg-muted'
                     } ${speaking ? 'animate-pulse' : ''}`}
                   />
                   {voice === 'connecting'
@@ -417,7 +419,7 @@ export function AiTrainer() {
                   </p>
                 )}
                 {status !== 'loading' && (
-                  <button onClick={start} className="rounded-lg bg-gradient-to-r from-primary to-[#dcbb8e] px-5 py-2.5 text-sm font-semibold text-[#1c130a] transition-opacity hover:opacity-90">
+                  <button onClick={start} className="rounded-lg bg-gradient-to-r from-primary to-primary-2 px-5 py-2.5 text-sm font-semibold text-on-primary transition-opacity hover:opacity-90">
                     {status === 'idle' ? '▶ Start training' : 'Try again'}
                   </button>
                 )}

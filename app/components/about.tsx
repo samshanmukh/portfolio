@@ -3,9 +3,13 @@ import { skills } from '../lib/data'
 
 export function About() {
   return (
-    <section id="about" className="scroll-mt-24 py-16">
+    <section id="about" className="scroll-mt-24 py-24 sm:py-28">
       <div className="wrap">
-        <SectionHeading eyebrow="Toolkit" title="What I work with" />
+        <SectionHeading
+          eyebrow="Toolkit"
+          title="The stack I reach for."
+          lead="What I use to take something from a messy prototype to a thing running in production."
+        />
         <div className="grid gap-4 sm:grid-cols-3">
           {skills.map((s) => (
             <div
