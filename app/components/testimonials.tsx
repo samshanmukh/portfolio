@@ -3,9 +3,14 @@ import { testimonials } from '../lib/data'
 
 export function Testimonials() {
   return (
-    <section id="testimonials" className="scroll-mt-24 py-16">
+    <section id="testimonials" className="scroll-mt-24 py-24 sm:py-28">
       <div className="wrap">
-        <SectionHeading eyebrow="Social proof" title="What people say" />
+        <SectionHeading
+          chapter="05"
+          eyebrow="What teams say"
+          title="The people I embedded with."
+          lead="Recommendations from the engineers and leaders I shipped alongside."
+        />
         <div className="grid gap-4 md:grid-cols-3">
           {testimonials.map((t) => (
             <figure

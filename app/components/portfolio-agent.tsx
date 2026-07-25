@@ -74,7 +74,7 @@ export function PortfolioAgent() {
       setBusy(true)
       await streamKeyword({
         tool: 'init()',
-        text: `Yo, I'm ${profile.shortName} 👋 ML/AI engineer — this is me, ask me anything. Fair warning: I run on sarcasm, dad jokes, and unpopular opinions (tabs > spaces).`,
+        text: `Yo, I'm ${profile.shortName} 👋 forward deployed engineer — I embed with teams and ship AI into production. This is me, ask me anything. Fair warning: I run on sarcasm, dad jokes, and unpopular opinions (tabs > spaces).`,
       })
       if (cancelled) return
       await sleep(300)
@@ -194,16 +194,41 @@ export function PortfolioAgent() {
     inputRef.current?.focus()
   }
 
+  // questions seeded from the hero's chat box (queued until the intro finishes)
+  const runRef = useRef(run)
+  runRef.current = run
+  const pendingRef = useRef<string | null>(null)
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      pendingRef.current = (e as CustomEvent<string>).detail
+      if (!busy) {
+        const q = pendingRef.current
+        pendingRef.current = null
+        if (q) runRef.current(q)
+      }
+    }
+    window.addEventListener('portfolio:ask', onAsk)
+    return () => window.removeEventListener('portfolio:ask', onAsk)
+  }, [busy])
+
+  useEffect(() => {
+    if (!busy && pendingRef.current) {
+      const q = pendingRef.current
+      pendingRef.current = null
+      runRef.current(q)
+    }
+  }, [busy])
+
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-transparent shadow-2xl shadow-black/30 backdrop-blur-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-transparent shadow-2xl shadow-black/30 backdrop-blur-sm">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-3">
-        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-xs font-bold text-[#1c130a]">
+      <div className="flex items-center gap-2 border-b border-line bg-foreground/[0.03] px-4 py-3">
+        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary-2 text-xs font-bold text-on-primary">
           ◆
         </span>
         <span className="text-sm font-medium">portfolio-agent</span>
         <span className="flex items-center gap-1.5 text-xs text-muted">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#dcbb8e]" />
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary-2" />
           {busy ? 'working' : 'online'}
         </span>
         <div className="ml-auto">
@@ -229,7 +254,7 @@ export function PortfolioAgent() {
               </div>
             ) : (
               <div key={i} className="flex gap-2.5">
-                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-[#dcbb8e] text-[11px] font-bold text-[#1c130a]">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary-2 text-[11px] font-bold text-on-primary">
                   ◆
                 </span>
                 <div className="min-w-0 max-w-[88%] space-y-2">
@@ -239,7 +264,7 @@ export function PortfolioAgent() {
                       {m.tool}
                     </div>
                   )}
-                  <div className="rounded-2xl rounded-tl-sm bg-white/[0.04] px-3.5 py-2.5 text-sm leading-relaxed text-foreground/90">
+                  <div className="rounded-2xl rounded-tl-sm bg-foreground/[0.04] px-3.5 py-2.5 text-sm leading-relaxed text-foreground/90">
                     {m.status === 'thinking' ? (
                       <span className="inline-flex gap-1 align-middle">
                         <span className="dot" />
@@ -269,14 +294,14 @@ export function PortfolioAgent() {
 
       {/* model loading progress */}
       {llm === 'loading' && (
-        <div className="border-t border-white/10 px-4 py-2.5">
+        <div className="border-t border-line px-4 py-2.5">
           <div className="mb-1.5 flex items-center justify-between text-[11px]">
             <span className="text-muted">⚡ booting on-device LLM — one-time download, then cached</span>
             <span className="font-mono text-primary">{prog}%</span>
           </div>
-          <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-foreground/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-[#dcbb8e] transition-all duration-300"
+              className="h-full rounded-full bg-gradient-to-r from-primary to-primary-2 transition-all duration-300"
               style={{ width: `${prog}%` }}
             />
           </div>
@@ -294,7 +319,7 @@ export function PortfolioAgent() {
               <button
                 key={s}
                 onClick={() => run(s)}
-                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted transition-colors hover:border-primary/40 hover:text-foreground"
+                className="rounded-full border border-line bg-foreground/[0.03] px-3 py-1 text-xs text-muted transition-colors hover:border-primary/40 hover:text-foreground"
               >
                 {s}
               </button>
@@ -316,7 +341,7 @@ export function PortfolioAgent() {
           e.preventDefault()
           run(input)
         }}
-        className="flex items-center gap-2 border-t border-white/10 px-3 py-2.5"
+        className="flex items-center gap-2 border-t border-line px-3 py-2.5"
       >
         <span className="pl-1 text-primary">›</span>
         <input
@@ -333,7 +358,7 @@ export function PortfolioAgent() {
         <button
           type="submit"
           disabled={busy || !input.trim()}
-          className="rounded-lg bg-gradient-to-r from-primary to-[#dcbb8e] px-3 py-1.5 text-xs font-semibold text-[#1c130a] transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="rounded-lg bg-gradient-to-r from-primary to-primary-2 px-3 py-1.5 text-xs font-semibold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           send
         </button>
@@ -361,7 +386,7 @@ function SmartToggle({
     return (
       <span
         title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
-        className={`${base} cursor-not-allowed border-white/10 text-muted/60`}
+        className={`${base} cursor-not-allowed border-line text-muted/60`}
       >
         ⚡ no WebGPU
       </span>
@@ -385,7 +410,7 @@ function SmartToggle({
     <button
       onClick={onEnable}
       title="Load a small LLM that runs free in your browser (~0.9 GB, one-time)."
-      className={`${base} border-white/15 text-muted hover:border-primary/40 hover:text-foreground`}
+      className={`${base} border-line text-muted hover:border-primary/40 hover:text-foreground`}
     >
       ⚡ smart mode
     </button>
@@ -394,7 +419,7 @@ function SmartToggle({
 
 function SourceChip({ source }: { source: Source }) {
   const cls =
-    'rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 font-mono text-[11px] text-muted transition-colors hover:border-primary/40 hover:text-foreground'
+    'rounded-md border border-line bg-foreground/[0.03] px-2 py-0.5 font-mono text-[11px] text-muted transition-colors hover:border-primary/40 hover:text-foreground'
   if (source.href) {
     return (
       <a href={source.href} target="_blank" rel="noopener noreferrer" className={cls}>

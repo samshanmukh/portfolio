@@ -1,89 +1,92 @@
-import Image from 'next/image'
-import { profile, socials } from '../lib/data'
-import { PortfolioAgent } from './portfolio-agent'
+'use client'
 
+import { useState } from 'react'
+import { profile } from '../lib/data'
+
+// Editorial hero: confident huge type, generous space, a staggered entrance.
+// No background scene — the dark breathes; the typography carries it.
 export function Hero() {
-  const [first, ...rest] = profile.name.split(' ')
+  const [q, setQ] = useState('')
+
+  const askAgent = (text: string) => {
+    const query = text.trim()
+    document.getElementById('ask')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (query) window.dispatchEvent(new CustomEvent('portfolio:ask', { detail: query }))
+    setQ('')
+  }
+
+  const startTour = () => window.dispatchEvent(new CustomEvent('portfolio:tour'))
+
   return (
-    <section className="pt-28 pb-16">
-      <div className="wrap grid items-stretch gap-10 lg:grid-cols-2">
-        {/* intro */}
-        <div className="flex flex-col justify-center">
-          {profile.available && (
-            <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-muted">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-[#dcbb8e]" />
-              Open to ML / AI roles &amp; collaborations
-            </div>
-          )}
+    <section className="relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden py-28">
+      <div className="wrap relative z-10 flex flex-col items-center text-center">
+        <p className="rise mb-6 font-mono text-[11px] uppercase tracking-[0.4em] text-muted">
+          {profile.role}
+        </p>
 
-          <div className="flex items-start gap-5">
-            <div className="shrink-0 overflow-hidden rounded-xl border border-white/10 p-1">
-              <Image
-                src={profile.avatar}
-                alt={profile.name}
-                width={300}
-                height={400}
-                className="aspect-[3/4] w-32 rounded-lg object-cover object-top sm:w-44 lg:w-52"
-                priority
-                unoptimized
-              />
-            </div>
-            <div className="pt-1">
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                {first} <span className="text-gradient">{rest.join(' ')}</span>
-              </h1>
-              <p className="mt-1 font-mono text-sm text-primary">
-                {profile.role} · {profile.location}
-              </p>
-              <p className="mt-4 max-w-md text-base leading-relaxed text-foreground/90">
-                {profile.headline}
-              </p>
-            </div>
-          </div>
+        <h1
+          className="rise font-display font-medium leading-[0.92] tracking-tight text-foreground"
+          style={{ fontSize: 'clamp(3.25rem, 12vw, 9.5rem)', animationDelay: '90ms' }}
+        >
+          Sam <span className="text-muted">Karri</span>
+        </h1>
 
-          <p className="mt-6 max-w-xl leading-relaxed text-muted">{profile.bio}</p>
+        <p
+          className="rise mt-7 max-w-xl text-balance text-base leading-relaxed text-muted sm:text-lg"
+          style={{ animationDelay: '170ms' }}
+        >
+          I embed with teams and ship AI into production — from the messy data to
+          the thing that actually runs.
+        </p>
 
-          <p className="mt-4 text-sm text-primary">{profile.lookingFor}</p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            askAgent(q)
+          }}
+          className="rise mt-10 flex w-full max-w-md items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-2 py-2 pl-5 backdrop-blur-md transition-colors focus-within:border-white/35"
+          style={{ animationDelay: '250ms' }}
+        >
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Ask me anything…"
+            aria-label="Ask Sam's AI anything"
+            className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted/70 sm:text-base"
+          />
+          <button
+            type="submit"
+            className="shrink-0 rounded-full bg-foreground px-5 py-2 text-sm font-medium text-on-primary transition hover:opacity-90 active:scale-[0.97]"
+          >
+            Chat
+          </button>
+        </form>
 
-          <div className="mt-7 flex flex-wrap gap-3">
-            <a
-              href="#projects"
-              className="rounded-lg bg-gradient-to-r from-primary to-[#dcbb8e] px-5 py-2.5 text-sm font-semibold text-[#1c130a] transition-opacity hover:opacity-90"
-            >
-              View my work
-            </a>
-            <a
-              href={socials.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
-            >
-              GitHub
-            </a>
-            <a
-              href={socials.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
-            >
-              LinkedIn
-            </a>
-            <a
-              href={socials.resume}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-white/5"
-            >
-              Résumé
-            </a>
-          </div>
-        </div>
-
-        {/* agent */}
-        <div className="h-[460px] lg:h-[520px]">
-          <PortfolioAgent />
-        </div>
+        <button
+          onClick={startTour}
+          className="rise mt-6 font-mono text-xs text-muted underline-offset-4 transition-colors hover:text-foreground hover:underline"
+          style={{ animationDelay: '320ms' }}
+        >
+          ▶ let my agent walk you through it
+        </button>
       </div>
+
+      {/* quiet scroll cue */}
+      <a
+        href="#ask"
+        aria-label="Scroll down"
+        className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 p-2 text-muted/50 transition-colors hover:text-foreground"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="animate-bounce">
+          <path
+            d="M12 5v14M5 12l7 7 7-7"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </a>
     </section>
   )
 }

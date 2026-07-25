@@ -1,15 +1,29 @@
 @import 'tailwindcss';
 
 :root {
-  /* warm dark + brown & white */
-  --background: #15100b;
-  --surface: #1f1810;
-  --surface-2: #271e14;
-  --foreground: #f4efe6;
-  --muted: #ab9d88;
-  --primary: #b9895a;
-  --primary-2: #dcbb8e;
-  --line: rgba(200, 180, 150, 0.14);
+  /* friendly "AI portfolio" — light by default, playful-professional */
+  --background: #f6f6f4;
+  --surface: #ffffff;
+  --surface-2: #efeeea;
+  --foreground: #18181b;
+  --muted: #6b6b72;
+  --primary: #6d5efc; /* friendly indigo-violet accent */
+  --primary-2: #9a8cff;
+  --on-primary: #ffffff;
+  --line: rgba(0, 0, 0, 0.1);
+}
+
+/* dark theme (toggle) */
+[data-theme='dark'] {
+  --background: #0e0e11;
+  --surface: #18181c;
+  --surface-2: #232329;
+  --foreground: #f4f4f5;
+  --muted: #a1a1ab;
+  --primary: #8b80ff;
+  --primary-2: #b9b0ff;
+  --on-primary: #14121f;
+  --line: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {
@@ -19,13 +33,17 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-primary: var(--primary);
+  --color-primary-2: var(--primary-2);
+  --color-on-primary: var(--on-primary);
   --color-accent: var(--primary);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-serif: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable; /* keep layout width constant when a scrollbar appears */
 }
 
 body {
@@ -33,11 +51,100 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale; /* crisper light-on-dark type */
 }
 
 ::selection {
   background: var(--primary);
   color: #1c130a;
+}
+
+/* editorial serif display — story headlines + hero name */
+.font-display {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+/* editorial entrance: staggered rise used in the hero (delays set inline) */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  opacity: 0;
+  animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* scroll-reveal: content fades/rises as each chapter enters the viewport */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* now-playing sticky: slide-in + animated equalizer bars */
+@keyframes np-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.now-playing {
+  animation: np-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.eq-bar {
+  transform-origin: bottom;
+  animation: eq 0.9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .now-playing {
+    animation: none;
+  }
+  .eq-bar {
+    animation: none;
+    transform: scaleY(0.7);
+  }
 }
 
 /* gradient text helper (brown → light tan) */
@@ -81,9 +188,18 @@ body {
   content: '';
   position: absolute;
   inset: 0;
+  /* a soft friendly glow up top */
   background:
-    radial-gradient(60% 50% at 80% -8%, rgba(185, 137, 90, 0.14), transparent 70%),
-    radial-gradient(55% 45% at 6% 2%, rgba(220, 187, 142, 0.07), transparent 70%);
+    radial-gradient(70% 45% at 50% -10%, rgba(109, 94, 252, 0.1), transparent 70%);
+}
+/* faint film grain for editorial depth */
+.bg-app::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* streaming caret + thinking dots (agent) */
@@ -127,8 +243,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .caret,
-  .dot {
+  .dot,
+  .animate-bounce,
+  .animate-pulse {
     animation: none;
   }
 }

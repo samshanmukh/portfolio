@@ -49,7 +49,7 @@ export function ask(question: string): AgentReply {
   if (!q || has(q, 'help', 'what can you', 'who are you')) {
     return {
       tool: 'init()',
-      text: `Yo — I'm ${profile.shortName}, ML/AI engineer and your slightly-too-confident tour guide. Ask me about my projects, experience, or how to reach me. What's up?`,
+      text: `Yo — I'm ${profile.shortName}, a forward deployed engineer and your slightly-too-confident tour guide. Ask me about my projects, experience, or how to reach me. What's up?`,
     }
   }
 
@@ -76,7 +76,7 @@ export function ask(question: string): AgentReply {
   if (has(q, 'build', 'built', 'project', 'ship', 'work on', 'made', 'portfolio of', 'agent', 'model', 'favorite', 'best')) {
     const f = projects.filter((p) => p.featured)
     const text =
-      `I ship applied AI end-to-end. Headliner: ${f[0].name} — ${f[0].blurb.toLowerCase()} ` +
+      `I embed with teams and ship applied AI end-to-end. Headliner: ${f[0].name} — ${f[0].blurb.toLowerCase()} ` +
       `Also built ${f.slice(1).map((p) => p.name).join(' and ')}, plus computer-vision and quant tools. Which one should I geek out about?`
     return {
       tool: 'search(projects)',
@@ -140,7 +140,7 @@ export function ask(question: string): AgentReply {
   if (has(q, 'reach', 'contact', 'email', 'hire', 'hiring', 'connect', 'touch', 'message', 'dm')) {
     return {
       tool: 'open(contacts)',
-      text: `Easiest is email — ${socials.email}. Open to ML/AI roles + collabs, I reply within a day. Pro tip: drop the secret word “deadlift” in your message and you skip the line 💪 Wanna connect?`,
+      text: `Easiest is email — ${socials.email}. Open to FDE / AI roles + collabs, I reply within a day. Pro tip: drop the secret word “deadlift” in your message and you skip the line 💪 Wanna connect?`,
       scrollTo: 'contact',
       sources: [
         { label: 'email', href: `mailto:${socials.email}` },

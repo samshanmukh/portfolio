@@ -3,9 +3,14 @@ import { experience, education, certifications, languages } from '../lib/data'
 
 export function Experience() {
   return (
-    <section id="experience" className="scroll-mt-24 py-16">
+    <section id="experience" className="scroll-mt-24 py-24 sm:py-28">
       <div className="wrap">
-        <SectionHeading eyebrow="Path" title="Experience & education" />
+        <SectionHeading
+          chapter="04"
+          eyebrow="Field log"
+          title="Where I’ve embedded, and what shipped."
+          lead="Six-plus years of dropping into teams and taking ML the last mile — into production, for real users."
+        />
 
         <ol className="relative border-l border-white/10 pl-6">
           {experience.map((e, i) => (

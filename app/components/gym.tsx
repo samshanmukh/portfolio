@@ -3,9 +3,14 @@ import { gym } from '../lib/data'
 
 export function Gym() {
   return (
-    <section id="gym" className="scroll-mt-24 py-16">
+    <section id="gym" className="scroll-mt-24 py-24 sm:py-28">
       <div className="wrap">
-        <SectionHeading eyebrow="Beyond code" title={gym.tagline} />
+        <SectionHeading
+          chapter="06"
+          eyebrow="Beyond code"
+          title={gym.tagline}
+          lead="The other reason I build — and where half my side projects come from."
+        />
 
         <div className="relative overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/10 via-surface to-surface p-8 sm:p-10">
           <div

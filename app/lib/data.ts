@@ -4,18 +4,18 @@
 // ---------------------------------------------------------------------------
 
 export const profile = {
-  name: 'Sanmukh (Sam) Karri',
+  name: 'Sam Karri',
   shortName: 'Sam',
-  role: 'Machine Learning & AI Engineer',
+  role: 'Forward Deployed Engineer (FDE)',
   location: 'San Francisco, CA',
   avatar: '/avatar.jpg', // color portrait, used large in the hero
   logo: 'https://avatars.githubusercontent.com/u/25922277?v=4', // illustration, used for nav + favicon
   headline:
-    'I turn messy data into AI that ships — production ML pipelines, computer vision, and GenAI/RAG systems.',
-  bio: `I'm an ML/AI engineer and data scientist with 6+ years taking models out of notebooks and into production — recommendation engines, healthcare computer-vision pipelines, and RAG chatbots that real users depend on. Lately I'm deep in LLM agents and generative AI. Outside work you'll find me in the gym, which is exactly why half my side projects are AI coaches.`,
+    'I embed with teams and ship AI from messy real-world data to production — LLM agents, RAG systems, and computer-vision pipelines people actually depend on.',
+  bio: `I'm a forward deployed engineer — I go where the problem is, embed with the team, and turn ambiguous real-world requirements into AI that ships. Six-plus years taking models out of notebooks and into production: healthcare computer-vision pipelines, RAG chatbots, and recommendation engines that real users depend on. I own the whole loop — messy data, model, deployment, and the iteration after launch. Lately I'm deep in LLM agents and generative AI. Outside work you'll find me in the gym, which is exactly why half my side projects are AI coaches.`,
   available: true,
   // Edit to taste (add work-authorization status if you want recruiters to know).
-  lookingFor: 'Open to ML / AI Engineer roles · San Francisco or remote',
+  lookingFor: 'Open to Forward Deployed Engineer / AI Engineer roles · San Francisco or remote',
 }
 
 // Real LinkedIn recommendations (lightly trimmed). Source: LinkedIn export.
@@ -108,6 +108,10 @@ export type Project = {
   featured?: boolean
   metric?: string // quantified impact, e.g. "cut hallucinations ~40% on a 10k-doc store"
   demo?: string // live demo / video URL
+  // Case-study narrative for featured work (qualitative — no invented numbers).
+  problem?: string // the real-world pain
+  move?: string // what I actually built / shipped
+  outcome?: string // what changed once it was deployed
 }
 
 // Real repositories — github.com/samshanmukh
@@ -121,6 +125,12 @@ export const projects: Project[] = [
     tags: ['Multi-agent', 'Composio', 'Python'],
     href: 'https://github.com/samshanmukh/enterprise-memory-execution-agent',
     featured: true,
+    problem:
+      'Enterprise knowledge is scattered across apps, and assistants forget everything the moment a session ends.',
+    move:
+      'Built a multi-agent researcher with persistent memory that plans and executes across apps autonomously, on Composio.',
+    outcome:
+      'An agent that remembers context and acts across your stack — instead of starting cold on every question.',
   },
   {
     name: 'RepRight',
@@ -129,6 +139,12 @@ export const projects: Project[] = [
     tags: ['Computer Vision', 'Flutter', 'Pose Estimation'],
     href: 'https://github.com/samshanmukh/RepRight',
     featured: true,
+    problem:
+      'Good lifting form falls apart the moment no coach is watching — and that is when people get hurt.',
+    move:
+      'Shipped a real-time pose-estimation trainer that runs on a phone and reads your body live, no wearables.',
+    outcome:
+      'On-device form correction with live muscle-activation cues — a coach in your pocket. (It powers the live demo below.)',
   },
   {
     name: 'Vitis-AI Porting Advisor',
@@ -137,6 +153,12 @@ export const projects: Project[] = [
     tags: ['Edge AI', 'Python', 'Tooling'],
     href: 'https://github.com/samshanmukh/Vitis-AI-Porting-Advisor',
     featured: true,
+    problem:
+      'Getting a model onto edge DPU hardware is slow, manual, and easy to get subtly wrong.',
+    move:
+      'Built a tool that scans a model for DPU compatibility and drafts two AI-generated refactoring proposals.',
+    outcome:
+      'From “will this even run on the hardware?” to concrete, hardware-ready refactors to choose between.',
   },
   {
     name: 'VoiceCoach',
@@ -166,7 +188,7 @@ export const experience = [
     role: 'Data Scientist',
     company: 'CLINICOM',
     period: 'Feb 2024 — May 2026',
-    note: 'Built and deployed ML pipelines for healthcare chatbots — RAG with GenAI foundation models + vector DBs for accurate retrieval, plus computer-vision pipelines (segmentation, detection, anomaly detection) on CNN/transfer-learning architectures.',
+    note: 'Embedded with a healthcare team to put ML in production — RAG over vector DBs with GenAI foundation models for accurate retrieval, plus computer-vision pipelines (segmentation, detection, anomaly detection) on CNN / transfer-learning architectures.',
   },
   {
     role: 'Data Science Intern',
@@ -178,7 +200,7 @@ export const experience = [
     role: 'Senior Software Development Engineer',
     company: 'Focus-N-Fly',
     period: 'Jan 2020 — May 2023',
-    note: 'Designed a personalized recommendation engine (clustering + collaborative filtering) and customer-segmentation models on a Hadoop/Spark stack, from prototype to production.',
+    note: 'Took a personalized recommendation engine (clustering + collaborative filtering) and customer-segmentation models from prototype to production on a Hadoop / Spark stack.',
   },
   {
     role: 'Software Engineer',
