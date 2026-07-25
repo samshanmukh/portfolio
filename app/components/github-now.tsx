@@ -1,4 +1,5 @@
 import { SectionHeading } from './section-heading'
+import { LiveStatus } from './live-status'
 import { socials } from '../lib/data'
 
 type Repo = {
@@ -61,6 +62,13 @@ export async function GithubNow() {
           eyebrow="Now · live from GitHub"
           title="Still shipping."
           lead="Pulled live from my GitHub — the most recent things I’ve pushed."
+        />
+        <LiveStatus
+          lastPush={{
+            name: repos[0].name,
+            url: repos[0].html_url,
+            ago: `pushed ${ago(repos[0].pushed_at)}`,
+          }}
         />
         <div className="grid gap-3 sm:grid-cols-2">
           {repos.map((r) => (

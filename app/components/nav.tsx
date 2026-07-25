@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { profile, socials } from '../lib/data'
+import { ThemeToggle } from './theme-toggle'
 
 const links = [
   { href: '#projects', label: 'Work' },
@@ -73,14 +74,17 @@ export function Nav() {
           {profile.shortName} <span className="text-muted">Karri</span>
         </a>
 
-        {/* right: get in touch */}
-        <a
-          href="#contact"
-          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-sm font-medium text-on-primary transition-opacity hover:opacity-90"
-        >
-          Get in touch
-          <span aria-hidden>→</span>
-        </a>
+        {/* right: palette toggle + get in touch */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <a
+            href="#contact"
+            className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-sm font-medium text-on-primary transition hover:opacity-90 active:scale-[0.97]"
+          >
+            Get in touch
+            <span aria-hidden>→</span>
+          </a>
+        </div>
       </nav>
 
       {/* mobile dropdown */}

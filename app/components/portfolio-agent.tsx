@@ -220,9 +220,9 @@ export function PortfolioAgent() {
   }, [busy])
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-transparent shadow-2xl shadow-black/30 backdrop-blur-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-transparent shadow-2xl shadow-black/30 backdrop-blur-sm">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-3">
+      <div className="flex items-center gap-2 border-b border-line bg-foreground/[0.03] px-4 py-3">
         <span className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary-2 text-xs font-bold text-on-primary">
           ◆
         </span>
@@ -264,7 +264,7 @@ export function PortfolioAgent() {
                       {m.tool}
                     </div>
                   )}
-                  <div className="rounded-2xl rounded-tl-sm bg-white/[0.04] px-3.5 py-2.5 text-sm leading-relaxed text-foreground/90">
+                  <div className="rounded-2xl rounded-tl-sm bg-foreground/[0.04] px-3.5 py-2.5 text-sm leading-relaxed text-foreground/90">
                     {m.status === 'thinking' ? (
                       <span className="inline-flex gap-1 align-middle">
                         <span className="dot" />
@@ -294,12 +294,12 @@ export function PortfolioAgent() {
 
       {/* model loading progress */}
       {llm === 'loading' && (
-        <div className="border-t border-white/10 px-4 py-2.5">
+        <div className="border-t border-line px-4 py-2.5">
           <div className="mb-1.5 flex items-center justify-between text-[11px]">
             <span className="text-muted">⚡ booting on-device LLM — one-time download, then cached</span>
             <span className="font-mono text-primary">{prog}%</span>
           </div>
-          <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-foreground/10">
             <div
               className="h-full rounded-full bg-gradient-to-r from-primary to-primary-2 transition-all duration-300"
               style={{ width: `${prog}%` }}
@@ -319,7 +319,7 @@ export function PortfolioAgent() {
               <button
                 key={s}
                 onClick={() => run(s)}
-                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-muted transition-colors hover:border-primary/40 hover:text-foreground"
+                className="rounded-full border border-line bg-foreground/[0.03] px-3 py-1 text-xs text-muted transition-colors hover:border-primary/40 hover:text-foreground"
               >
                 {s}
               </button>
@@ -341,7 +341,7 @@ export function PortfolioAgent() {
           e.preventDefault()
           run(input)
         }}
-        className="flex items-center gap-2 border-t border-white/10 px-3 py-2.5"
+        className="flex items-center gap-2 border-t border-line px-3 py-2.5"
       >
         <span className="pl-1 text-primary">›</span>
         <input
@@ -386,7 +386,7 @@ function SmartToggle({
     return (
       <span
         title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
-        className={`${base} cursor-not-allowed border-white/10 text-muted/60`}
+        className={`${base} cursor-not-allowed border-line text-muted/60`}
       >
         ⚡ no WebGPU
       </span>
@@ -410,7 +410,7 @@ function SmartToggle({
     <button
       onClick={onEnable}
       title="Load a small LLM that runs free in your browser (~0.9 GB, one-time)."
-      className={`${base} border-white/15 text-muted hover:border-primary/40 hover:text-foreground`}
+      className={`${base} border-line text-muted hover:border-primary/40 hover:text-foreground`}
     >
       ⚡ smart mode
     </button>
@@ -419,7 +419,7 @@ function SmartToggle({
 
 function SourceChip({ source }: { source: Source }) {
   const cls =
-    'rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 font-mono text-[11px] text-muted transition-colors hover:border-primary/40 hover:text-foreground'
+    'rounded-md border border-line bg-foreground/[0.03] px-2 py-0.5 font-mono text-[11px] text-muted transition-colors hover:border-primary/40 hover:text-foreground'
   if (source.href) {
     return (
       <a href={source.href} target="_blank" rel="noopener noreferrer" className={cls}>
