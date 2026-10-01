@@ -20,7 +20,7 @@ const GREETINGS = [`Hey, I'm ${profile.shortName} Karri 👋`, 'Hello! Ask me an
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
 // arrow slides to its spot → the box settles into place and everything else fades/pops in.
 type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
-const ARROW_MS = 600
+const ARROW_MS = 850 // pop in, one quick spin, then expand
 const EXPAND_MS = 1100
 const SETTLE_MS = 700
 const OPEN = 'inset(0px 0px 0px 0px round 999px)'
@@ -212,7 +212,15 @@ export default function Home() {
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
               >
-                <ArrowRight className="h-5 w-5" />
+                {/* one fast turn after the pop-in, finishing before the box expands */}
+                <motion.span
+                  className="flex"
+                  initial={false}
+                  animate={{ rotate: reduced || phase === 'measure' ? 0 : 360 }}
+                  transition={{ delay: 0.3, duration: 0.45, ease: [0.7, 0, 0.2, 1] }}
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </motion.span>
               </motion.button>
             </motion.span>
           </motion.div>
