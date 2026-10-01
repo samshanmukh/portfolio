@@ -81,9 +81,6 @@ export default function Home() {
         <h1 className="sr-only">
           {profile.name} — {profile.role}
         </h1>
-        <p className="text-sm text-muted md:text-base">
-          {profile.role} · {profile.location}
-        </p>
       </motion.div>
 
       {/* centre memoji */}
