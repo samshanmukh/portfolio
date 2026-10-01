@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
+import { openSmsOnPhone } from './lib/open-sms'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
@@ -80,7 +81,7 @@ export default function Home() {
       {profile.available && (
         <div className="absolute top-6 left-4 z-20 sm:left-6">
           <button
-            onClick={() => goToChat('How can I reach you?')}
+            onClick={() => openSmsOnPhone() || goToChat('How can I reach you?')}
             className="tap relative flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
           >
             <span className="relative flex h-2 w-2">
