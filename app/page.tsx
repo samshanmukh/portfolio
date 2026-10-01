@@ -12,7 +12,8 @@ import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
-import { LookingMemoji, useTypingGaze } from './components/looking-memoji'
+import { useTypingGaze } from './components/looking-memoji'
+import { LiveMemoji, type Mood } from './components/live-memoji'
 
 const GREETINGS = [`Hey, I'm ${profile.shortName} Karri 👋`, 'Hello! Ask me anything…']
 
@@ -40,7 +41,13 @@ export default function Home() {
   const gaze = useTypingGaze()
   const router = useRouter()
   const reduced = useReducedMotion()
-  const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
+  const [mood, setMood] = useState<Mood>('idle')
+  // wink on send, then head to the chat
+  const goToChat = (q: string) => {
+    setMood('wink')
+    setTimeout(() => setMood('idle'), 1200)
+    setTimeout(() => router.push(`/chat?query=${encodeURIComponent(q)}`), reduced ? 0 : 450)
+  }
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:pb-20">
@@ -109,7 +116,7 @@ export default function Home() {
 
       {/* centre memoji */}
       <div className="relative z-10 h-52 w-52 sm:h-72 sm:w-72">
-        <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="288px" priority />
+        <LiveMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} mood={mood} alt={`${profile.name} memoji`} sizes="288px" priority />
       </div>
 
       {/* input + quick buttons */}
