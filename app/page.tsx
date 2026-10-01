@@ -10,7 +10,6 @@ import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
 import { SourceButton } from './components/source-button'
-import { WelcomeModal } from './components/welcome-modal'
 
 const top = {
   hidden: { opacity: 0, y: -60 },
@@ -68,14 +67,8 @@ export default function Home() {
         initial="hidden"
         animate="visible"
       >
-        <div className="mb-4">
-          <WelcomeModal />
-        </div>
-        <h2 className="mt-1 text-xl font-semibold text-foreground/70 md:text-2xl">
-          Hey, I&apos;m {profile.name} 👋
-        </h2>
-        <h1 className="mt-1 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-          AI Portfolio
+        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+          Hey, I&apos;m {profile.shortName} Karri
         </h1>
         <p className="mt-3 text-sm text-muted md:text-base">
           {profile.role} · {profile.location}
