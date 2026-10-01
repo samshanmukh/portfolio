@@ -445,10 +445,10 @@ function SmartToggle({
       </span>
     )
   }
-  if (llm === 'loading') return <span className={`${base} border-[#0171E3]/40 text-primary`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
+  if (llm === 'loading') return <span className={`${base} border-border text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
   if (mode === 'llm') {
     return (
-      <button onClick={onDisable} className={`${base} cursor-pointer border-[#0171E3]/50 bg-[#0171E3]/10 text-primary`}>
+      <button onClick={onDisable} className={`${base} cursor-pointer border-foreground/30 bg-accent text-foreground`}>
         <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart: on</span>
       </button>
     )
