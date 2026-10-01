@@ -48,6 +48,7 @@ export const socials = {
   github: 'https://github.com/samshanmukh',
   linkedin: 'https://www.linkedin.com/in/shanmukhsain',
   twitter: 'https://x.com/samshanmukh',
+  instagram: 'https://www.instagram.com/samshanmukh',
   // Put your PDF at /public/resume.pdf and this just works. Or swap in any URL.
   resume: '/resume.pdf',
   // Public source — proof the site is hand-coded from scratch.

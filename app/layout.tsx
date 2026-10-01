@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { profile, socials, siteUrl, skills, education, languages } from './lib/data'
-import { InteractiveBackground } from './components/interactive-background'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
@@ -55,8 +54,18 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#15100b',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover', // lets the chat input sit above the iPhone home indicator (safe-area padding)
+  interactiveWidget: 'resizes-content', // Android: keyboard shrinks the page so the input stays visible
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 }
+
+// Applies the saved theme before first paint (no light/dark flash). Light is the default.
+const themeScript = `try{if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`
 
 // Rich JSON-LD graph so search engines / recruiter tools fully understand the page.
 const jsonLd = {
@@ -73,7 +82,7 @@ const jsonLd = {
       image: `${siteUrl}/avatar.jpg`,
       email: `mailto:${socials.email}`,
       address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressRegion: 'CA', addressCountry: 'US' },
-      sameAs: [socials.github, socials.linkedin, socials.twitter, socials.sourceRepo],
+      sameAs: [socials.github, socials.linkedin, socials.twitter, socials.instagram, socials.sourceRepo],
       knowsLanguage: languages,
       knowsAbout: skills.flatMap((s) => s.items),
       alumniOf: education.map((e) => ({ '@type': 'CollegeOrUniversity', name: e.school })),
@@ -111,8 +120,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -124,12 +134,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen">
+      <body className="min-h-screen bg-background text-foreground">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <InteractiveBackground />
         {children}
         <Analytics />
         <SpeedInsights />
