@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Cloud, Cpu, Database } from 'lucide-react'
 import { skills } from '../../lib/data'
+import { SkillLogo } from '../skill-logo'
 
 const icons = [Cpu, Database, Cloud]
 
@@ -38,8 +39,9 @@ export function Skills() {
                     key={skill}
                     variants={badge}
                     whileHover={{ scale: 1.04 }}
-                    className="glass rounded-lg px-3 py-1.5 text-sm text-foreground"
+                    className="glass flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-foreground"
                   >
+                    <SkillLogo skill={skill} />
                     {skill}
                   </motion.span>
                 ))}
