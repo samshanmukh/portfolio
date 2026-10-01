@@ -41,6 +41,13 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Deploy on [Vercel](https://vercel.com/new) — zero config for Next.js.
 
+### GitHub stats (recommended)
+
+The Projects answer shows live commits, releases, languages and last push for each repo (cached hourly), and
+features whichever repo was pushed most recently as "Currently building". Set `GITHUB_TOKEN` in Vercel (a
+fine-grained token with read-only access to public repositories) so GitHub's anonymous 60-requests/hour limit
+isn't hit; without it the cards fall back to the static list in `app/lib/data.ts`.
+
 ### Spotify widget (optional)
 
 The widget stays hidden until these three Vercel env vars are set (also `.env.local` for dev):

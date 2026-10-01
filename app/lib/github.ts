@@ -14,7 +14,10 @@ export async function getRecentRepos(): Promise<Repo[] | null> {
     const res = await fetch(
       'https://api.github.com/users/samshanmukh/repos?sort=pushed&direction=desc&per_page=12',
       {
-        headers: { Accept: 'application/vnd.github+json' },
+        headers: {
+          Accept: 'application/vnd.github+json',
+          ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
+        },
         next: { revalidate: 3600 },
       }
     )
