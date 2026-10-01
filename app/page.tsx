@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -30,6 +30,7 @@ export default function Home() {
   const [focused, setFocused] = useState(false)
   const placeholder = useTypewriter(GREETINGS, !focused && !input, 'Ask me anything…')
   const router = useRouter()
+  const reduced = useReducedMotion()
   const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
 
   return (
@@ -37,14 +38,29 @@ export default function Home() {
       {/* liquid colour trail that follows the cursor */}
       <FluidCursor />
 
-      {/* big faded name behind everything */}
+      {/* big faded name behind everything — rises from the bottom edge letter by letter */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center overflow-hidden">
-        <div
-          className="hidden bg-gradient-to-b from-neutral-500/30 to-neutral-500/5 bg-clip-text dark:from-neutral-400/35 dark:to-neutral-400/5 text-[10rem] leading-none font-black text-transparent select-none sm:block lg:text-[16rem]"
-          style={{ marginBottom: '-2.5rem' }}
+        <motion.div
+          aria-hidden
+          className="flex text-[16vw] leading-none font-black select-none sm:text-[10rem] lg:text-[16rem]"
+          style={{ marginBottom: '-0.16em' }}
+          initial={reduced ? false : 'hidden'}
+          animate="visible"
+          variants={{ visible: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } } }}
         >
-          {profile.shortName} Karri
-        </div>
+          {Array.from(`${profile.shortName} Karri`).map((ch, i) => (
+            <motion.span
+              key={i}
+              className="inline-block bg-gradient-to-b from-neutral-500/30 to-neutral-500/5 bg-clip-text text-transparent dark:from-neutral-400/35 dark:to-neutral-400/5"
+              variants={{
+                hidden: { y: '110%', opacity: 0 },
+                visible: { y: '0%', opacity: 1, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+              }}
+            >
+              {ch === ' ' ? '\u00a0' : ch}
+            </motion.span>
+          ))}
+        </motion.div>
       </div>
 
       {/* top-right: theme */}
