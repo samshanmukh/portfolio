@@ -49,6 +49,8 @@ export const socials = {
   linkedin: 'https://www.linkedin.com/in/shanmukhsain',
   twitter: 'https://x.com/samshanmukh',
   instagram: 'https://www.instagram.com/samshanmukh',
+  // phones: the availability badge opens Messages with this prefilled; `?&body=` works on iOS and Android
+  sms: 'sms:+13322546972?&body=Hey!',
   // Put your PDF at /public/resume.pdf and this just works. Or swap in any URL.
   resume: '/resume.pdf',
   // Public source — proof the site is hand-coded from scratch.

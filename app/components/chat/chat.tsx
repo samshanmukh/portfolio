@@ -6,6 +6,7 @@ import { LookingMemoji, useTypingGaze } from '../looking-memoji'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { openSmsOnPhone } from '../../lib/open-sms'
 import { ask, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
 import { systemPrompt } from '../../lib/knowledge'
@@ -218,7 +219,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       {/* top-left: open to chat & connect */}
       {profile.available && (
         <button
-          onClick={() => run('How can I reach you?')}
+          onClick={() => openSmsOnPhone() || run('How can I reach you?')}
           className="tap absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
         >
           <span className="relative flex h-2 w-2">
@@ -320,7 +321,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className="w-full md:px-4"
             >
               <div
-                className={`${mounted ? 'bubble-in' : 'invisible'} mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6 dark:border-neutral-700`}
+                className={`${mounted ? 'bubble-in' : 'invisible'} shimmer-border mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6 dark:border-neutral-700`}
                 style={{ animationDelay: '0.1s' }}
               >
                 <input

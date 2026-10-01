@@ -66,7 +66,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
                 key={key}
                 disabled={disabled}
                 onClick={() => onAsk(quickQuestions[key])}
-                className="h-auto min-w-[88px] shrink-0 cursor-pointer rounded-xl border border-neutral-300 bg-white/80 px-3 py-2.5 backdrop-blur-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 hover:bg-neutral-100 md:min-w-[100px] md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
+                className="h-auto min-w-[76px] shrink-0 cursor-pointer rounded-xl border border-neutral-300 bg-white/80 px-2.5 py-2.5 backdrop-blur-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 hover:bg-neutral-100 md:min-w-[100px] md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
               >
                 <span className="flex items-center justify-center gap-2 md:gap-3">
                   <Icon size={18} strokeWidth={2} color={color} />

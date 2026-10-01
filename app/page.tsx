@@ -3,9 +3,10 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { useTypewriter } from './components/use-typewriter'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
+import { openSmsOnPhone } from './lib/open-sms'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
@@ -14,32 +15,61 @@ import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
 import { LookingMemoji, useTypingGaze } from './components/looking-memoji'
 
-const GREETINGS = [`Hey, I'm ${profile.shortName} Karri 👋`, 'Hello! Ask me anything…']
+const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
 
-const top = {
-  hidden: { opacity: 0, y: -60 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: 'easeOut' as const } },
-}
-const bottom = {
-  hidden: { opacity: 0, y: 80 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.05, ease: 'easeOut' as const } },
-}
+// Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
+// arrow slides to its spot → the box settles into place and everything else fades/pops in.
+type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
+const ARROW_MS = 850 // circle pops in, arrow spawns inside it, then expand
+const EXPAND_MS = 1100
+const SETTLE_MS = 700
+const OPEN = 'inset(0px 0px 0px 0px round 999px)'
+const HIDDEN = 'inset(50% 0px 50% 100% round 999px)'
+
+// fades/slides a block in once the box has settled
+const reveal = (show: boolean, delay = 0, y = 16) => ({
+  initial: { opacity: 0, y },
+  animate: show ? { opacity: 1, y: 0 } : { opacity: 0, y },
+  transition: { duration: 0.5, ease: 'easeOut' as const, delay: show ? delay : 0 },
+})
 
 export default function Home() {
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
-  // the greeting starts typing once the message box has finished inflating
-  const [mounted, setMounted] = useState(false)
-  const [ready, setReady] = useState(false)
-  useEffect(() => {
-    setMounted(true) // start the bubble once hydrated, in sync with the fade-in
-    const t = setTimeout(() => setReady(true), 900)
-    return () => clearTimeout(t)
-  }, [])
-  const placeholder = useTypewriter(GREETINGS, ready && !focused && !input, ready ? 'Ask me anything…' : '')
   const gaze = useTypingGaze()
   const router = useRouter()
   const reduced = useReducedMotion()
+
+  const boxRef = useRef<HTMLDivElement>(null)
+  const arrowRef = useRef<HTMLSpanElement>(null)
+  const [phase, setPhase] = useState<Phase>('measure')
+  const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN })
+  useLayoutEffect(() => {
+    const box = boxRef.current?.getBoundingClientRect()
+    const el = arrowRef.current
+    if (reduced || !box || !el) {
+      setPhase('done')
+      return
+    }
+    // the arrow starts at scale 0, so take its centre from the rect and its size from layout
+    const r = el.getBoundingClientRect()
+    const cx = r.left + r.width / 2
+    const cy = r.top + r.height / 2
+    const half = el.offsetWidth / 2 + 3 // a few px of glass around the button
+    setIntro({
+      x: window.innerWidth / 2 - cx,
+      y: window.innerHeight / 2 - (box.top + box.height / 2),
+      clip: `inset(${cy - half - box.top}px ${box.right - (cx + half)}px ${box.bottom - (cy + half)}px ${cx - half - box.left}px round 999px)`,
+    })
+    setPhase('arrow')
+    const t1 = setTimeout(() => setPhase('expand'), ARROW_MS)
+    const t2 = setTimeout(() => setPhase('settle'), ARROW_MS + EXPAND_MS)
+    const t3 = setTimeout(() => setPhase('done'), ARROW_MS + EXPAND_MS + SETTLE_MS)
+    return () => [t1, t2, t3].forEach(clearTimeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const revealed = phase === 'settle' || phase === 'done'
+  const ready = phase === 'done' // the greeting starts once everything is in place
   const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
 
   return (
@@ -54,8 +84,8 @@ export default function Home() {
           className="flex text-[16vw] leading-none font-black select-none sm:text-[10rem] lg:text-[16rem]"
           style={{ marginBottom: '-0.16em' }}
           initial={reduced ? false : 'hidden'}
-          animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } } }}
+          animate={revealed ? 'visible' : 'hidden'}
+          variants={{ visible: { transition: { staggerChildren: 0.07, delayChildren: 0.3 } } }}
         >
           {Array.from(`${profile.shortName} Karri`).map((ch, i) => (
             <motion.span
@@ -73,15 +103,15 @@ export default function Home() {
       </div>
 
       {/* top-right: theme */}
-      <div className="absolute top-6 right-4 z-20 sm:right-8">
+      <motion.div className="absolute top-6 right-4 z-20 sm:right-8" {...reveal(revealed, 0.1, -16)}>
         <ThemeToggle />
-      </div>
+      </motion.div>
 
       {/* top-left: availability pill */}
       {profile.available && (
-        <div className="absolute top-6 left-4 z-20 sm:left-6">
+        <motion.div className="absolute top-6 left-4 z-20 sm:left-6" {...reveal(revealed, 0.1, -16)}>
           <button
-            onClick={() => goToChat('How can I reach you?')}
+            onClick={() => openSmsOnPhone() || goToChat('How can I reach you?')}
             className="tap relative flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
           >
             <span className="relative flex h-2 w-2">
@@ -91,69 +121,87 @@ export default function Home() {
             <span className="hidden sm:inline">Open to chat &amp; connect</span>
             <span className="sm:hidden">Let&apos;s connect</span>
           </button>
-        </div>
+        </motion.div>
       )}
 
       {/* header */}
-      <motion.div
-        className="z-10 mt-24 mb-8 flex flex-col items-center text-center md:mt-20 md:mb-10"
-        variants={top}
-        initial="hidden"
-        animate="visible"
-      >
+      <div className="z-10 mt-24 mb-8 flex flex-col items-center text-center md:mt-20 md:mb-10">
         {/* the greeting is typed into the input below; keep a real h1 for SEO / screen readers */}
         <h1 className="sr-only">
           {profile.name} — {profile.role}
         </h1>
-      </motion.div>
-
-      {/* centre memoji */}
-      <div className="relative z-10 h-52 w-52 sm:h-72 sm:w-72">
-        <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="288px" priority />
       </div>
 
-      {/* input + quick buttons */}
+      {/* centre memoji */}
       <motion.div
-        variants={bottom}
-        initial="hidden"
-        animate="visible"
-        className="z-10 mt-8 flex w-full flex-col items-center justify-center"
+        className="relative z-10 h-52 w-52 sm:h-72 sm:w-72"
+        initial={{ opacity: 0, scale: 0.85, y: 20 }}
+        animate={revealed ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 20 }}
+        transition={{ type: 'spring', stiffness: 160, damping: 18 }}
       >
-        <form
+        <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="288px" priority />
+      </motion.div>
+
+      {/* input + quick buttons */}
+      <div className="z-10 mt-8 flex w-full flex-col items-center justify-center">
+        <motion.form
           onSubmit={(e) => {
             e.preventDefault()
             if (input.trim()) goToChat(input.trim())
           }}
-          className="relative w-full max-w-lg"
+          className={`relative z-30 w-full max-w-lg ${phase === 'measure' ? 'invisible' : ''}`}
+          initial={false}
+          animate={
+            phase === 'arrow' || phase === 'expand'
+              ? { x: phase === 'arrow' ? intro.x : 0, y: intro.y }
+              : { x: 0, y: 0 }
+          }
+          transition={
+            phase === 'arrow'
+              ? { duration: 0 }
+              : phase === 'expand'
+                ? { duration: EXPAND_MS / 1000, ease: [0.65, 0, 0.35, 1] }
+                : { type: 'spring', stiffness: 120, damping: 20 }
+          }
         >
-          <div
-            className={`${mounted ? 'bubble-in' : 'invisible'} mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600`}
-            style={{ animationDelay: '0.25s' }}
+          <motion.div
+            ref={boxRef}
+            initial={{ clipPath: HIDDEN }}
+            animate={{ clipPath: phase === 'measure' ? HIDDEN : phase === 'arrow' ? intro.clip : OPEN }}
+            transition={phase === 'expand' ? { duration: EXPAND_MS / 1000, ease: [0.65, 0, 0.35, 1] } : { duration: 0 }}
+            className={`shimmer-border mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600`}
           >
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-                gaze.onType()
-              }}
-              placeholder={placeholder}
-              onFocus={() => {
-                setFocused(true)
-                gaze.onFocus()
-              }}
-              onBlur={() => {
-                setFocused(false)
-                gaze.onBlur()
-              }}
-              aria-label="Ask me anything"
-              className="w-full border-none bg-transparent text-base text-neutral-800 placeholder:text-neutral-600 focus:outline-none dark:text-neutral-200 dark:placeholder:text-neutral-400"
-            />
+            <span className="relative flex w-full items-center">
+              {ready && !input && (
+                <span className="text-base text-neutral-600 dark:text-neutral-400">
+                  <RollingGreeting lines={GREETINGS} active={!focused} />
+                </span>
+              )}
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value)
+                  gaze.onType()
+                }}
+                onFocus={() => {
+                  setFocused(true)
+                  gaze.onFocus()
+                }}
+                onBlur={() => {
+                  setFocused(false)
+                  gaze.onBlur()
+                }}
+                aria-label="Ask me anything"
+                className="relative w-full border-none bg-transparent text-base text-neutral-800 focus:outline-none dark:text-neutral-200"
+              />
+            </span>
             <motion.span
+              ref={arrowRef}
               className="flex"
               initial={reduced ? false : { scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.85 }}
+              animate={phase === 'measure' ? { scale: 0 } : { scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 14 }}
             >
               <motion.button
                 type="submit"
@@ -164,34 +212,44 @@ export default function Home() {
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
               >
-                <ArrowRight className="h-5 w-5" />
+                {/* the empty glass circle lands first, then the arrow spawns inside it */}
+                <motion.span
+                  className="flex"
+                  initial={reduced ? false : { scale: 0, opacity: 0 }}
+                  animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
+                >
+                  <ArrowRight className="h-5 w-5" />
+                </motion.span>
               </motion.button>
             </motion.span>
-          </div>
-        </form>
+          </motion.div>
+        </motion.form>
 
-        {/* socials pop in just under the input */}
-        <SocialLinks size="sm" pop delay={1.0} className="mt-4 justify-center" />
+        {/* socials pop in just under the input once the box has settled */}
+        <div className="min-h-12 mt-4 flex w-full justify-center">
+          {revealed && <SocialLinks size="sm" pop delay={0.25} className="justify-center" />}
+        </div>
 
-        <div className="mt-5 grid w-full max-w-2xl grid-cols-3 gap-3 md:grid-cols-5">
+        <motion.div {...reveal(revealed, 0.45)} className="mt-5 flex w-full max-w-2xl flex-wrap justify-center gap-1 sm:grid sm:grid-cols-5 sm:gap-3">
           {quickConfig.map(({ key, color }) => {
             const Icon = quickIcons[key]
             return (
               <button
                 key={key}
                 onClick={() => goToChat(quickQuestions[key])}
-                className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-white/30 py-6 backdrop-blur-lg transition hover:bg-accent active:scale-95 dark:bg-neutral-900/50 md:py-8"
+                className="flex min-w-[76px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-white/30 px-2.5 py-2.5 backdrop-blur-lg transition hover:bg-accent active:scale-95 sm:aspect-square sm:w-full sm:min-w-0 sm:flex-col sm:gap-1 sm:rounded-2xl sm:px-0 sm:py-6 dark:bg-neutral-900/50 md:py-8"
               >
-                <Icon size={22} strokeWidth={2} color={color} />
-                <span className="text-xs font-medium text-foreground/80 sm:text-sm">{key}</span>
+                <Icon size={22} strokeWidth={2} color={color} className="h-[18px] w-[18px] sm:h-[22px] sm:w-[22px]" />
+                <span className="text-sm font-medium text-foreground/80">{key}</span>
               </button>
             )
           })}
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       {/* what I'm listening to (hidden until Spotify is configured) */}
-      <SpotifyWidget />
+      {revealed && <SpotifyWidget />}
     </div>
   )
 }
