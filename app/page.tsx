@@ -13,7 +13,7 @@ import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
 import { useTypingGaze } from './components/looking-memoji'
-import { LiveMemoji, type Mood } from './components/live-memoji'
+import { LiveAvatar, type Mood } from './components/live-avatar'
 
 const GREETINGS = [`Hey, I'm ${profile.shortName} Karri 👋`, 'Hello! Ask me anything…']
 
@@ -114,9 +114,9 @@ export default function Home() {
         </h1>
       </motion.div>
 
-      {/* centre memoji */}
+      {/* centre avatar */}
       <div className="relative z-10 h-52 w-52 sm:h-72 sm:w-72">
-        <LiveMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} mood={mood} alt={`${profile.name} memoji`} sizes="288px" priority />
+        <LiveAvatar looking={gaze.looking} keystrokes={gaze.keystrokes} mood={mood} alt={`${profile.name} avatar`} sizes="288px" priority />
       </div>
 
       {/* input + quick buttons */}

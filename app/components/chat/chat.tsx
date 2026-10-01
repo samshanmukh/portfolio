@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowUp, Info, Square } from 'lucide-react'
 import { useTypingGaze } from '../looking-memoji'
-import { LiveMemoji, type Mood } from '../live-memoji'
+import { LiveAvatar, type Mood } from '../live-avatar'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -277,7 +277,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 animate={busy ? { y: [0, -4, 0], rotate: [0, -3, 3, 0] } : { y: 0, rotate: 0 }}
                 transition={busy ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
               >
-                <LiveMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} mood={mood} alt={`${profile.name} memoji`} sizes="112px" priority />
+                <LiveAvatar looking={gaze.looking} keystrokes={gaze.keystrokes} mood={mood} alt={`${profile.name} avatar`} sizes="112px" priority />
               </motion.div>
             </Link>
           </div>
