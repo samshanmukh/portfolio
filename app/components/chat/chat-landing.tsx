@@ -21,7 +21,7 @@ export function ChatLanding({ onAsk }: { onAsk: (q: string) => void }) {
       <motion.div className="mb-8 text-center" variants={item}>
         <h2 className="mb-3 text-2xl font-semibold">I&apos;m {profile.shortName}&apos;s digital twin</h2>
         <p className="mx-auto max-w-md text-muted">
-          ML/AI engineer — ask me anything. Fair warning: I run on sarcasm, dad jokes, and unpopular opinions (tabs &gt; spaces).
+          Software engineer. Ask me anything. Fair warning: I run on sarcasm, dad jokes, and unpopular opinions (tabs &gt; spaces).
         </p>
       </motion.div>
       <motion.div className="w-full max-w-md space-y-3" variants={container}>

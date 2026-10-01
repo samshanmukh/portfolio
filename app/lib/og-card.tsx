@@ -6,7 +6,7 @@ import { profile } from './data'
 // Link-preview card (1200x630) in the site's current look: soft liquid colour blobs on white,
 // the Memoji, the name, and the glass ask box with its greeting and send arrow.
 export const ogSize = { width: 1200, height: 630 }
-export const ogAlt = `${profile.name} — ${profile.role}`
+export const ogAlt = `${profile.name} · ${profile.role}`
 
 const file = (...p: string[]) => readFileSync(join(process.cwd(), ...p))
 const dataUri = (mime: string, buf: Buffer) => `data:${mime};base64,${buf.toString('base64')}`

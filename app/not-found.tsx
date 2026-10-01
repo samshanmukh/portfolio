@@ -8,7 +8,7 @@ export default function NotFound() {
         This route isn&apos;t in the <span className="text-primary">graph</span>.
       </h1>
       <p className="mt-4 max-w-md text-muted">
-        The page you’re after doesn’t exist — but my portfolio agent is happy to
+        The page you’re after doesn’t exist, but my portfolio agent is happy to
         point you somewhere useful.
       </p>
       <Link

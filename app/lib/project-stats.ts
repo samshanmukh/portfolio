@@ -146,7 +146,7 @@ export async function getLiveProjects(): Promise<ProjectsPayload> {
     if (s) {
       list.push({
         name: prettify(newest),
-        blurb: s.description ?? 'Fresh repo — just getting started.',
+        blurb: s.description ?? 'Fresh repo, just getting started.',
         tags: s.topics.slice(0, 3),
         href: s.url,
         demo: s.homepage ?? undefined,

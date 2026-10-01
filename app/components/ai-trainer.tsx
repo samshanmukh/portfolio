@@ -190,7 +190,7 @@ export function AiTrainer() {
     ctx.clearRect(0, 0, w, h)
     const pose = res?.landmarks?.[0]
     if (!pose) {
-      setFb('No person detected — step into frame')
+      setFb('No person detected, step into frame')
       return
     }
     try {
@@ -214,8 +214,8 @@ export function AiTrainer() {
       if (knee < 100) {
         phase.current = 'down'
         minAngle.current = knee
-        setFb('Down — now drive up! ⬆')
-      } else setFb(knee > 160 ? 'Ready — squat down ⬇' : 'Keep lowering…')
+        setFb('Down. Now drive up! ⬆')
+      } else setFb(knee > 160 ? 'Ready, squat down ⬇' : 'Keep lowering…')
     } else {
       minAngle.current = Math.min(minAngle.current, knee)
       if (knee > 155) {
@@ -224,7 +224,7 @@ export function AiTrainer() {
         const n = repsRef.current + 1
         repsRef.current = n
         setReps(n)
-        setFb(deep ? `💪 Rep ${n} — deep!` : `Rep ${n} — go a bit deeper`)
+        setFb(deep ? `💪 Rep ${n}, deep!` : `Rep ${n}: go a bit deeper`)
         commentOnReps(n, deep)
         minAngle.current = 180
       }
@@ -358,7 +358,7 @@ export function AiTrainer() {
   return (
     <div className="w-full pt-6 pb-4">
       <h2 className="text-2xl font-bold md:text-3xl">
-        AI personal trainer — it watches your form and coaches you in Grok&apos;s voice
+        AI personal trainer. It watches your form and coaches you in Grok&apos;s voice
       </h2>
       <p className="mt-2 text-sm text-muted">Live demo · computer vision + real-time voice</p>
 
@@ -399,7 +399,7 @@ export function AiTrainer() {
                 <p className="text-sm text-white/80">{note}</p>
               ) : status === 'denied' ? (
                 <p className="max-w-xs text-sm text-white/70">
-                  Camera/mic permission was blocked. Allow it and try again — video stays on your device.
+                  Camera/mic permission was blocked. Allow it and try again. Video stays on your device.
                 </p>
               ) : status === 'error' ? (
                 <p className="max-w-xs text-sm text-white/70">
@@ -410,7 +410,7 @@ export function AiTrainer() {
                 </p>
               ) : (
                 <p className="max-w-sm text-sm text-white/70">
-                  Turn on your camera + mic, stand side-on, and squat — it counts your reps, checks depth, and{' '}
+                  Turn on your camera + mic, stand side-on, and squat. It counts your reps, checks depth, and{' '}
                   <span className="text-white">coaches you out loud in Grok&apos;s real voice</span>. Talk back anytime.
                 </p>
               )}
@@ -427,7 +427,7 @@ export function AiTrainer() {
         <div className="flex flex-col gap-4 rounded-2xl bg-accent p-6">
           <div>
             <p className="text-xs font-medium uppercase tracking-widest text-muted">form check</p>
-            <p className="mt-1 text-lg">{status === 'active' ? feedback : '—'}</p>
+            <p className="mt-1 text-lg">{status === 'active' ? feedback : '-'}</p>
           </div>
           {status === 'active' && (
             <div>
@@ -437,11 +437,11 @@ export function AiTrainer() {
           )}
           <ul className="space-y-1.5 text-sm text-muted">
             <li>
-              › <span className="text-foreground">Sees you</span> — pose estimation counts reps + depth (my{' '}
+              › <span className="text-foreground">Sees you</span>: pose estimation counts reps + depth (my{' '}
               <span className="text-foreground">RepRight</span>)
             </li>
             <li>
-              › <span className="text-foreground">Talks with you</span> — real-time{' '}
+              › <span className="text-foreground">Talks with you</span>: real-time{' '}
               <span className="text-foreground">Grok voice</span> ({VOICE_MODEL}), my{' '}
               <span className="text-foreground">VoiceCoach</span>
             </li>

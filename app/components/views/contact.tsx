@@ -40,7 +40,7 @@ export function Contact() {
         <h2 className="text-2xl font-bold md:text-3xl">Let&apos;s build something</h2>
         <p className="mx-auto max-w-lg text-muted">
           Hiring, collaborating, or just want to talk shop about agents and computer vision? My
-          inbox is open — I usually reply within a day.
+          inbox is open. I usually reply within a day.
         </p>
         <SocialLinks className="justify-center pt-2" />
       </div>

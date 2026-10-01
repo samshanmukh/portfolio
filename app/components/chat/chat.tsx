@@ -118,7 +118,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       })
       patchLast({ status: 'done' })
     } catch {
-      patchLast({ text: '(local model hiccup — back to quick answers)', status: 'done' })
+      patchLast({ text: '(local model hiccup, back to quick answers)', status: 'done' })
       setMode('keyword')
     }
   }
@@ -177,7 +177,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         {
           role: 'agent',
           tool: MODEL_LABEL,
-          text: `Smart mode on — I'm now a small language model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
+          text: `Smart mode on: I'm now a small language model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
           status: 'done',
           shown: Infinity,
         },
@@ -192,7 +192,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         {
           role: 'agent',
           tool: 'error',
-          text: `Couldn't start the local model (${msg}). No worries — I'll keep using quick answers, which are instant and work on any device.`,
+          text: `Couldn't start the local model (${msg}). No worries, I'll keep using quick answers, which are instant and work on any device.`,
           status: 'done',
           shown: Infinity,
         },
@@ -302,7 +302,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
           {llm === 'loading' && (
             <div className="mx-auto mb-3 w-full max-w-xl px-2">
               <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted">
-                <span>⚡ booting on-device LLM — one-time download, then cached</span>
+                <span>⚡ booting on-device LLM: one-time download, then cached</span>
                 <span className="font-medium text-primary">{prog}%</span>
               </div>
               <div className="h-1 w-full overflow-hidden rounded-full bg-accent">

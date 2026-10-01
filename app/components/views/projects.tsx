@@ -101,13 +101,17 @@ function Chips({ p }: { p: LiveProject }) {
 
 function Links({ p }: { p: LiveProject }) {
   const demo = p.demo ?? p.stats?.homepage ?? undefined
+  // private projects link to their site instead of a repo, so no Code button
+  const code = p.stats?.url ?? (p.href.includes('github.com') ? p.href : undefined)
   const btn =
     'glass tap relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium'
   return (
     <div className="flex flex-wrap gap-2">
-      <a href={p.stats?.url ?? p.href} target="_blank" rel="noopener noreferrer" className={btn}>
-        <GithubIcon className="h-3.5 w-3.5" /> Code
-      </a>
+      {code && (
+        <a href={code} target="_blank" rel="noopener noreferrer" className={btn}>
+          <GithubIcon className="h-3.5 w-3.5" /> Code
+        </a>
+      )}
       {demo && (
         <a href={demo} target="_blank" rel="noopener noreferrer" className={btn}>
           <Globe className="h-3.5 w-3.5" /> Live
@@ -146,8 +150,8 @@ function Current({ p }: { p: LiveProject }) {
       {s && (
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'Commits', value: s.commits !== null ? fmt(s.commits) : '—' },
-            { label: 'Releases', value: s.releases !== null ? fmt(s.releases) : '—' },
+            { label: 'Commits', value: s.commits !== null ? fmt(s.commits) : '-' },
+            { label: 'Releases', value: s.releases !== null ? fmt(s.releases) : '-' },
             { label: 'Stars', value: fmt(s.stars) },
             { label: 'Last push', value: ago(s.pushedAt) },
           ].map((x) => (
@@ -194,7 +198,7 @@ function Card({ p, i }: { p: LiveProject; i: number }) {
           href={p.stats?.url ?? p.href}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${p.name} on GitHub`}
+          aria-label={p.href.includes('github.com') ? `${p.name} on GitHub` : `${p.name} website`}
           className="tap relative mt-1 text-muted transition-colors hover:text-foreground"
         >
           <ExternalLink className="h-4 w-4" />

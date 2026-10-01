@@ -128,7 +128,7 @@ export default function Home() {
       <div className="z-10 mt-24 mb-8 flex flex-col items-center text-center md:mt-20 md:mb-10">
         {/* the greeting is typed into the input below; keep a real h1 for SEO / screen readers */}
         <h1 className="sr-only">
-          {profile.name} — {profile.role}
+          {profile.name} · {profile.role}
         </h1>
       </div>
 
