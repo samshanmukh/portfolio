@@ -3,6 +3,9 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
+// Emoji keep their own colours; only the words get the shimmer.
+const EMOJI = /(\p{Extended_Pictographic}+)/u
+
 // Placeholder for the ask box: each greeting pops up as a whole line (like the bubbles
 // elsewhere), holds, then rolls up out of the way for the next one.
 export function RollingGreeting({ lines, active }: { lines: string[]; active: boolean }) {
@@ -26,7 +29,9 @@ export function RollingGreeting({ lines, active }: { lines: string[]; active: bo
           exit={{ y: '-110%', opacity: 0, scale: 0.95, filter: 'blur(4px)' }}
           transition={{ type: 'spring', stiffness: 320, damping: 22 }}
         >
-          {lines[i]}
+          {lines[i].split(EMOJI).map((part, j) =>
+            EMOJI.test(part) ? <span key={j}>{part}</span> : <span key={j} className="text-shimmer">{part}</span>,
+          )}
         </motion.span>
       </AnimatePresence>
     </span>
