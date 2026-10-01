@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowUp, Info, Square } from 'lucide-react'
+import { ArrowUp, Sparkles, Square } from 'lucide-react'
 import { LookingMemoji, useTypingGaze } from '../looking-memoji'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -233,12 +233,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       {/* top-right: controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
-        <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
+        {/* clicking Smart mode toggles it and opens the "about this portfolio" popup */}
         <WelcomeModal
           trigger={
-            <button aria-label="About this portfolio" className="tap relative flex h-9 w-8 md:w-9 cursor-pointer items-center justify-center rounded-full hover:bg-accent">
-              <Info className="h-5 w-5" />
-            </button>
+            <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
           }
         />
         <ThemeToggle />
@@ -302,7 +300,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
           {llm === 'loading' && (
             <div className="mx-auto mb-3 w-full max-w-xl px-2">
               <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted">
-                <span>⚡ booting on-device LLM: one-time download, then cached</span>
+                <span className="flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5" /> booting on-device LLM: one-time download, then cached
+                </span>
                 <span className="font-medium text-primary">{prog}%</span>
               </div>
               <div className="h-1 w-full overflow-hidden rounded-full bg-accent">
@@ -452,15 +452,15 @@ function SmartToggle({
         title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
         className={`${base} cursor-not-allowed border-border text-muted`}
       >
-        ⚡ <span className="hidden md:inline">no WebGPU</span>
+        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">no WebGPU</span>
       </span>
     )
   }
-  if (llm === 'loading') return <span className={`${base} border-[#0171E3]/40 text-primary`}>⚡ {prog}%</span>
+  if (llm === 'loading') return <span className={`${base} border-[#0171E3]/40 text-primary`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
   if (mode === 'llm') {
     return (
       <button onClick={onDisable} className={`${base} cursor-pointer border-[#0171E3]/50 bg-[#0171E3]/10 text-primary`}>
-        ⚡ <span className="hidden md:inline">smart: on</span>
+        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart: on</span>
       </button>
     )
   }
@@ -471,7 +471,7 @@ function SmartToggle({
       title="Load a small LLM that runs free in your browser (~0.4 GB, one-time)."
       className={`${base} cursor-pointer border-border text-muted hover:text-foreground`}
     >
-      ⚡ <span className="hidden md:inline">smart mode</span>
+      <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>
     </button>
   )
 }
