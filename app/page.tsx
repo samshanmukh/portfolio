@@ -5,11 +5,14 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useTypewriter } from './components/use-typewriter'
 import { profile } from './lib/data'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
+
+const GREETINGS = [`Hey, I'm ${profile.shortName} Karri 👋`, 'Hello! Ask me anything…']
 
 const top = {
   hidden: { opacity: 0, y: -60 },
@@ -22,6 +25,8 @@ const bottom = {
 
 export default function Home() {
   const [input, setInput] = useState('')
+  const [focused, setFocused] = useState(false)
+  const placeholder = useTypewriter(GREETINGS, !focused && !input, 'Ask me anything…')
   const router = useRouter()
   const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
 
@@ -67,10 +72,11 @@ export default function Home() {
         initial="hidden"
         animate="visible"
       >
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-          Hey, I&apos;m {profile.shortName} Karri
+        {/* the greeting is typed into the input below; keep a real h1 for SEO / screen readers */}
+        <h1 className="sr-only">
+          {profile.name} — {profile.role}
         </h1>
-        <p className="mt-3 text-sm text-muted md:text-base">
+        <p className="text-sm text-muted md:text-base">
           {profile.role} · {profile.location}
         </p>
       </motion.div>
@@ -99,9 +105,11 @@ export default function Home() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything…"
+              placeholder={placeholder}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
               aria-label="Ask me anything"
-              className="w-full border-none bg-transparent text-base text-neutral-800 placeholder:text-neutral-500 focus:outline-none dark:text-neutral-200"
+              className="w-full border-none bg-transparent text-base text-neutral-800 placeholder:text-neutral-600 focus:outline-none dark:text-neutral-200 dark:placeholder:text-neutral-400"
             />
             <button
               type="submit"
