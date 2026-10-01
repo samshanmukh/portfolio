@@ -52,8 +52,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
-  // a question sent while an answer is still coming; it goes out as soon as that answer finishes
-  const [queued, setQueued] = useState<string | null>(null)
+  // questions sent while an answer is still coming; each goes out, in order, once the one before finishes
+  const [queued, setQueued] = useState<string[]>([])
   const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
   const [llm, setLlm] = useState<LlmState>('idle')
   const [prog, setProg] = useState(0)
@@ -128,7 +128,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     const q = raw.trim()
     if (!q) return
     if (busy) {
-      setQueued(q)
+      setQueued((prev) => [...prev, q])
       setInput('')
       return
     }
@@ -146,9 +146,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   }
 
   useEffect(() => {
-    if (busy || !queued) return
-    setQueued(null)
-    run(queued)
+    if (busy || !queued.length) return
+    const [next, ...rest] = queued
+    setQueued(rest)
+    run(next)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busy, queued])
 
@@ -338,7 +339,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   onChange={(e) => setInput(e.target.value)}
                   spellCheck={false}
                   autoComplete="off"
-                  placeholder={queued ? `Up next: ${queued}` : busy ? `${profile.shortName} is typing…` : 'Ask me anything'}
+                  placeholder={queued.length ? `Up next: ${queued[0]}${queued.length > 1 ? ` (+${queued.length - 1} more)` : ''}` : busy ? `${profile.shortName} is typing…` : 'Ask me anything'}
                   aria-label="Ask me anything"
                   className="w-full border-none bg-transparent text-base placeholder:text-neutral-500 focus:outline-none disabled:opacity-60"
                 />
