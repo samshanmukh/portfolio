@@ -1,8 +1,8 @@
 'use client'
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import Image from 'next/image'
 import { ArrowUp, Sparkles, Square } from 'lucide-react'
-import { LookingMemoji, useTypingGaze } from '../looking-memoji'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -60,7 +60,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const engineRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const gaze = useTypingGaze()
   const autoSubmitted = useRef(false)
 
   useEffect(() => {
@@ -251,13 +250,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               aria-label="Back to home"
               className={`relative block transition-all duration-300 ${hasView ? 'h-20 w-20' : 'h-28 w-28'}`}
             >
-              <motion.div
-                className="relative h-full w-full"
-                animate={busy ? { y: [0, -4, 0], rotate: [0, -3, 3, 0] } : { y: 0, rotate: 0 }}
-                transition={busy ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
-              >
-                <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="112px" priority />
-              </motion.div>
+              {/* holds still while visitors type and while answers load */}
+              <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
             </Link>
           </div>
         </div>
@@ -327,12 +321,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 <input
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => {
-                    setInput(e.target.value)
-                    gaze.onType()
-                  }}
-                  onFocus={gaze.onFocus}
-                  onBlur={gaze.onBlur}
+                  onChange={(e) => setInput(e.target.value)}
                   disabled={busy}
                   spellCheck={false}
                   autoComplete="off"

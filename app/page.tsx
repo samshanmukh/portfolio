@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -13,7 +14,6 @@ import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
-import { LookingMemoji, useTypingGaze } from './components/looking-memoji'
 
 const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
 
@@ -36,7 +36,6 @@ const reveal = (show: boolean, delay = 0, y = 16) => ({
 export default function Home() {
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
-  const gaze = useTypingGaze()
   const router = useRouter()
   const reduced = useReducedMotion()
 
@@ -139,7 +138,7 @@ export default function Home() {
         animate={revealed ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 20 }}
         transition={{ type: 'spring', stiffness: 160, damping: 18 }}
       >
-        <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="288px" priority />
+        <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="288px" priority className="object-contain" />
       </motion.div>
 
       {/* input + quick buttons */}
@@ -180,18 +179,9 @@ export default function Home() {
               <input
                 type="text"
                 value={input}
-                onChange={(e) => {
-                  setInput(e.target.value)
-                  gaze.onType()
-                }}
-                onFocus={() => {
-                  setFocused(true)
-                  gaze.onFocus()
-                }}
-                onBlur={() => {
-                  setFocused(false)
-                  gaze.onBlur()
-                }}
+                onChange={(e) => setInput(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
                 aria-label="Ask me anything"
                 className="relative w-full border-none bg-transparent text-base text-neutral-800 focus:outline-none dark:text-neutral-200"
               />
