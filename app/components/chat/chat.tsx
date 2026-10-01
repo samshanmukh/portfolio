@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { ask, type Source, type View } from '../../lib/agent'
-import { profile, socials } from '../../lib/data'
+import { profile } from '../../lib/data'
 import { systemPrompt } from '../../lib/knowledge'
 import type { PostMeta } from '../../lib/posts'
 import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
@@ -322,14 +322,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         </div>
       </div>
 
-      <a
-        href={socials.sourceRepo}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed right-3 bottom-0 z-10 mb-4 hidden px-4 py-2 text-sm text-muted hover:text-foreground hover:underline md:block"
-      >
-        © {new Date().getFullYear()} {profile.shortName} Karri · view source
-      </a>
+      <p className="fixed right-3 bottom-0 z-10 mb-4 hidden px-4 py-2 text-sm text-muted md:block">
+        © {new Date().getFullYear()} {profile.shortName} Karri
+      </p>
     </div>
   )
 }
