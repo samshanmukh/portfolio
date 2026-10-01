@@ -58,7 +58,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
       </div>
 
       {visible && (
-        <div className="flex w-full flex-wrap gap-1 md:gap-3" style={{ justifyContent: 'safe center' }}>
+        <div className="flex w-full gap-1.5 md:flex-wrap md:gap-3" style={{ justifyContent: 'safe center' }}>
           {quickConfig.map(({ key, color }) => {
             const Icon = quickIcons[key]
             return (
@@ -66,11 +66,11 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
                 key={key}
                 disabled={disabled}
                 onClick={() => onAsk(quickQuestions[key])}
-                className="h-auto min-w-[88px] shrink-0 cursor-pointer rounded-xl border border-neutral-300 bg-white/80 px-3 py-2.5 backdrop-blur-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 hover:bg-neutral-100 md:min-w-[100px] md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
+                className="min-h-11 min-w-0 flex-1 cursor-pointer rounded-xl border border-neutral-300 bg-white/80 px-0.5 py-1.5 backdrop-blur-sm md:h-auto md:min-w-[100px] md:flex-none md:shrink-0 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 hover:bg-neutral-100 md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
               >
-                <span className="flex items-center justify-center gap-2 md:gap-3">
-                  <Icon size={18} strokeWidth={2} color={color} />
-                  <span className="text-sm font-medium">{key}</span>
+                <span className="flex flex-col items-center justify-center gap-0.5 md:flex-row md:gap-3">
+                  <Icon size={18} strokeWidth={2} color={color} className="h-4 w-4 md:h-[18px] md:w-[18px]" />
+                  <span className="max-w-full truncate text-[11px] font-medium md:text-sm">{key}</span>
                 </span>
               </button>
             )
@@ -78,7 +78,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
           <button
             onClick={() => setOpen(true)}
             aria-label="More questions"
-            className="flex shrink-0 cursor-pointer items-center rounded-xl border border-neutral-300 bg-white/80 px-3 py-2.5 backdrop-blur-sm transition-colors hover:bg-neutral-100 md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
+            className="flex min-h-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-neutral-300 bg-white/80 px-2.5 py-1.5 backdrop-blur-sm transition-colors hover:bg-neutral-100 md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
           >
             <CircleEllipsis className="h-5 w-[18px]" strokeWidth={2} />
           </button>

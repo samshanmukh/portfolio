@@ -173,17 +173,17 @@ export default function Home() {
         {/* socials pop in just under the input */}
         <SocialLinks size="sm" pop delay={1.0} className="mt-4 justify-center" />
 
-        <div className="mt-5 grid w-full max-w-2xl grid-cols-3 gap-3 md:grid-cols-5">
+        <div className="mt-5 grid w-full max-w-2xl grid-cols-5 gap-1.5 sm:gap-3">
           {quickConfig.map(({ key, color }) => {
             const Icon = quickIcons[key]
             return (
               <button
                 key={key}
                 onClick={() => goToChat(quickQuestions[key])}
-                className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-white/30 py-6 backdrop-blur-lg transition hover:bg-accent active:scale-95 dark:bg-neutral-900/50 md:py-8"
+                className="flex min-h-14 w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-border bg-white/30 px-0.5 py-2 backdrop-blur-lg transition hover:bg-accent active:scale-95 sm:aspect-square sm:rounded-2xl sm:py-6 dark:bg-neutral-900/50 md:py-8"
               >
-                <Icon size={22} strokeWidth={2} color={color} />
-                <span className="text-xs font-medium text-foreground/80 sm:text-sm">{key}</span>
+                <Icon size={22} strokeWidth={2} color={color} className="h-[18px] w-[18px] sm:h-[22px] sm:w-[22px]" />
+                <span className="max-w-full truncate text-[11px] font-medium text-foreground/80 sm:text-sm">{key}</span>
               </button>
             )
           })}
