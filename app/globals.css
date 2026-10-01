@@ -247,3 +247,30 @@ body {
     transform: translate(-50%, -50%);
   }
 }
+
+/* Blue glass bubble for the send button: same glassy rim + highlight, tinted primary. */
+.glass-primary {
+  color: #fff;
+  background: linear-gradient(135deg, rgb(56 152 255 / 0.95), rgb(1 113 227 / 0.8));
+  border: 1px solid rgb(255 255 255 / 0.55);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.7),
+    inset 0 -2px 4px rgb(0 40 120 / 0.25),
+    0 6px 16px -4px rgb(1 113 227 / 0.55);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  transition: background 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+.glass-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgb(86 170 255 / 1), rgb(1 113 227 / 0.9));
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.85),
+    inset 0 -2px 4px rgb(0 40 120 / 0.25),
+    0 8px 22px -4px rgb(1 113 227 / 0.65);
+}
+.dark .glass-primary {
+  border-color: rgb(255 255 255 / 0.25);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.35),
+    0 6px 18px -4px rgb(1 113 227 / 0.6);
+}

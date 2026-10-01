@@ -327,14 +327,17 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   aria-label="Ask me anything"
                   className="w-full border-none bg-transparent text-base placeholder:text-neutral-500 focus:outline-none disabled:opacity-60"
                 />
-                <button
+                <motion.button
                   type="submit"
                   disabled={busy || !input.trim()}
                   aria-label="Send"
-                  className="flex cursor-pointer items-center justify-center rounded-full bg-[#0171E3] p-2 text-white disabled:cursor-default disabled:opacity-50"
+                  whileHover={{ scale: 1.08, y: -1 }}
+                  whileTap={{ scale: 0.88 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                  className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2 disabled:cursor-default disabled:opacity-50"
                 >
                   {busy ? <Square className="h-6 w-6 p-1" /> : <ArrowUp className="h-6 w-6" />}
-                </button>
+                </motion.button>
               </div>
             </form>
             {/* socials pop in just under the input */}

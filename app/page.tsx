@@ -128,14 +128,17 @@ export default function Home() {
               aria-label="Ask me anything"
               className="w-full border-none bg-transparent text-base text-neutral-800 placeholder:text-neutral-600 focus:outline-none dark:text-neutral-200 dark:placeholder:text-neutral-400"
             />
-            <button
+            <motion.button
               type="submit"
               disabled={!input.trim()}
               aria-label="Submit question"
-              className="flex cursor-pointer items-center justify-center rounded-full bg-[#0171E3] p-2.5 text-white transition-colors hover:bg-blue-600 disabled:opacity-70 dark:bg-blue-600 dark:hover:bg-blue-700"
+              whileHover={{ scale: 1.08, y: -1 }}
+              whileTap={{ scale: 0.88 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+              className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
             >
               <ArrowRight className="h-5 w-5" />
-            </button>
+            </motion.button>
           </div>
         </form>
 
