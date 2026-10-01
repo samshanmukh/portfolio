@@ -10,6 +10,7 @@ import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
 import { SourceButton } from './components/source-button'
+import { SocialLinks } from './components/social-links'
 
 const top = {
   hidden: { opacity: 0, y: -60 },
@@ -129,6 +130,7 @@ export default function Home() {
             )
           })}
         </div>
+        <SocialLinks className="mt-6" />
       </motion.div>
     </div>
   )

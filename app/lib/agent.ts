@@ -65,6 +65,22 @@ export function ask(question: string): AgentReply {
     }
   }
 
+  // social links — "linkedin", "github", "twitter"…
+  if (has(q, 'linkedin', 'github', 'twitter', 'social', 'instagram', 'x.com', 'handle') || /\bx\b/.test(q)) {
+    return {
+      tool: 'open(socials)',
+      view: 'contact',
+      text: `All my links are right here — tap any of them. LinkedIn's best for recruiters, GitHub if you wanna judge my code 😏`,
+      sources: [
+        { label: 'linkedin', href: socials.linkedin },
+        { label: 'github', href: socials.github },
+        { label: 'x / twitter', href: socials.twitter },
+        { label: 'email', href: `mailto:${socials.email}` },
+      ],
+      followups: ['What have you built?', 'Can I see your résumé?'],
+    }
+  }
+
   if (!q || has(q, 'help', 'what can you', 'who are you')) {
     return {
       view: 'me',

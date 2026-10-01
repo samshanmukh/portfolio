@@ -11,6 +11,7 @@ import { profile, socials } from '../../lib/data'
 import { systemPrompt } from '../../lib/knowledge'
 import type { PostMeta } from '../../lib/posts'
 import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
+import { SocialLinks } from '../social-links'
 import { ThemeToggle } from '../theme-toggle'
 import { ViewRenderer } from '../views/view-renderer'
 import { WelcomeModal } from '../welcome-modal'
@@ -204,6 +205,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
   return (
     <div className="relative h-dvh overflow-hidden">
+      {/* top-left: social links (desktop; mobile shows them above the input) */}
+      <SocialLinks size="sm" className="absolute top-5 left-4 z-[51] hidden sm:left-8 md:flex" />
+
       {/* top-right controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
         <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
@@ -286,6 +290,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
           )}
           <div className="relative flex flex-col items-center gap-3">
             <HelperBoost onAsk={run} disabled={busy} />
+            <SocialLinks size="sm" className="md:hidden" />
             <form
               onSubmit={(e) => {
                 e.preventDefault()

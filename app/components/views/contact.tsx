@@ -4,6 +4,7 @@ import { FileText, Mail, MapPin } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { profile, socials } from '../../lib/data'
 import { GithubIcon, LinkedinIcon, XIcon } from '../brand-icons'
+import { SocialLinks } from '../social-links'
 
 type Item = {
   icon: ComponentType<{ className?: string }>
@@ -40,6 +41,7 @@ export function Contact() {
           Hiring, collaborating, or just want to talk shop about agents and computer vision? My
           inbox is open — I usually reply within a day.
         </p>
+        <SocialLinks className="justify-center pt-2" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
