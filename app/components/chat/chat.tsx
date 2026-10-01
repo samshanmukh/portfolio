@@ -205,9 +205,24 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
   return (
     <div className="relative h-dvh overflow-hidden">
-      {/* top-right: social links (desktop; phones get them above the input) + controls */}
+      {/* top-left: open to chat & connect */}
+      {profile.available && (
+        <button
+          onClick={() => run('How can I reach you?')}
+          className="absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+          </span>
+          <span className="hidden sm:inline">Open to chat &amp; connect</span>
+          <span className="sm:hidden">Let&apos;s connect</span>
+        </button>
+      )}
+
+      {/* top-right: social links (wide screens; narrower ones get them above the input) + controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
-        <SocialLinks size="sm" className="mr-1 hidden md:flex" />
+        <SocialLinks size="sm" className="mr-1 hidden xl:flex" />
         <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
         <WelcomeModal
           trigger={
@@ -288,7 +303,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
           )}
           <div className="relative flex flex-col items-center gap-3">
             <HelperBoost onAsk={run} disabled={busy} />
-            <SocialLinks size="sm" className="md:hidden" />
+            <SocialLinks size="sm" className="xl:hidden" />
             <form
               onSubmit={(e) => {
                 e.preventDefault()

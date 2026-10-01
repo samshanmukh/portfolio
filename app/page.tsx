@@ -52,22 +52,22 @@ export default function Home() {
       {profile.available && (
         <div className="absolute top-6 left-4 z-20 sm:left-6">
           <button
-            onClick={() => goToChat('What are you looking for?')}
-            className="relative flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-4 py-1.5 text-sm font-medium shadow-md backdrop-blur-lg transition hover:bg-white/60 dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+            onClick={() => goToChat('How can I reach you?')}
+            className="relative flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
           >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
             </span>
-            <span className="hidden sm:inline">Open to ML / AI roles</span>
-            <span className="sm:hidden">Hiring?</span>
+            <span className="hidden sm:inline">Open to chat &amp; connect</span>
+            <span className="sm:hidden">Let&apos;s connect</span>
           </button>
         </div>
       )}
 
       {/* header */}
       <motion.div
-        className="z-10 mt-24 mb-8 flex flex-col items-center text-center md:mt-4 md:mb-10"
+        className="z-10 mt-24 mb-8 flex flex-col items-center text-center md:mt-20 md:mb-10"
         variants={top}
         initial="hidden"
         animate="visible"
