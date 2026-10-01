@@ -39,7 +39,7 @@
   --color-input: var(--input);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --font-display: 'Chewy', 'Inter', ui-sans-serif, system-ui, cursive;
+  --font-display: 'Itim', 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
