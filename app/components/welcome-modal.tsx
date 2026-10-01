@@ -80,14 +80,14 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
                       <h3 className="text-lg font-semibold">What&apos;s this?</h3>
                       <p className="leading-relaxed text-foreground/80">
                         Instead of a wall of sections, this portfolio <strong>talks back</strong>. Recruiter, fellow
-                        engineer, or just curious — ask whatever you want to know about me and my work.
+                        engineer, or just curious, ask whatever you want to know about me and my work.
                       </p>
                     </div>
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold">How does it work?</h3>
                       <p className="leading-relaxed text-foreground/80">
-                        Quick answers are instant and work on any device. Flip on <strong>⚡ smart mode</strong> in the
-                        chat to load a small language model that runs <strong>entirely in your browser</strong> — no
+                        Quick answers are instant and work on any device. Flip on <strong>smart mode</strong> in the
+                        chat to load a small language model that runs <strong>entirely in your browser</strong>, no
                         server, no API key.
                       </p>
                     </div>

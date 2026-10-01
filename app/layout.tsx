@@ -4,13 +4,13 @@ import { profile, socials, siteUrl, skills, education, languages } from './lib/d
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 
-const SEO_DESCRIPTION = `${profile.name} — ${profile.role} in San Francisco. 6+ years building LLM agents, RAG systems & computer-vision pipelines. ${profile.lookingFor}. Chat with my AI agent.`
+const SEO_DESCRIPTION = `${profile.name}, ${profile.role} in San Francisco. 6+ years building LLM agents, RAG systems & computer-vision pipelines. ${profile.lookingFor}. Chat with my AI agent.`
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${profile.name} — ${profile.role}`,
-    template: `%s — ${profile.name}`,
+    default: `${profile.name} · ${profile.role}`,
+    template: `%s · ${profile.name}`,
   },
   description: SEO_DESCRIPTION,
   applicationName: `${profile.name} · Portfolio`,
@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   keywords: [
     profile.name,
     'Sam Karri',
+    'Software Engineer',
     'Machine Learning Engineer',
     'AI Engineer',
     'Data Scientist',
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
   openGraph: {
-    title: `${profile.name} — ${profile.role}`,
+    title: `${profile.name} · ${profile.role}`,
     description: SEO_DESCRIPTION,
     url: siteUrl,
     siteName: `${profile.name} · Portfolio`,
@@ -47,7 +48,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${profile.name} — ${profile.role}`,
+    title: `${profile.name} · ${profile.role}`,
     description: SEO_DESCRIPTION,
     creator: '@samshanmukh',
   },
@@ -106,7 +107,7 @@ const jsonLd = {
       '@type': 'ProfilePage',
       '@id': `${siteUrl}/#webpage`,
       url: siteUrl,
-      name: `${profile.name} — ${profile.role}`,
+      name: `${profile.name} · ${profile.role}`,
       isPartOf: { '@id': `${siteUrl}/#website` },
       mainEntity: { '@id': `${siteUrl}/#person` },
       about: { '@id': `${siteUrl}/#person` },

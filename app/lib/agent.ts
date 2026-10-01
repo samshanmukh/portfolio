@@ -53,6 +53,9 @@ export const SUGGESTIONS = [
 
 const has = (q: string, ...keys: string[]) => keys.some((k) => q.includes(k))
 
+// "A, B and C"
+const list = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`)
+
 export function ask(question: string): AgentReply {
   const q = question.toLowerCase().trim()
 
@@ -60,7 +63,7 @@ export function ask(question: string): AgentReply {
   if (has(q, SECRET_WORD)) {
     return {
       tool: 'unlock(secret)',
-      text: `👀 You said the magic word — DEADLIFT. Respect. Drop that in an email and you jump the line. So… what can I show you?`,
+      text: `👀 You said the magic word: DEADLIFT. Respect. Drop that in an email and you jump the line. So… what can I show you?`,
       followups: ['How do I reach you?', 'What have you built?'],
     }
   }
@@ -70,7 +73,7 @@ export function ask(question: string): AgentReply {
     return {
       tool: 'open(socials)',
       view: 'contact',
-      text: `All my links are right here — tap any of them. LinkedIn's best for recruiters, GitHub if you wanna judge my code 😏`,
+      text: `All my links are right here, tap any of them. LinkedIn's best for recruiters, GitHub if you wanna judge my code 😏`,
       sources: [
         { label: 'linkedin', href: socials.linkedin },
         { label: 'github', href: socials.github },
@@ -86,7 +89,7 @@ export function ask(question: string): AgentReply {
     return {
       view: 'me',
       tool: 'init()',
-      text: `Yo — I'm ${profile.shortName}, ML/AI engineer and your slightly-too-confident tour guide. Ask me about my projects, experience, or how to reach me. What's up?`,
+      text: `Yo, I'm ${profile.shortName}, software engineer and your slightly-too-confident tour guide. Ask me about my projects, experience, or how to reach me. What's up?`,
     }
   }
 
@@ -104,7 +107,7 @@ export function ask(question: string): AgentReply {
     return {
       view: 'status',
       tool: 'read(status)',
-      text: `${profile.lookingFor} — actively open and I reply within a day. Hiring, or just snooping? 😏`,
+      text: `${profile.lookingFor}. Actively open and I reply within a day. Hiring, or just snooping? 😏`,
       followups: ['How do I reach you?', 'See your résumé', 'What have you built?'],
       sources: [{ label: 'email', href: `mailto:${socials.email}` }],
     }
@@ -115,7 +118,7 @@ export function ask(question: string): AgentReply {
     return {
       view: 'source',
       tool: 'cat(build.txt)',
-      text: `Hand-coded from scratch — Next.js, React, TypeScript, Tailwind. No template, no website builder. I (this agent) am part of it. Wanna peek at the source?`,
+      text: `Hand-coded from scratch: Next.js, React, TypeScript, Tailwind. No template, no website builder. I (this agent) am part of it. Wanna peek at the source?`,
       action: 'source',
       sources: [{ label: 'view source', href: socials.sourceRepo }],
       followups: ['What have you built?', "What's your stack?"],
@@ -127,7 +130,7 @@ export function ask(question: string): AgentReply {
     return {
       tool: 'fetch(github.com/samshanmukh)',
       view: 'now',
-      text: `Straight from my GitHub, refreshed hourly — the repos I've pushed to most recently. Want the curated highlights instead?`,
+      text: `Straight from my GitHub, refreshed hourly: the repos I've pushed to most recently. Want the curated highlights instead?`,
       sources: [{ label: 'github', href: socials.github }],
       followups: ['What have you built?', "What's your stack?"],
     }
@@ -138,7 +141,7 @@ export function ask(question: string): AgentReply {
     return {
       tool: 'run(ai-trainer)',
       view: 'trainer',
-      text: `Turn on your camera and squat — I count reps and check depth live, and a Grok voice coach talks you through it. Nothing leaves your browser. Ready?`,
+      text: `Turn on your camera and squat. I count reps and check depth live, and a Grok voice coach talks you through it. Nothing leaves your browser. Ready?`,
       followups: ['What have you built?', 'Tell me about the gym'],
     }
   }
@@ -148,7 +151,7 @@ export function ask(question: string): AgentReply {
     return {
       tool: 'ls(content/blog)',
       view: 'blog',
-      text: `Notes on AI agents, ML, and building things. Pick one — which rabbit hole are you going down?`,
+      text: `Notes on AI agents, ML, and building things. Pick one: which rabbit hole are you going down?`,
       followups: ['What have you built?', 'How was this site built?'],
     }
   }
@@ -157,8 +160,8 @@ export function ask(question: string): AgentReply {
   if (has(q, 'build', 'built', 'project', 'ship', 'work on', 'made', 'portfolio of', 'agent', 'model', 'favorite', 'best')) {
     const f = projects.filter((p) => p.featured)
     const text =
-      `I ship applied AI end-to-end. Headliner: ${f[0].name} — ${f[0].blurb.toLowerCase()} ` +
-      `Also built ${f.slice(1).map((p) => p.name).join(' and ')}, plus computer-vision and quant tools. Which one should I geek out about?`
+      `I ship applied AI end-to-end. Headliner: ${f[0].name}, ${f[0].blurb.charAt(0).toLowerCase()}${f[0].blurb.slice(1)} ` +
+      `Also built ${list(f.slice(1).map((p) => p.name))}, plus computer-vision and quant tools. Which one should I geek out about?`
     return {
       view: 'projects',
       tool: 'search(projects)',
@@ -173,7 +176,7 @@ export function ask(question: string): AgentReply {
   if (has(q, 'experience', 'work', 'worked', 'job', 'career', 'company', 'companies', 'history', 'role')) {
     const cur = experience[0]
     const text =
-      `6+ years turning messy data into shipped ML. Right now I'm ${cur.role} at ${cur.company} — RAG chatbots + computer-vision pipelines. ` +
+      `6+ years turning messy data into shipped ML. Right now I'm ${cur.role} at ${cur.company}, building RAG chatbots + computer-vision pipelines. ` +
       `Before that: ${experience.slice(1, 3).map((e) => e.company).join(', ')}, and more. Want the full timeline?`
     return {
       view: 'experience',
@@ -205,7 +208,7 @@ export function ask(question: string): AgentReply {
     return {
       view: 'testimonials',
       tool: 'fetch(recommendations)',
-      text: `Don't take my word for it — ${t.name} (${t.title}) said: “${t.quote}” Want more receipts?`,
+      text: `Don't take my word for it. ${t.name} (${t.title}) said: “${t.quote}” Want more receipts?`,
       scrollTo: 'testimonials',
       followups: ['What have you built?', 'How do I reach you?'],
     }
@@ -227,7 +230,7 @@ export function ask(question: string): AgentReply {
     return {
       view: 'contact',
       tool: 'open(contacts)',
-      text: `Easiest is email — ${socials.email}. Open to ML/AI roles + collabs, I reply within a day. Pro tip: drop the secret word “deadlift” in your message and you skip the line 💪 Wanna connect?`,
+      text: `Easiest is email: ${socials.email}. Open to software engineering roles + collabs, I reply within a day. Pro tip: drop the secret word “deadlift” in your message and you skip the line 💪 Wanna connect?`,
       scrollTo: 'contact',
       sources: [
         { label: 'email', href: `mailto:${socials.email}` },
@@ -243,7 +246,7 @@ export function ask(question: string): AgentReply {
     return {
       view: 'resume',
       tool: 'fetch(resume.pdf)',
-      text: `Pulling up my résumé — roles, dates, the whole stack. Want the short version instead?`,
+      text: `Pulling up my résumé: roles, dates, the whole stack. Want the short version instead?`,
       action: 'resume',
       sources: [{ label: 'resume.pdf', href: socials.resume }],
       followups: ['Where have you worked?', 'How do I reach you?'],
@@ -255,7 +258,7 @@ export function ask(question: string): AgentReply {
     return {
       view: 'gym',
       tool: 'run(gym.sh)',
-      text: `${gym.blurb} Literally why I built RepRight and VoiceCoach — AI gym coaches. You lift?`,
+      text: `${gym.blurb} Literally why I built RepRight and VoiceCoach, AI gym coaches. You lift?`,
       scrollTo: 'gym',
       followups: ['What have you built?', "What's your stack?"],
     }
@@ -275,7 +278,7 @@ export function ask(question: string): AgentReply {
   // fallback — stay in character
   return {
     tool: 'no_match',
-    text: `Sorry bro, I'm ${profile.shortName}, not ChatGPT 😅 — ask me about my projects, experience, the gym, or how to reach me! What's it gonna be?`,
+    text: `Sorry bro, I'm ${profile.shortName}, not ChatGPT 😅 Ask me about my projects, experience, the gym, or how to reach me! What's it gonna be?`,
     followups: SUGGESTIONS,
   }
 }

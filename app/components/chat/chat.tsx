@@ -1,8 +1,8 @@
 'use client'
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowUp, Info, Square } from 'lucide-react'
-import { LookingMemoji, useTypingGaze } from '../looking-memoji'
+import Image from 'next/image'
+import { ArrowUp, Sparkles, Square } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -60,7 +60,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const engineRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const gaze = useTypingGaze()
   const autoSubmitted = useRef(false)
 
   useEffect(() => {
@@ -118,7 +117,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       })
       patchLast({ status: 'done' })
     } catch {
-      patchLast({ text: '(local model hiccup — back to quick answers)', status: 'done' })
+      patchLast({ text: '(local model hiccup, back to quick answers)', status: 'done' })
       setMode('keyword')
     }
   }
@@ -177,7 +176,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         {
           role: 'agent',
           tool: MODEL_LABEL,
-          text: `Smart mode on — I'm now a small language model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
+          text: `Smart mode on: I'm now a small language model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
           status: 'done',
           shown: Infinity,
         },
@@ -192,7 +191,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         {
           role: 'agent',
           tool: 'error',
-          text: `Couldn't start the local model (${msg}). No worries — I'll keep using quick answers, which are instant and work on any device.`,
+          text: `Couldn't start the local model (${msg}). No worries, I'll keep using quick answers, which are instant and work on any device.`,
           status: 'done',
           shown: Infinity,
         },
@@ -233,12 +232,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       {/* top-right: controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
-        <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
+        {/* clicking Smart mode toggles it and opens the "about this portfolio" popup */}
         <WelcomeModal
           trigger={
-            <button aria-label="About this portfolio" className="tap relative flex h-9 w-8 md:w-9 cursor-pointer items-center justify-center rounded-full hover:bg-accent">
-              <Info className="h-5 w-5" />
-            </button>
+            <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
           }
         />
         <ThemeToggle />
@@ -253,13 +250,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               aria-label="Back to home"
               className={`relative block transition-all duration-300 ${hasView ? 'h-20 w-20' : 'h-28 w-28'}`}
             >
-              <motion.div
-                className="relative h-full w-full"
-                animate={busy ? { y: [0, -4, 0], rotate: [0, -3, 3, 0] } : { y: 0, rotate: 0 }}
-                transition={busy ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
-              >
-                <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="112px" priority />
-              </motion.div>
+              {/* holds still while visitors type and while answers load */}
+              <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
             </Link>
           </div>
         </div>
@@ -302,7 +294,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
           {llm === 'loading' && (
             <div className="mx-auto mb-3 w-full max-w-xl px-2">
               <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted">
-                <span>⚡ booting on-device LLM — one-time download, then cached</span>
+                <span className="flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5" /> booting on-device LLM: one-time download, then cached
+                </span>
                 <span className="font-medium text-primary">{prog}%</span>
               </div>
               <div className="h-1 w-full overflow-hidden rounded-full bg-accent">
@@ -327,12 +321,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 <input
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => {
-                    setInput(e.target.value)
-                    gaze.onType()
-                  }}
-                  onFocus={gaze.onFocus}
-                  onBlur={gaze.onBlur}
+                  onChange={(e) => setInput(e.target.value)}
                   disabled={busy}
                   spellCheck={false}
                   autoComplete="off"
@@ -452,15 +441,15 @@ function SmartToggle({
         title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
         className={`${base} cursor-not-allowed border-border text-muted`}
       >
-        ⚡ <span className="hidden md:inline">no WebGPU</span>
+        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">no WebGPU</span>
       </span>
     )
   }
-  if (llm === 'loading') return <span className={`${base} border-[#0171E3]/40 text-primary`}>⚡ {prog}%</span>
+  if (llm === 'loading') return <span className={`${base} border-border text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
   if (mode === 'llm') {
     return (
-      <button onClick={onDisable} className={`${base} cursor-pointer border-[#0171E3]/50 bg-[#0171E3]/10 text-primary`}>
-        ⚡ <span className="hidden md:inline">smart: on</span>
+      <button onClick={onDisable} className={`${base} cursor-pointer border-foreground/30 bg-accent text-foreground`}>
+        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart: on</span>
       </button>
     )
   }
@@ -471,7 +460,7 @@ function SmartToggle({
       title="Load a small LLM that runs free in your browser (~0.4 GB, one-time)."
       className={`${base} cursor-pointer border-border text-muted hover:text-foreground`}
     >
-      ⚡ <span className="hidden md:inline">smart mode</span>
+      <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>
     </button>
   )
 }
