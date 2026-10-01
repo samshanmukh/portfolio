@@ -205,11 +205,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
   return (
     <div className="relative h-dvh overflow-hidden">
-      {/* top-left: social links (desktop; mobile shows them above the input) */}
-      <SocialLinks size="sm" className="absolute top-5 left-4 z-[51] hidden sm:left-8 md:flex" />
-
-      {/* top-right controls */}
+      {/* top-right: social links (desktop; phones get them above the input) + controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
+        <SocialLinks size="sm" className="mr-1 hidden md:flex" />
         <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
         <WelcomeModal
           trigger={

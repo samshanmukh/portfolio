@@ -9,7 +9,6 @@ import { profile } from './lib/data'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
-import { SourceButton } from './components/source-button'
 import { SocialLinks } from './components/social-links'
 
 const top = {
@@ -39,9 +38,9 @@ export default function Home() {
       </div>
 
       {/* top-right: theme + source */}
-      <div className="absolute top-6 right-4 z-20 flex items-center gap-2 sm:right-8">
+      <div className="absolute top-6 right-4 z-20 flex items-center gap-1 sm:right-8 md:gap-2">
+        <SocialLinks size="sm" />
         <ThemeToggle />
-        <SourceButton />
       </div>
 
       {/* top-left: availability pill */}
@@ -130,7 +129,6 @@ export default function Home() {
             )
           })}
         </div>
-        <SocialLinks className="mt-6" />
       </motion.div>
     </div>
   )
