@@ -32,10 +32,10 @@ export function SocialLinks({
 }) {
   const reduced = useReducedMotion()
   const animate = pop && !reduced
-  const box = size === 'sm' ? 'h-10 w-10 md:h-9 md:w-9' : 'h-11 w-11'
-  const icon = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
+  const box = size === 'sm' ? 'h-12 w-12' : 'h-14 w-14'
+  const icon = size === 'sm' ? 'h-5 w-5' : 'h-6 w-6'
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-2.5 ${className}`}>
       {socialLinks.map(({ label, href, icon: Icon, color }, i) => (
         // entrance pop on the wrapper, hover/press on the link (so hover never inherits the entrance delay)
         <motion.span
