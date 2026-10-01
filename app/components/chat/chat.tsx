@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowUp, Info, Square } from 'lucide-react'
-import Image from 'next/image'
+import { LookingMemoji, useTypingGaze } from '../looking-memoji'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -59,6 +59,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const engineRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const gaze = useTypingGaze()
   const autoSubmitted = useRef(false)
 
   useEffect(() => {
@@ -256,7 +257,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 animate={busy ? { y: [0, -4, 0], rotate: [0, -3, 3, 0] } : { y: 0, rotate: 0 }}
                 transition={busy ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
               >
-                <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
+                <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="112px" priority />
               </motion.div>
             </Link>
           </div>
@@ -325,7 +326,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 <input
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value)
+                    gaze.onType()
+                  }}
+                  onFocus={gaze.onFocus}
+                  onBlur={gaze.onBlur}
                   disabled={busy}
                   spellCheck={false}
                   autoComplete="off"
