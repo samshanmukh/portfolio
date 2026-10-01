@@ -16,11 +16,11 @@ type Item = {
 }
 
 const items: Item[] = [
-  { icon: Mail, title: 'Email', value: socials.email, href: `mailto:${socials.email}`, color: 'text-blue-600', cta: 'Send an email' },
-  { icon: LinkedinIcon, title: 'LinkedIn', value: socials.linkedin.replace('https://www.', ''), href: socials.linkedin, color: 'text-blue-700', cta: 'Open LinkedIn' },
+  { icon: Mail, title: 'Email', value: socials.email, href: `mailto:${socials.email}`, color: 'text-[#EA4335]', cta: 'Send an email' },
+  { icon: LinkedinIcon, title: 'LinkedIn', value: socials.linkedin.replace('https://www.', ''), href: socials.linkedin, color: 'text-[#0A66C2]', cta: 'Open LinkedIn' },
   { icon: GithubIcon, title: 'GitHub', value: socials.github.replace('https://', ''), href: socials.github, color: 'text-foreground', cta: 'Open GitHub' },
   { icon: XIcon, title: 'X / Twitter', value: socials.twitter.replace('https://', ''), href: socials.twitter, color: 'text-foreground', cta: 'Open X' },
-  { icon: FileText, title: 'Résumé', value: 'PDF', href: socials.resume, color: 'text-green-600', cta: 'View résumé' },
+  { icon: FileText, title: 'Résumé', value: 'PDF', href: socials.resume, color: 'text-[#16A34A]', cta: 'View résumé' },
   {
     icon: MapPin,
     title: 'Location',
