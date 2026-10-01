@@ -78,7 +78,7 @@ const jsonLd = {
       image: `${siteUrl}/avatar.jpg`,
       email: `mailto:${socials.email}`,
       address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressRegion: 'CA', addressCountry: 'US' },
-      sameAs: [socials.github, socials.linkedin, socials.twitter, socials.sourceRepo],
+      sameAs: [socials.github, socials.linkedin, socials.twitter, socials.instagram, socials.sourceRepo],
       knowsLanguage: languages,
       knowsAbout: skills.flatMap((s) => s.items),
       alumniOf: education.map((e) => ({ '@type': 'CollegeOrUniversity', name: e.school })),

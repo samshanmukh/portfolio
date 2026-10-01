@@ -66,7 +66,7 @@ export function ask(question: string): AgentReply {
   }
 
   // social links — "linkedin", "github", "twitter"…
-  if (has(q, 'linkedin', 'github', 'twitter', 'social', 'instagram', 'x.com', 'handle') || /\bx\b/.test(q)) {
+  if (has(q, 'linkedin', 'github', 'twitter', 'social', 'instagram', 'insta', 'x.com', 'handle') || /\bx\b/.test(q)) {
     return {
       tool: 'open(socials)',
       view: 'contact',
@@ -75,6 +75,7 @@ export function ask(question: string): AgentReply {
         { label: 'linkedin', href: socials.linkedin },
         { label: 'github', href: socials.github },
         { label: 'x / twitter', href: socials.twitter },
+        { label: 'instagram', href: socials.instagram },
         { label: 'email', href: `mailto:${socials.email}` },
       ],
       followups: ['What have you built?', 'Can I see your résumé?'],

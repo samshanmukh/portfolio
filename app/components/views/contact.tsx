@@ -3,7 +3,7 @@
 import { FileText, Mail, MapPin } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { profile, socials } from '../../lib/data'
-import { GithubIcon, LinkedinIcon, XIcon } from '../brand-icons'
+import { GithubIcon, InstagramIcon, LinkedinIcon, XIcon } from '../brand-icons'
 import { SocialLinks } from '../social-links'
 
 type Item = {
@@ -20,6 +20,7 @@ const items: Item[] = [
   { icon: LinkedinIcon, title: 'LinkedIn', value: socials.linkedin.replace('https://www.', ''), href: socials.linkedin, color: 'text-[#0A66C2]', cta: 'Open LinkedIn' },
   { icon: GithubIcon, title: 'GitHub', value: socials.github.replace('https://', ''), href: socials.github, color: 'text-foreground', cta: 'Open GitHub' },
   { icon: XIcon, title: 'X / Twitter', value: socials.twitter.replace('https://', ''), href: socials.twitter, color: 'text-foreground', cta: 'Open X' },
+  { icon: InstagramIcon, title: 'Instagram', value: socials.instagram.replace('https://www.', ''), href: socials.instagram, color: '', cta: 'Open Instagram' },
   { icon: FileText, title: 'Résumé', value: 'PDF', href: socials.resume, color: 'text-[#16A34A]', cta: 'View résumé' },
   {
     icon: MapPin,

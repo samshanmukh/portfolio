@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { FileText, Mail } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { socials } from '../lib/data'
-import { GithubIcon, LinkedinIcon, XIcon } from './brand-icons'
+import { GithubIcon, InstagramIcon, LinkedinIcon, XIcon } from './brand-icons'
 
 type Link = { label: string; href: string; icon: ComponentType<{ className?: string }>; color: string }
 
@@ -12,6 +12,7 @@ export const socialLinks: Link[] = [
   { label: 'LinkedIn', href: socials.linkedin, icon: LinkedinIcon, color: 'text-[#0A66C2]' },
   { label: 'GitHub', href: socials.github, icon: GithubIcon, color: 'text-[#181717] dark:text-white' },
   { label: 'X / Twitter', href: socials.twitter, icon: XIcon, color: 'text-black dark:text-white' },
+  { label: 'Instagram', href: socials.instagram, icon: InstagramIcon, color: '' },
   { label: 'Email', href: `mailto:${socials.email}`, icon: Mail, color: 'text-[#EA4335]' },
   { label: 'Résumé', href: socials.resume, icon: FileText, color: 'text-[#16A34A]' },
 ]
