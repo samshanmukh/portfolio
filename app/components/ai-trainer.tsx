@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { SectionHeading } from './section-heading'
 
 // ── AI Personal Trainer ──────────────────────────────────────────────────────
 //  Sees you:  MediaPipe pose → counts squats + checks depth (RepRight)
@@ -197,10 +196,10 @@ export function AiTrainer() {
     try {
       const du = new vision.DrawingUtils(ctx)
       du.drawConnectors(pose, vision.PoseLandmarker.POSE_CONNECTIONS, {
-        color: 'rgba(185,137,90,0.85)',
+        color: 'rgba(1,113,227,0.85)',
         lineWidth: 3,
       })
-      du.drawLandmarks(pose, { radius: 3, color: '#dcbb8e' })
+      du.drawLandmarks(pose, { radius: 3, color: '#60a5fa' })
     } catch {}
     const vis = (i: number) => pose[i].visibility ?? 0
     const lScore = (vis(23) + vis(25) + vis(27)) / 3
@@ -357,108 +356,106 @@ export function AiTrainer() {
   }
 
   return (
-    <section id="trainer" className="scroll-mt-24 py-16">
-      <div className="wrap">
-        <SectionHeading
-          eyebrow="Live demo · computer vision + real-time voice"
-          title="AI personal trainer — it watches your form and coaches you in Grok's voice"
-        />
+    <div className="w-full pt-6 pb-4">
+      <h2 className="text-2xl font-bold md:text-3xl">
+        AI personal trainer — it watches your form and coaches you in Grok&apos;s voice
+      </h2>
+      <p className="mt-2 text-sm text-muted">Live demo · computer vision + real-time voice</p>
 
-        <div className="grid items-stretch gap-6 lg:grid-cols-[1.4fr_1fr]">
-          {/* camera stage */}
-          <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black">
-            <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full -scale-x-100 object-contain" />
-            <canvas ref={canvasRef} className="absolute inset-0 h-full w-full -scale-x-100 object-contain" />
+      <div className="mt-6 grid items-stretch gap-4 lg:grid-cols-[1.4fr_1fr]">
+        {/* camera stage */}
+        <div className="relative aspect-video overflow-hidden rounded-2xl bg-black text-white">
+          <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full -scale-x-100 object-contain" />
+          <canvas ref={canvasRef} className="absolute inset-0 h-full w-full -scale-x-100 object-contain" />
 
-            {status === 'active' && (
-              <>
-                <div className="absolute left-3 top-3 rounded-xl border border-white/15 bg-black/60 px-4 py-2 backdrop-blur">
-                  <div className="font-mono text-4xl font-bold text-primary tabular-nums">{reps}</div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted">reps</div>
-                </div>
-                <div className="absolute right-3 top-3 flex items-center gap-2 rounded-lg border border-white/15 bg-black/60 px-3 py-1.5 font-mono text-xs text-foreground backdrop-blur">
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      voice === 'live' ? 'bg-[#dcbb8e]' : voice === 'error' ? 'bg-red-400' : 'bg-muted'
-                    } ${speaking ? 'animate-pulse' : ''}`}
-                  />
-                  {voice === 'connecting'
-                    ? 'coach connecting…'
-                    : voice === 'live'
-                      ? speaking
-                        ? 'coach speaking'
-                        : 'coach listening'
-                      : voice === 'error'
-                        ? 'voice offline'
-                        : 'coach'}
-                </div>
-              </>
-            )}
-
-            {status !== 'active' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
-                {status === 'loading' ? (
-                  <p className="font-mono text-sm text-primary">{note}</p>
-                ) : status === 'denied' ? (
-                  <p className="max-w-xs text-sm text-muted">
-                    Camera/mic permission was blocked. Allow it and try again — video stays on your device.
-                  </p>
-                ) : status === 'error' ? (
-                  <p className="max-w-xs text-sm text-muted">
-                    Couldn&apos;t start here (needs a modern desktop browser).{' '}
-                    <a href="https://github.com/samshanmukh/RepRight" target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-4 hover:underline">
-                      RepRight
-                    </a>
-                  </p>
-                ) : (
-                  <p className="max-w-sm text-sm text-muted">
-                    Turn on your camera + mic, stand side-on, and squat — it counts your reps, checks depth, and{' '}
-                    <span className="text-foreground">coaches you out loud in Grok&apos;s real voice</span>. Talk back anytime.
-                  </p>
-                )}
-                {status !== 'loading' && (
-                  <button onClick={start} className="rounded-lg bg-gradient-to-r from-primary to-[#dcbb8e] px-5 py-2.5 text-sm font-semibold text-[#1c130a] transition-opacity hover:opacity-90">
-                    {status === 'idle' ? '▶ Start training' : 'Try again'}
-                  </button>
-                )}
+          {status === 'active' && (
+            <>
+              <div className="absolute left-3 top-3 rounded-xl border border-white/15 bg-black/60 px-4 py-2 backdrop-blur">
+                <div className="text-4xl font-bold tabular-nums">{reps}</div>
+                <div className="text-[10px] uppercase tracking-widest text-white/60">reps</div>
               </div>
-            )}
-          </div>
+              <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full border border-white/15 bg-black/60 px-3 py-1.5 text-xs backdrop-blur">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    voice === 'live' ? 'bg-green-400' : voice === 'error' ? 'bg-red-400' : 'bg-white/50'
+                  } ${speaking ? 'animate-pulse' : ''}`}
+                />
+                {voice === 'connecting'
+                  ? 'coach connecting…'
+                  : voice === 'live'
+                    ? speaking
+                      ? 'coach speaking'
+                      : 'coach listening'
+                    : voice === 'error'
+                      ? 'voice offline'
+                      : 'coach'}
+              </div>
+            </>
+          )}
 
-          {/* coaching panel */}
-          <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-surface p-6">
-            <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-primary">form check</p>
-              <p className="mt-1 text-lg text-foreground">{status === 'active' ? feedback : '—'}</p>
+          {status !== 'active' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center">
+              {status === 'loading' ? (
+                <p className="text-sm text-white/80">{note}</p>
+              ) : status === 'denied' ? (
+                <p className="max-w-xs text-sm text-white/70">
+                  Camera/mic permission was blocked. Allow it and try again — video stays on your device.
+                </p>
+              ) : status === 'error' ? (
+                <p className="max-w-xs text-sm text-white/70">
+                  Couldn&apos;t start here (needs a modern desktop browser).{' '}
+                  <a href="https://github.com/samshanmukh/RepRight" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline-offset-4 hover:underline">
+                    RepRight
+                  </a>
+                </p>
+              ) : (
+                <p className="max-w-sm text-sm text-white/70">
+                  Turn on your camera + mic, stand side-on, and squat — it counts your reps, checks depth, and{' '}
+                  <span className="text-white">coaches you out loud in Grok&apos;s real voice</span>. Talk back anytime.
+                </p>
+              )}
+              {status !== 'loading' && (
+                <button onClick={start} className="cursor-pointer rounded-full bg-[#0171E3] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600">
+                  {status === 'idle' ? '▶ Start training' : 'Try again'}
+                </button>
+              )}
             </div>
-            {status === 'active' && (
-              <div>
-                <p className="font-mono text-xs uppercase tracking-widest text-muted">you said</p>
-                <p className="mt-1 min-h-[1.25rem] text-sm text-foreground/80">{youSaid || '… just talk to your coach'}</p>
-              </div>
-            )}
-            <ul className="space-y-1.5 text-sm text-muted">
-              <li>
-                › <span className="text-foreground">Sees you</span> — pose estimation counts reps + depth (my{' '}
-                <span className="text-foreground">RepRight</span>)
-              </li>
-              <li>
-                › <span className="text-foreground">Talks with you</span> — real-time{' '}
-                <span className="text-foreground">Grok voice</span> ({VOICE_MODEL}), my{' '}
-                <span className="text-foreground">VoiceCoach</span>
-              </li>
-            </ul>
-            {status === 'active' && (
-              <button onClick={stop} className="mt-auto rounded-lg border border-white/10 px-4 py-2 text-sm text-foreground transition-colors hover:bg-white/5">
-                ◼ Stop
-              </button>
-            )}
-            <p className="text-xs text-muted/80">
-              🎧 Use headphones. Camera runs on-device; mic audio streams to xAI to power the live voice.
-            </p>
+          )}
+        </div>
+
+        {/* coaching panel */}
+        <div className="flex flex-col gap-4 rounded-2xl bg-accent p-6">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-widest text-muted">form check</p>
+            <p className="mt-1 text-lg">{status === 'active' ? feedback : '—'}</p>
           </div>
+          {status === 'active' && (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-widest text-muted">you said</p>
+              <p className="mt-1 min-h-[1.25rem] text-sm text-foreground/80">{youSaid || '… just talk to your coach'}</p>
+            </div>
+          )}
+          <ul className="space-y-1.5 text-sm text-muted">
+            <li>
+              › <span className="text-foreground">Sees you</span> — pose estimation counts reps + depth (my{' '}
+              <span className="text-foreground">RepRight</span>)
+            </li>
+            <li>
+              › <span className="text-foreground">Talks with you</span> — real-time{' '}
+              <span className="text-foreground">Grok voice</span> ({VOICE_MODEL}), my{' '}
+              <span className="text-foreground">VoiceCoach</span>
+            </li>
+          </ul>
+          {status === 'active' && (
+            <button onClick={stop} className="mt-auto cursor-pointer rounded-full border border-border px-4 py-2 text-sm transition-colors hover:bg-background">
+              ◼ Stop
+            </button>
+          )}
+          <p className="text-xs text-muted">
+            🎧 Use headphones. Camera runs on-device; mic audio streams to xAI to power the live voice.
+          </p>
         </div>
       </div>
-    </section>
+    </div>
   )
 }

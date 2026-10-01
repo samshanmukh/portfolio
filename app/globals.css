@@ -1,27 +1,50 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Neutral, Apple-ish palette (light by default, dark via the .dark class) */
 :root {
-  /* warm dark + brown & white */
-  --background: #15100b;
-  --surface: #1f1810;
-  --surface-2: #271e14;
-  --foreground: #f4efe6;
-  --muted: #ab9d88;
-  --primary: #b9895a;
-  --primary-2: #dcbb8e;
-  --line: rgba(200, 180, 150, 0.14);
+  --background: #ffffff;
+  --foreground: #09090b;
+  --muted: #71717a; /* secondary text */
+  --accent: #f4f4f5; /* subtle surfaces / chips */
+  --surface: #fafafa; /* cards */
+  --border: #e4e4e7;
+  --primary: #0171e3; /* the blue send button / links */
+  --bubble: #007aff; /* sent message bubble */
+  --input: #ececf0;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #fafafa;
+  --muted: #a1a1aa;
+  --accent: #27272a;
+  --surface: #18181b;
+  --border: rgba(255, 255, 255, 0.12);
+  --primary: #2563eb;
+  --bubble: #007aff;
+  --input: #262626;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
   --color-primary: var(--primary);
-  --color-accent: var(--primary);
+  --color-bubble: var(--bubble);
+  --color-input: var(--input);
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 }
 
 html {
@@ -33,57 +56,42 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease;
 }
 
 ::selection {
   background: var(--primary);
-  color: #1c130a;
+  color: #fff;
 }
 
-/* gradient text helper (brown → light tan) */
-.text-gradient {
-  background-image: linear-gradient(90deg, var(--primary), var(--primary-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* thin, quiet scrollbars (chat + carousels) */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 10px;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-/* content wrapper — full width with responsive side margins */
+/* content wrapper for standalone pages (blog) */
 .wrap {
   width: 100%;
+  max-width: 48rem;
   margin-inline: auto;
   padding-inline: 1.25rem;
-}
-@media (min-width: 640px) {
-  .wrap {
-    padding-inline: 2.5rem;
-  }
-}
-@media (min-width: 1024px) {
-  .wrap {
-    padding-inline: 8%;
-  }
-}
-@media (min-width: 1280px) {
-  .wrap {
-    padding-inline: 10%;
-  }
-}
-
-/* app backdrop — warm dark with a soft brown glow */
-.bg-app {
-  position: fixed;
-  inset: 0;
-  z-index: -10;
-  pointer-events: none;
-}
-.bg-app::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(60% 50% at 80% -8%, rgba(185, 137, 90, 0.14), transparent 70%),
-    radial-gradient(55% 45% at 6% 2%, rgba(220, 187, 142, 0.07), transparent 70%);
 }
 
 /* streaming caret + thinking dots (agent) */
@@ -102,7 +110,7 @@ body {
   width: 0.5ch;
   height: 1em;
   margin-left: 1px;
-  background: var(--primary);
+  background: var(--foreground);
   vertical-align: text-bottom;
   animation: blink 1s steps(1) infinite;
 }
@@ -119,8 +127,8 @@ body {
 }
 .dot {
   display: inline-block;
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
   border-radius: 9999px;
   background: var(--muted);
   animation: pulse-dot 1s ease-in-out infinite;
@@ -135,8 +143,8 @@ body {
 
 /* rendered markdown (blog posts) */
 .prose-blog {
-  color: rgba(244, 239, 230, 0.86);
-  line-height: 1.7;
+  color: color-mix(in srgb, var(--foreground) 86%, transparent);
+  line-height: 1.75;
 }
 .prose-blog h2 {
   margin: 1.8rem 0 0.6rem;
@@ -172,7 +180,7 @@ body {
 .prose-blog code {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--accent);
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
 }
@@ -180,8 +188,8 @@ body {
   margin: 1.1rem 0;
   padding: 1rem;
   overflow-x: auto;
-  border-radius: 10px;
-  border: 1px solid var(--line);
+  border-radius: 12px;
+  border: 1px solid var(--border);
   background: var(--surface);
 }
 .prose-blog pre code {
