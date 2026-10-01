@@ -37,22 +37,28 @@ export function SocialLinks({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {socialLinks.map(({ label, href, icon: Icon, color }, i) => (
-        <motion.a
+        // entrance pop on the wrapper, hover/press on the link (so hover never inherits the entrance delay)
+        <motion.span
           key={label}
+          className="flex"
           initial={animate ? { opacity: 0, scale: 0.3, y: 10 } : false}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 420, damping: 18, delay: delay + i * 0.08 }}
-          whileHover={reduced ? undefined : { scale: 1.12, y: -2 }}
-          whileTap={{ scale: 0.92 }}
-          href={href}
-          target={href.startsWith('mailto:') ? undefined : '_blank'}
-          rel="noopener noreferrer"
-          aria-label={label}
-          title={label}
-          className={`glass tap relative flex ${box} items-center justify-center rounded-full`}
         >
-          <Icon className={`${icon} ${color}`} />
-        </motion.a>
+          <motion.a
+            whileHover={reduced ? undefined : { scale: 1.12, y: -2 }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+            href={href}
+            target={href.startsWith('mailto:') ? undefined : '_blank'}
+            rel="noopener noreferrer"
+            aria-label={label}
+            title={label}
+            className={`glass tap relative flex ${box} items-center justify-center rounded-full`}
+          >
+            <Icon className={`${icon} ${color}`} />
+          </motion.a>
+        </motion.span>
       ))}
     </div>
   )

@@ -274,3 +274,60 @@ body {
     inset 0 1px 1px rgb(255 255 255 / 0.35),
     0 6px 18px -4px rgb(1 113 227 / 0.6);
 }
+
+/* Message box entrance: a blue dot at the centre inflates to a bubble, then stretches into the
+   pill while the tint fades to the box's own colour. */
+@keyframes bubble-in {
+  0% {
+    clip-path: inset(calc(50% - 4px) calc(50% - 4px) round 999px);
+    transform: scale(0.9);
+  }
+  35% {
+    clip-path: inset(0 calc(50% - 26px) round 999px);
+    transform: scale(1);
+  }
+  80% {
+    clip-path: inset(0 0 round 999px);
+    transform: scaleX(1.025);
+  }
+  100% {
+    clip-path: inset(0 0 round 999px);
+    transform: none;
+  }
+}
+.bubble-in {
+  position: relative;
+  animation: bubble-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+/* the blue tint lives on an overlay so the box's own (blurred) background never interpolates */
+.bubble-in::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(1 113 227);
+  pointer-events: none;
+  animation: bubble-tint 0.75s ease-out both;
+  animation-delay: inherit;
+}
+@keyframes bubble-tint {
+  0% {
+    opacity: 1;
+  }
+  35% {
+    opacity: 0.35;
+  }
+  75%,
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bubble-in,
+  .bubble-in::before {
+    animation: none;
+  }
+  .bubble-in::before {
+    opacity: 0;
+  }
+}

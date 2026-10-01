@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTypewriter } from './components/use-typewriter'
 import { profile } from './lib/data'
 import { quickConfig, quickQuestions } from './lib/questions'
@@ -22,13 +22,21 @@ const top = {
 }
 const bottom = {
   hidden: { opacity: 0, y: 80 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, delay: 0.2, ease: 'easeOut' as const } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.05, ease: 'easeOut' as const } },
 }
 
 export default function Home() {
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
-  const placeholder = useTypewriter(GREETINGS, !focused && !input, 'Ask me anything…')
+  // the greeting starts typing once the message box has finished inflating
+  const [mounted, setMounted] = useState(false)
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    setMounted(true) // start the bubble once hydrated, in sync with the fade-in
+    const t = setTimeout(() => setReady(true), 900)
+    return () => clearTimeout(t)
+  }, [])
+  const placeholder = useTypewriter(GREETINGS, ready && !focused && !input, ready ? 'Ask me anything…' : '')
   const router = useRouter()
   const reduced = useReducedMotion()
   const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
@@ -117,7 +125,10 @@ export default function Home() {
           }}
           className="relative w-full max-w-lg"
         >
-          <div className="mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600">
+          <div
+            className={`${mounted ? 'bubble-in' : 'invisible'} mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600`}
+            style={{ animationDelay: '0.25s' }}
+          >
             <input
               type="text"
               value={input}
@@ -128,22 +139,29 @@ export default function Home() {
               aria-label="Ask me anything"
               className="w-full border-none bg-transparent text-base text-neutral-800 placeholder:text-neutral-600 focus:outline-none dark:text-neutral-200 dark:placeholder:text-neutral-400"
             />
-            <motion.button
-              type="submit"
-              disabled={!input.trim()}
-              aria-label="Submit question"
-              whileHover={{ scale: 1.08, y: -1 }}
-              whileTap={{ scale: 0.88 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-              className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
+            <motion.span
+              className="flex"
+              initial={reduced ? false : { scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.85 }}
             >
-              <ArrowRight className="h-5 w-5" />
-            </motion.button>
+              <motion.button
+                type="submit"
+                disabled={!input.trim()}
+                aria-label="Submit question"
+                whileHover={{ scale: 1.08, y: -1 }}
+                whileTap={{ scale: 0.88 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
+              >
+                <ArrowRight className="h-5 w-5" />
+              </motion.button>
+            </motion.span>
           </div>
         </form>
 
         {/* socials pop in just under the input */}
-        <SocialLinks size="sm" pop delay={0.6} className="mt-4 justify-center" />
+        <SocialLinks size="sm" pop delay={1.0} className="mt-4 justify-center" />
 
         <div className="mt-5 grid w-full max-w-2xl grid-cols-3 gap-3 md:grid-cols-5">
           {quickConfig.map(({ key, color }) => {

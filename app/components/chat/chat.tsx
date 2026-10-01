@@ -1,6 +1,6 @@
 'use client'
 
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowUp, Info, Square } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -44,6 +44,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 export function Chat({ posts }: { posts: PostMeta[] }) {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('query')
+  const reduced = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), []) // start the input's bubble entrance once hydrated
 
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
@@ -315,7 +318,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               }}
               className="w-full md:px-4"
             >
-              <div className="mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6 dark:border-neutral-700">
+              <div
+                className={`${mounted ? 'bubble-in' : 'invisible'} mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6 dark:border-neutral-700`}
+                style={{ animationDelay: '0.1s' }}
+              >
                 <input
                   ref={inputRef}
                   value={input}
@@ -327,21 +333,28 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   aria-label="Ask me anything"
                   className="w-full border-none bg-transparent text-base placeholder:text-neutral-500 focus:outline-none disabled:opacity-60"
                 />
-                <motion.button
-                  type="submit"
-                  disabled={busy || !input.trim()}
-                  aria-label="Send"
-                  whileHover={{ scale: 1.08, y: -1 }}
-                  whileTap={{ scale: 0.88 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                  className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2 disabled:cursor-default disabled:opacity-50"
+                <motion.span
+                  className="flex"
+                  initial={reduced ? false : { scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.7 }}
                 >
-                  {busy ? <Square className="h-6 w-6 p-1" /> : <ArrowUp className="h-6 w-6" />}
-                </motion.button>
+                  <motion.button
+                    type="submit"
+                    disabled={busy || !input.trim()}
+                    aria-label="Send"
+                    whileHover={{ scale: 1.08, y: -1 }}
+                    whileTap={{ scale: 0.88 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                    className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2 disabled:cursor-default disabled:opacity-50"
+                  >
+                    {busy ? <Square className="h-6 w-6 p-1" /> : <ArrowUp className="h-6 w-6" />}
+                  </motion.button>
+                </motion.span>
               </div>
             </form>
             {/* socials pop in just under the input */}
-            <SocialLinks size="sm" pop delay={0.3} className="pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5" />
+            <SocialLinks size="sm" pop delay={0.85} className="pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5" />
           </div>
         </div>
       </div>
