@@ -20,7 +20,7 @@ export function RollingGreeting({ lines, active }: { lines: string[]; active: bo
       <AnimatePresence mode="popLayout" initial={!reduced}>
         <motion.span
           key={i}
-          className="font-display block origin-left font-medium tracking-tight whitespace-nowrap"
+          className="font-display block origin-left text-lg whitespace-nowrap"
           initial={{ y: '110%', opacity: 0, scale: 0.85, filter: 'blur(4px)' }}
           animate={{ y: '0%', opacity: 1, scale: 1, filter: 'blur(0px)' }}
           exit={{ y: '-110%', opacity: 0, scale: 0.95, filter: 'blur(4px)' }}
