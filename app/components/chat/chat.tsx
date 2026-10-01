@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ArrowUp, Info, Square } from 'lucide-react'
-import { LookingMemoji, useTypingGaze } from '../looking-memoji'
+import { useTypingGaze } from '../looking-memoji'
+import { LiveAvatar, type Mood } from '../live-avatar'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -61,6 +62,19 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const gaze = useTypingGaze()
   const autoSubmitted = useRef(false)
+
+  // the avatar winks when a question is sent, pouts while it thinks and grins when
+  // the answer starts arriving
+  const [flash, setFlash] = useState<Mood | null>(null)
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const flashMood = (m: Mood, ms: number) => {
+    setFlash(m)
+    if (flashTimer.current) clearTimeout(flashTimer.current)
+    flashTimer.current = setTimeout(() => setFlash(null), ms)
+  }
+  useEffect(() => () => {
+    if (flashTimer.current) clearTimeout(flashTimer.current)
+  }, [])
 
   useEffect(() => {
     if (!webgpuSupported()) setLlm('unsupported')
@@ -125,6 +139,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const run = async (raw: string) => {
     const q = raw.trim()
     if (!q || busy) return
+    flashMood('wink', 700)
     setBusy(true)
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
@@ -205,6 +220,11 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const userMsg = lastUser >= 0 ? messages[lastUser] : null
   const agentMsg = lastAgent > lastUser || (lastAgent >= 0 && lastUser < 0) ? messages[lastAgent] : null
   const hasView = !!agentMsg?.view
+  const answerStatus = busy ? (agentMsg?.status ?? 'thinking') : null
+  useEffect(() => {
+    if (answerStatus === 'typing') flashMood('grin', 2600)
+  }, [answerStatus])
+  const mood: Mood = flash ?? (answerStatus === 'thinking' ? 'thinking' : 'idle')
   const isEmpty = !userMsg && !agentMsg
   const headerHeight = hasView ? 110 : 170
 
@@ -257,7 +277,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 animate={busy ? { y: [0, -4, 0], rotate: [0, -3, 3, 0] } : { y: 0, rotate: 0 }}
                 transition={busy ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
               >
-                <LookingMemoji looking={gaze.looking} keystrokes={gaze.keystrokes} alt={`${profile.name} memoji`} sizes="112px" priority />
+                <LiveAvatar looking={gaze.looking} keystrokes={gaze.keystrokes} mood={mood} alt={`${profile.name} avatar`} sizes="112px" priority />
               </motion.div>
             </Link>
           </div>
