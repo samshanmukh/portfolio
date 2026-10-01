@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { useTypewriter } from './components/use-typewriter'
+import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
@@ -36,7 +36,6 @@ export default function Home() {
     const t = setTimeout(() => setReady(true), 900)
     return () => clearTimeout(t)
   }, [])
-  const placeholder = useTypewriter(GREETINGS, ready && !focused && !input, ready ? 'Ask me anything…' : '')
   const gaze = useTypingGaze()
   const router = useRouter()
   const reduced = useReducedMotion()
@@ -127,28 +126,34 @@ export default function Home() {
           className="relative w-full max-w-lg"
         >
           <div
-            className={`${mounted ? 'bubble-in' : 'invisible'} mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600`}
+            className={`${mounted ? 'bubble-in' : 'invisible'} shimmer-border mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:border-neutral-600`}
             style={{ animationDelay: '0.25s' }}
           >
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-                gaze.onType()
-              }}
-              placeholder={placeholder}
-              onFocus={() => {
-                setFocused(true)
-                gaze.onFocus()
-              }}
-              onBlur={() => {
-                setFocused(false)
-                gaze.onBlur()
-              }}
-              aria-label="Ask me anything"
-              className="w-full border-none bg-transparent text-base text-neutral-800 placeholder:text-neutral-600 focus:outline-none dark:text-neutral-200 dark:placeholder:text-neutral-400"
-            />
+            <span className="relative flex w-full items-center">
+              {ready && !input && (
+                <span className="text-base text-neutral-600 dark:text-neutral-400">
+                  <RollingGreeting lines={GREETINGS} active={!focused} />
+                </span>
+              )}
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value)
+                  gaze.onType()
+                }}
+                onFocus={() => {
+                  setFocused(true)
+                  gaze.onFocus()
+                }}
+                onBlur={() => {
+                  setFocused(false)
+                  gaze.onBlur()
+                }}
+                aria-label="Ask me anything"
+                className="relative w-full border-none bg-transparent text-base text-neutral-800 focus:outline-none dark:text-neutral-200"
+              />
+            </span>
             <motion.span
               className="flex"
               initial={reduced ? false : { scale: 0 }}

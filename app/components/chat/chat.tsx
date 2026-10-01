@@ -320,7 +320,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className="w-full md:px-4"
             >
               <div
-                className={`${mounted ? 'bubble-in' : 'invisible'} mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6 dark:border-neutral-700`}
+                className={`${mounted ? 'bubble-in' : 'invisible'} shimmer-border mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6 dark:border-neutral-700`}
                 style={{ animationDelay: '0.1s' }}
               >
                 <input
