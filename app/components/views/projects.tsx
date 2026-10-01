@@ -102,7 +102,7 @@ function Chips({ p }: { p: LiveProject }) {
 function Links({ p }: { p: LiveProject }) {
   const demo = p.demo ?? p.stats?.homepage ?? undefined
   const btn =
-    'glass inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium'
+    'glass tap relative inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium'
   return (
     <div className="flex flex-wrap gap-2">
       <a href={p.stats?.url ?? p.href} target="_blank" rel="noopener noreferrer" className={btn}>
@@ -195,7 +195,7 @@ function Card({ p, i }: { p: LiveProject; i: number }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`${p.name} on GitHub`}
-          className="mt-1 text-muted transition-colors hover:text-foreground"
+          className="tap relative mt-1 text-muted transition-colors hover:text-foreground"
         >
           <ExternalLink className="h-4 w-4" />
         </a>
@@ -232,7 +232,7 @@ export function Projects() {
           <p className="mt-2 flex items-center gap-1.5 text-xs text-muted">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
             live from{' '}
-            <a href={socials.github} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            <a href={socials.github} target="_blank" rel="noopener noreferrer" className="tap relative text-primary hover:underline">
               github.com/samshanmukh
             </a>
             · updates hourly
@@ -265,7 +265,7 @@ export function Projects() {
         href={socials.github}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-block text-sm text-primary underline-offset-4 hover:underline"
+        className="tap relative inline-block text-sm text-primary underline-offset-4 hover:underline"
       >
         70+ more repositories on GitHub ↗
       </a>

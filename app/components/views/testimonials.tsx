@@ -30,7 +30,7 @@ export function Testimonials() {
       </div>
       <p className="mt-4 text-xs text-muted">
         Recommendations from LinkedIn · more on{' '}
-        <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+        <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="tap relative text-primary hover:underline">
           my profile ↗
         </a>
       </p>

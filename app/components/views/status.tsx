@@ -56,7 +56,7 @@ export function Status({ onAsk }: { onAsk: (q: string) => void }) {
             <p className="text-sm font-medium">Tech stack</p>
             <p className="text-sm text-muted">
               {skills.map((s) => s.items.slice(0, 4).join(', ')).join(' · ')}{' '}
-              <button onClick={() => onAsk("What's your stack?")} className="cursor-pointer text-primary underline">
+              <button onClick={() => onAsk("What's your stack?")} className="tap relative cursor-pointer text-primary underline">
                 See more
               </button>
             </p>

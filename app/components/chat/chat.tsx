@@ -215,7 +215,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       {profile.available && (
         <button
           onClick={() => run('How can I reach you?')}
-          className="absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+          className="tap absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -231,7 +231,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
         <WelcomeModal
           trigger={
-            <button aria-label="About this portfolio" className="flex h-9 w-8 md:w-9 cursor-pointer items-center justify-center rounded-full hover:bg-accent">
+            <button aria-label="About this portfolio" className="tap relative flex h-9 w-8 md:w-9 cursor-pointer items-center justify-center rounded-full hover:bg-accent">
               <Info className="h-5 w-5" />
             </button>
           }
@@ -338,7 +338,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               </div>
             </form>
             {/* socials pop in just under the input */}
-            <SocialLinks size="sm" pop delay={0.3} className="pb-3 md:pb-5" />
+            <SocialLinks size="sm" pop delay={0.3} className="pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5" />
           </div>
         </div>
       </div>
@@ -388,7 +388,7 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
                 href={s.href}
                 target={s.href!.startsWith('http') || s.href!.endsWith('.pdf') ? '_blank' : undefined}
                 rel="noopener noreferrer"
-                className="rounded-full border border-border px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
+                className="glass tap relative rounded-full px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
               >
                 {s.label} ↗
               </a>
@@ -398,7 +398,7 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
               key={f}
               disabled={busy}
               onClick={() => onAsk(f)}
-              className="glass cursor-pointer rounded-full px-3 py-1 text-xs"
+              className="glass tap relative cursor-pointer rounded-full px-3 py-1.5 text-xs"
             >
               {f}
             </button>
@@ -422,7 +422,7 @@ function SmartToggle({
   onEnable: () => void
   onDisable: () => void
 }) {
-  const base = 'flex h-9 items-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors md:px-3'
+  const base = 'tap relative flex h-9 items-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors md:px-3'
   if (llm === 'unsupported') {
     return (
       <span

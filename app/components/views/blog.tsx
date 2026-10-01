@@ -27,7 +27,7 @@ export function Blog({ posts }: { posts: PostMeta[] }) {
         ))}
         {posts.length === 0 && <p className="text-muted">No posts yet.</p>}
       </div>
-      <Link href="/blog" className="mt-4 inline-block text-sm text-primary hover:underline">
+      <Link href="/blog" className="tap relative mt-4 inline-block text-sm text-primary hover:underline">
         All writing →
       </Link>
     </div>

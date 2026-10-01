@@ -32,7 +32,7 @@ export function SocialLinks({
 }) {
   const reduced = useReducedMotion()
   const animate = pop && !reduced
-  const box = size === 'sm' ? 'h-8 w-8 md:h-9 md:w-9' : 'h-11 w-11'
+  const box = size === 'sm' ? 'h-10 w-10 md:h-9 md:w-9' : 'h-11 w-11'
   const icon = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -49,7 +49,7 @@ export function SocialLinks({
           rel="noopener noreferrer"
           aria-label={label}
           title={label}
-          className={`glass flex ${box} items-center justify-center rounded-full`}
+          className={`glass tap relative flex ${box} items-center justify-center rounded-full`}
         >
           <Icon className={`${icon} ${color}`} />
         </motion.a>

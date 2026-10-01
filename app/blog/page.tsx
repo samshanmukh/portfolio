@@ -14,7 +14,7 @@ export default function BlogIndex() {
     <main className="pt-8 pb-20">
       <div className="wrap">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline">
+          <Link href="/" className="tap relative text-sm text-muted underline-offset-4 hover:text-foreground hover:underline">
             ← back to portfolio
           </Link>
           <ThemeToggle />

@@ -60,7 +60,7 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
                   exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.25 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="max-h-[85vh] w-full max-w-3xl overflow-auto rounded-2xl bg-background p-4 py-6 shadow-xl md:p-8"
+                  className="max-h-[85dvh] w-full max-w-3xl overflow-auto rounded-2xl bg-background p-4 py-6 shadow-xl md:p-8"
                 >
                   <div className="flex items-start justify-between gap-4 px-2 md:px-0">
                     <h2 id="welcome-title" className="text-2xl font-bold tracking-tight md:text-4xl">
@@ -68,7 +68,7 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
                     </h2>
                     <button
                       onClick={() => setOpen(false)}
-                      className="cursor-pointer rounded-full bg-foreground p-2 text-background hover:opacity-90"
+                      className="tap relative cursor-pointer rounded-full bg-foreground p-2 text-background hover:opacity-90"
                     >
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>

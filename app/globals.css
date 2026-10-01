@@ -234,3 +234,16 @@ body {
 .dark .glass:hover {
   background: linear-gradient(135deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.08));
 }
+
+/* Touch screens: grow small controls' hit area to at least 44×44 without changing their look. */
+@media (pointer: coarse) {
+  .tap::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}

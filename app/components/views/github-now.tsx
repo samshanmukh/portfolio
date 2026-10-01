@@ -34,7 +34,7 @@ export function GithubNow() {
       <p className="mt-2 flex items-center gap-1.5 text-xs text-muted">
         <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
         live from{' '}
-        <a href={socials.github} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+        <a href={socials.github} target="_blank" rel="noopener noreferrer" className="tap relative text-primary hover:underline">
           github.com/samshanmukh
         </a>
         · auto-updates hourly
@@ -48,7 +48,7 @@ export function GithubNow() {
         {repos === null && (
           <p className="text-sm text-muted sm:col-span-2">
             GitHub isn&apos;t answering right now —{' '}
-            <a href={socials.github} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            <a href={socials.github} target="_blank" rel="noopener noreferrer" className="tap relative text-primary hover:underline">
               see my profile ↗
             </a>
           </p>

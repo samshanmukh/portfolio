@@ -50,7 +50,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
       <div className={`flex justify-center ${visible ? 'mb-2' : ''}`}>
         <button
           onClick={() => setVisible((v) => !v)}
-          className="flex cursor-pointer items-center gap-1 px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
+          className="tap relative flex cursor-pointer items-center gap-1 px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
         >
           {visible ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           {visible ? 'Hide quick questions' : 'Show quick questions'}
