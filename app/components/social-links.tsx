@@ -49,7 +49,7 @@ export function SocialLinks({
           rel="noopener noreferrer"
           aria-label={label}
           title={label}
-          className={`flex ${box} items-center justify-center rounded-full border border-border bg-white/30 backdrop-blur-lg transition-colors hover:bg-accent dark:bg-neutral-900/60`}
+          className={`glass flex ${box} items-center justify-center rounded-full`}
         >
           <Icon className={`${icon} ${color}`} />
         </motion.a>
