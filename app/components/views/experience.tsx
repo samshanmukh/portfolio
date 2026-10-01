@@ -67,7 +67,7 @@ export function Education() {
           </h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {languages.map((l) => (
-              <span key={l} className="rounded-full bg-accent px-3 py-1 text-sm">
+              <span key={l} className="glass rounded-full px-3 py-1 text-sm">
                 {l}
               </span>
             ))}

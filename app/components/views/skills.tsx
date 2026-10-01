@@ -38,7 +38,7 @@ export function Skills() {
                     key={skill}
                     variants={badge}
                     whileHover={{ scale: 1.04 }}
-                    className="rounded-md border border-border bg-foreground px-3 py-1.5 text-sm text-background"
+                    className="glass rounded-lg px-3 py-1.5 text-sm text-foreground"
                   >
                     {skill}
                   </motion.span>

@@ -59,7 +59,7 @@ export function Presentation() {
             className="mt-4 flex flex-wrap gap-2"
           >
             {skills[0].items.slice(0, 5).map((tag) => (
-              <span key={tag} className="rounded-full bg-accent px-3 py-1 text-sm">
+              <span key={tag} className="glass rounded-full px-3 py-1 text-sm">
                 {tag}
               </span>
             ))}

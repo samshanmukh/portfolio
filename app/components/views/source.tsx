@@ -16,7 +16,7 @@ export function Source() {
       </div>
       <div className="mt-6 flex flex-wrap justify-center gap-2">
         {stack.map((s) => (
-          <span key={s} className="rounded-full border border-border px-3 py-1 text-sm">
+          <span key={s} className="glass rounded-full px-3 py-1 text-sm">
             {s}
           </span>
         ))}

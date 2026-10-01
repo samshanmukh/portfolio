@@ -91,7 +91,7 @@ function Chips({ p }: { p: LiveProject }) {
   return (
     <div className="flex flex-wrap gap-1.5">
       {chips.map((t) => (
-        <span key={t} className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-foreground/80">
+        <span key={t} className="glass rounded-full px-2 py-0.5 text-[11px] font-medium text-foreground/80">
           {t}
         </span>
       ))}
@@ -102,7 +102,7 @@ function Chips({ p }: { p: LiveProject }) {
 function Links({ p }: { p: LiveProject }) {
   const demo = p.demo ?? p.stats?.homepage ?? undefined
   const btn =
-    'inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-medium transition-colors hover:bg-accent'
+    'glass inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium'
   return (
     <div className="flex flex-wrap gap-2">
       <a href={p.stats?.url ?? p.href} target="_blank" rel="noopener noreferrer" className={btn}>

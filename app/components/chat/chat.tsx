@@ -364,7 +364,7 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
   return (
     <div className="w-full">
       {msg.tool && msg.tool !== 'init()' && (
-        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-0.5 font-mono text-[11px] text-muted">
+        <div className="glass mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-mono text-[11px] text-muted">
           ⚙ {msg.tool}
         </div>
       )}
@@ -398,7 +398,7 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
               key={f}
               disabled={busy}
               onClick={() => onAsk(f)}
-              className="cursor-pointer rounded-full bg-accent px-3 py-1 text-xs transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
+              className="glass cursor-pointer rounded-full px-3 py-1 text-xs"
             >
               {f}
             </button>
