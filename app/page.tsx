@@ -11,6 +11,8 @@ import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
+import { FluidCursor } from './components/fluid-cursor'
+import { SpotifyWidget } from './components/spotify-widget'
 
 const GREETINGS = [`Hey, I'm ${profile.shortName} Karri 👋`, 'Hello! Ask me anything…']
 
@@ -32,6 +34,9 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pb-10 md:pb-20">
+      {/* liquid colour trail that follows the cursor */}
+      <FluidCursor />
+
       {/* big faded name behind everything */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center overflow-hidden">
         <div
@@ -138,6 +143,9 @@ export default function Home() {
           })}
         </div>
       </motion.div>
+
+      {/* what I'm listening to (hidden until Spotify is configured) */}
+      <SpotifyWidget />
     </div>
   )
 }

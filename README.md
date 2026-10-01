@@ -11,6 +11,8 @@ A chat-first "AI-native" portfolio (UI/UX modeled on [ai-native-portfolio](https
   (intro, projects carousel, skills, experience, education, testimonials, live GitHub activity, gym + AI trainer demo,
   résumé, contact, writing). Optional ⚡ smart mode runs a small LLM in the browser via WebLLM.
 - **Blog (`/blog`)** — markdown posts from `content/blog`
+- **Liquid cursor** — a WebGL fluid trail follows the cursor (or finger) on the landing page; off for reduced motion
+- **Spotify now playing** — a spinning album cover in the corner shows what Sam is listening to (needs env vars, below)
 - Light / dark theme toggle (light by default)
 
 ## Getting started
@@ -38,3 +40,13 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Deploy
 
 Deploy on [Vercel](https://vercel.com/new) — zero config for Next.js.
+
+### Spotify widget (optional)
+
+The widget stays hidden until these three Vercel env vars are set (also `.env.local` for dev):
+`SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REFRESH_TOKEN`.
+
+1. Create an app at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and add
+   `http://127.0.0.1:3000/callback` as a Redirect URI.
+2. Run `node scripts/get-spotify-token.mjs`, paste the client ID and secret, approve in the browser, and paste
+   the `code` from the URL you land on. It prints the refresh token.

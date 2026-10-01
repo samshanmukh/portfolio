@@ -12,6 +12,7 @@ import { systemPrompt } from '../../lib/knowledge'
 import type { PostMeta } from '../../lib/posts'
 import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
 import { SocialLinks } from '../social-links'
+import { SpotifyWidget } from '../spotify-widget'
 import { ThemeToggle } from '../theme-toggle'
 import { ViewRenderer } from '../views/view-renderer'
 import { WelcomeModal } from '../welcome-modal'
@@ -205,6 +206,11 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
   return (
     <div className="relative h-dvh overflow-hidden">
+      {/* now-playing corner widget; only on wide screens where it clears the input */}
+      <div className="hidden xl:block">
+        <SpotifyWidget className="right-6 bottom-12" />
+      </div>
+
       {/* top-left: open to chat & connect */}
       {profile.available && (
         <button
