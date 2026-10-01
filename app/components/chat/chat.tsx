@@ -226,9 +226,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         </button>
       )}
 
-      {/* top-right: social links (wide screens; narrower ones get them above the input) + controls */}
+      {/* top-right: controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
-        <SocialLinks size="sm" className="mr-1 hidden xl:flex" />
         <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
         <WelcomeModal
           trigger={
@@ -309,13 +308,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
           )}
           <div className="relative flex flex-col items-center gap-3">
             <HelperBoost onAsk={run} disabled={busy} />
-            <SocialLinks size="sm" className="xl:hidden" />
             <form
               onSubmit={(e) => {
                 e.preventDefault()
                 run(input)
               }}
-              className="w-full pb-2 md:px-4 md:pb-6"
+              className="w-full md:px-4"
             >
               <div className="mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6 dark:border-neutral-700">
                 <input
@@ -339,6 +337,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 </button>
               </div>
             </form>
+            {/* socials pop in just under the input */}
+            <SocialLinks size="sm" pop delay={0.3} className="pb-3 md:pb-5" />
           </div>
         </div>
       </div>

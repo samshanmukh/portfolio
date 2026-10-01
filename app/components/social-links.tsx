@@ -1,3 +1,6 @@
+'use client'
+
+import { motion, useReducedMotion } from 'framer-motion'
 import { FileText, Mail } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { socials } from '../lib/data'
@@ -13,24 +16,42 @@ export const socialLinks: Link[] = [
   { label: 'Résumé', href: socials.resume, icon: FileText, color: 'text-[#16A34A]' },
 ]
 
-// Row of clickable social icons (home page, chat header, contact answer).
-export function SocialLinks({ size = 'md', className = '' }: { size?: 'sm' | 'md'; className?: string }) {
-  const box = size === 'sm' ? 'h-7 w-7 md:h-9 md:w-9' : 'h-11 w-11'
-  const icon = size === 'sm' ? 'h-3.5 w-3.5 md:h-4 md:w-4' : 'h-5 w-5'
+// Row of clickable social icons (under the home + chat inputs, contact answer).
+// `pop` springs the icons in one after another (static for reduced motion).
+export function SocialLinks({
+  size = 'md',
+  pop = false,
+  delay = 0,
+  className = '',
+}: {
+  size?: 'sm' | 'md'
+  pop?: boolean
+  delay?: number
+  className?: string
+}) {
+  const reduced = useReducedMotion()
+  const animate = pop && !reduced
+  const box = size === 'sm' ? 'h-8 w-8 md:h-9 md:w-9' : 'h-11 w-11'
+  const icon = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'
   return (
-    <div className={`flex items-center gap-1 md:gap-2 ${className}`}>
-      {socialLinks.map(({ label, href, icon: Icon, color }) => (
-        <a
+    <div className={`flex items-center gap-2 ${className}`}>
+      {socialLinks.map(({ label, href, icon: Icon, color }, i) => (
+        <motion.a
           key={label}
+          initial={animate ? { opacity: 0, scale: 0.3, y: 10 } : false}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 18, delay: delay + i * 0.08 }}
+          whileHover={reduced ? undefined : { scale: 1.12, y: -2 }}
+          whileTap={{ scale: 0.92 }}
           href={href}
           target={href.startsWith('mailto:') ? undefined : '_blank'}
           rel="noopener noreferrer"
           aria-label={label}
           title={label}
-          className={`flex ${box} items-center justify-center rounded-full border border-border bg-white/30 backdrop-blur-lg transition hover:scale-105 hover:bg-accent dark:bg-neutral-900/60`}
+          className={`flex ${box} items-center justify-center rounded-full border border-border bg-white/30 backdrop-blur-lg transition-colors hover:bg-accent dark:bg-neutral-900/60`}
         >
           <Icon className={`${icon} ${color}`} />
-        </a>
+        </motion.a>
       ))}
     </div>
   )

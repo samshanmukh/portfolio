@@ -47,9 +47,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* top-right: theme + source */}
-      <div className="absolute top-6 right-4 z-20 flex items-center gap-1 sm:right-8 md:gap-2">
-        <SocialLinks size="sm" />
+      {/* top-right: theme */}
+      <div className="absolute top-6 right-4 z-20 sm:right-8">
         <ThemeToggle />
       </div>
 
@@ -124,7 +123,10 @@ export default function Home() {
           </div>
         </form>
 
-        <div className="mt-4 grid w-full max-w-2xl grid-cols-3 gap-3 md:grid-cols-5">
+        {/* socials pop in just under the input */}
+        <SocialLinks size="sm" pop delay={0.6} className="mt-4 justify-center" />
+
+        <div className="mt-5 grid w-full max-w-2xl grid-cols-3 gap-3 md:grid-cols-5">
           {quickConfig.map(({ key, color }) => {
             const Icon = quickIcons[key]
             return (
