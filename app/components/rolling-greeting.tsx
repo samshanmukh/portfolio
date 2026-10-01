@@ -1,34 +1,34 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 
-// Placeholder for the ask box: each greeting pops up as a whole line (like the bubbles
-// elsewhere), holds, then rolls up out of the way for the next one.
-export function RollingGreeting({ lines, active }: { lines: string[]; active: boolean }) {
-  const [i, setI] = useState(0)
+// Placeholder for the ask box: one line that pops up into place (like the bubbles elsewhere),
+// with a hand that waves from the wrist when it appears and again every few seconds while idle.
+export function RollingGreeting({ text, active }: { text: string; active: boolean }) {
   const reduced = useReducedMotion()
-
-  useEffect(() => {
-    if (!active || reduced) return
-    const t = setInterval(() => setI((n) => (n + 1) % lines.length), 3200)
-    return () => clearInterval(t)
-  }, [active, reduced, lines.length])
 
   return (
     <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 flex items-center overflow-hidden">
-      <AnimatePresence mode="popLayout" initial={!reduced}>
+      <motion.span
+        className="block origin-left whitespace-nowrap"
+        initial={reduced ? false : { y: '110%', opacity: 0, scale: 0.85, filter: 'blur(4px)' }}
+        animate={{ y: '0%', opacity: 1, scale: 1, filter: 'blur(0px)' }}
+        transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+      >
+        {text}{' '}
         <motion.span
-          key={i}
-          className="block origin-left whitespace-nowrap"
-          initial={{ y: '110%', opacity: 0, scale: 0.85, filter: 'blur(4px)' }}
-          animate={{ y: '0%', opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          exit={{ y: '-110%', opacity: 0, scale: 0.95, filter: 'blur(4px)' }}
-          transition={{ type: 'spring', stiffness: 320, damping: 22 }}
+          className="inline-block"
+          style={{ transformOrigin: '70% 80%' }}
+          animate={active && !reduced ? { rotate: [0, 16, -8, 16, -6, 12, 0] } : { rotate: 0 }}
+          transition={
+            active && !reduced
+              ? { duration: 1.4, ease: 'easeInOut', delay: 0.35, repeat: Infinity, repeatDelay: 3 }
+              : { duration: 0.3 }
+          }
         >
-          {lines[i]}
+          👋
         </motion.span>
-      </AnimatePresence>
+      </motion.span>
     </span>
   )
 }

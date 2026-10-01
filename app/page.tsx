@@ -15,7 +15,7 @@ import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
 import { LookingMemoji, useTypingGaze } from './components/looking-memoji'
 
-const GREETINGS = [`Hey, I'm ${profile.shortName} Karri 👋`, 'Hello! Ask me anything…']
+const GREETING = `Hey, I'm ${profile.shortName}`
 
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
 // arrow slides to its spot → the box settles into place and everything else fades/pops in.
@@ -174,7 +174,7 @@ export default function Home() {
             <span className="relative flex w-full items-center">
               {ready && !input && (
                 <span className="text-base text-neutral-600 dark:text-neutral-400">
-                  <RollingGreeting lines={GREETINGS} active={!focused} />
+                  <RollingGreeting text={GREETING} active={!focused} />
                 </span>
               )}
               <input
