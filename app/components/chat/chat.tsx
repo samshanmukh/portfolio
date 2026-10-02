@@ -52,6 +52,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
+  // questions sent while an answer is still coming; each goes out, in order, once the one before finishes
+  const [queued, setQueued] = useState<string[]>([])
   const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
   const [llm, setLlm] = useState<LlmState>('idle')
   const [prog, setProg] = useState(0)
@@ -124,7 +126,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
   const run = async (raw: string) => {
     const q = raw.trim()
-    if (!q || busy) return
+    if (!q) return
+    if (busy) {
+      setQueued((prev) => [...prev, q])
+      setInput('')
+      return
+    }
     setBusy(true)
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
@@ -137,6 +144,14 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setBusy(false)
     inputRef.current?.focus()
   }
+
+  useEffect(() => {
+    if (busy || !queued.length) return
+    const [next, ...rest] = queued
+    setQueued(rest)
+    run(next)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busy, queued])
 
   useEffect(() => {
     if (initialQuery && !autoSubmitted.current) {
@@ -322,10 +337,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  disabled={busy}
                   spellCheck={false}
                   autoComplete="off"
-                  placeholder={busy ? `${profile.shortName} is typing…` : 'Ask me anything'}
+                  placeholder={queued.length ? `Up next: ${queued[0]}${queued.length > 1 ? ` (+${queued.length - 1} more)` : ''}` : busy ? `${profile.shortName} is typing…` : 'Ask me anything'}
                   aria-label="Ask me anything"
                   className="w-full border-none bg-transparent text-base placeholder:text-neutral-500 focus:outline-none disabled:opacity-60"
                 />
@@ -337,14 +351,14 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 >
                   <motion.button
                     type="submit"
-                    disabled={busy || !input.trim()}
+                    disabled={!input.trim()}
                     aria-label="Send"
                     whileHover={{ scale: 1.08, y: -1 }}
                     whileTap={{ scale: 0.88 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                     className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2 disabled:cursor-default disabled:opacity-50"
                   >
-                    {busy ? <Square className="h-6 w-6 p-1" /> : <ArrowUp className="h-6 w-6" />}
+                    {busy && !input.trim() ? <Square className="h-6 w-6 p-1" /> : <ArrowUp className="h-6 w-6" />}
                   </motion.button>
                 </motion.span>
               </div>
