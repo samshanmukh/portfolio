@@ -200,7 +200,7 @@ export default function Home() {
                 whileHover={{ scale: 1.08, y: -1 }}
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
+                className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 ${phase === 'arrow' || phase === 'expand' ? '' : 'disabled:opacity-70'}`}
               >
                 {/* attention light: liquid colours swirl inside the glass while it pops in and slides,
                     then fade so the settled button is plain neutral glass again */}
