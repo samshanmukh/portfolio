@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Liquid } from 'liquid-gooey'
 import { FileText, Mail } from 'lucide-react'
-import { useEffect, useState, type ComponentType, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react'
 import { socials } from '../lib/data'
 import { GithubIcon, InstagramIcon, LinkedinIcon, XIcon } from './brand-icons'
 
@@ -20,6 +20,8 @@ export const socialLinks: Link[] = [
 
 // Row of clickable social icons (under the home + chat inputs, contact answer).
 // `pop` springs the icons in one after another (static for reduced motion).
+// Each icon can be dragged anywhere; it bends like liquid while it moves (liquid-gooey's bend effect)
+// and springs back to its spot when let go. A drag never opens the link; a plain click or tap does.
 export function SocialLinks({
   size = 'md',
   pop = false,
@@ -37,16 +39,8 @@ export function SocialLinks({
   const animate = pop && !reduced
   const box = size === 'sm' ? 'h-12 w-12' : 'h-14 w-14'
   const icon = size === 'sm' ? 'h-5 w-5' : 'h-6 w-6'
-  const step = (size === 'sm' ? 48 : 56) + 10 // button + gap-2.5
-  // launch: the icons start as one liquid blob in the middle, then melt apart into their row
-  const [split, setSplit] = useState(!animate)
-  useEffect(() => {
-    if (!animate) return
-    const t = setTimeout(() => setSplit(true), delay * 1000 + 120)
-    return () => clearTimeout(t)
-  }, [animate, delay])
-  const mid = (socialLinks.length - 1) / 2
-  const [hovered, setHovered] = useState<number | null>(null)
+  const dragged = useRef(false)
+  const [dragging, setDragging] = useState(false)
   // the liquid's colour and shadow are parsed by the library, so follow the theme here
   const [dark, setDark] = useState(false)
   useEffect(() => {
@@ -59,7 +53,7 @@ export function SocialLinks({
   }, [])
   return (
     <Liquid
-      blur={5.5}
+      blur={5}
       contrast={18}
       fill={dark ? 'rgb(39 39 42)' : 'rgb(255 255 255)'}
       shadow={
@@ -67,40 +61,55 @@ export function SocialLinks({
           ? 'inset 0 1px 1px rgb(255 255 255 / 0.14), 0 4px 14px -4px rgb(0 0 0 / 0.6)'
           : 'inset 0 1px 1px rgb(255 255 255 / 0.9), 0 4px 14px -4px rgb(0 0 0 / 0.14), 0 0 0 0.5px rgb(0 0 0 / 0.08)'
       }
+      filterPadding={1600}
       className={`goo-row flex items-center gap-2.5 ${className}`}
-      style={style}
+      style={{ ...style, zIndex: dragging ? 60 : undefined }} // a dragged icon floats above the ask box
     >
       {socialLinks.map(({ label, href, icon: Icon, color }, i) => (
-        <Liquid.Item
+        // entrance pop on the wrapper, drag on the liquid item, hover/press on the link
+        // (so hover never inherits the entrance delay)
+        <motion.span
           key={label}
-          x={split ? 0 : (mid - i) * step}
-          scale={!split ? 0.7 : hovered === i ? 1.2 : 1}
-          transition="bouncy"
-          delay={split && hovered === null ? Math.abs(i - mid) * 50 : 0}
+          className="flex"
+          initial={animate ? { opacity: 0, scale: 0.3, y: 10 } : false}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 18, delay: delay + i * 0.08 }}
         >
-          {/* hover grows the drop so it bridges to its neighbours; the icon fades in as its drop breaks away */}
-          <motion.a
-            onPointerEnter={(e) => !reduced && e.pointerType === 'mouse' && setHovered(i)}
-            onPointerLeave={() => setHovered((h) => (h === i ? null : h))}
-            whileTap={{ scale: 0.92 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 18 }}
-            href={href}
-            target={href.startsWith('mailto:') ? undefined : '_blank'}
-            rel="noopener noreferrer"
-            aria-label={label}
-            title={label}
-            className={`glass tap relative flex ${box} items-center justify-center rounded-full`}
-          >
+          <Liquid.Item effect="bend" bend={{ vertical: 0.7, horizontal: 0.5 }} radius={size === 'sm' ? 24 : 28}>
             <motion.span
-              className="flex"
-              initial={animate ? { opacity: 0, scale: 0.4 } : false}
-              animate={split ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.4 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 18, delay: split ? 0.12 + Math.abs(i - mid) * 0.05 : 0 }}
+              className="relative flex cursor-grab touch-none active:cursor-grabbing"
+              drag
+              dragSnapToOrigin
+              dragElastic={0.9}
+              dragTransition={{ bounceStiffness: 260, bounceDamping: 14 }}
+              whileDrag={{ zIndex: 60 }}
+              onDragStart={() => {
+                dragged.current = true
+                setDragging(true)
+              }}
+              onDragTransitionEnd={() => setDragging(false)}
             >
-              <Icon className={`${icon} ${color}`} />
+              <motion.a
+                whileHover={reduced ? undefined : { scale: 1.12, y: -2 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 18 }}
+                href={href}
+                target={href.startsWith('mailto:') ? undefined : '_blank'}
+                rel="noopener noreferrer"
+                draggable={false}
+                onPointerDown={() => (dragged.current = false)}
+                onClick={(e) => {
+                  if (dragged.current) e.preventDefault() // it was a drag, not a click
+                }}
+                aria-label={label}
+                title={label}
+                className={`glass tap relative flex ${box} items-center justify-center rounded-full`}
+              >
+                <Icon className={`${icon} ${color}`} />
+              </motion.a>
             </motion.span>
-          </motion.a>
-        </Liquid.Item>
+          </Liquid.Item>
+        </motion.span>
       ))}
     </Liquid>
   )
