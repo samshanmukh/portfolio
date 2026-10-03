@@ -1121,9 +1121,7 @@ export default function startFluidCursor(canvas: HTMLCanvasElement): () => void 
   function splatPointer(pointer) {
     let dx = pointer.deltaX * config.SPLAT_FORCE;
     let dy = pointer.deltaY * config.SPLAT_FORCE;
-    const b = pointer.boost || 1;
-    const c = pointer.color;
-    splat(pointer.texcoordX, pointer.texcoordY, dx, dy, { r: c.r * b, g: c.g * b, b: c.b * b });
+    splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
   }
 
   function clickSplat(pointer) {
@@ -1364,33 +1362,5 @@ export default function startFluidCursor(canvas: HTMLCanvasElement): () => void 
     }
     return hash;
   }
-  // Launch hooks for the page: a burst of colour at a point, and a second, page-steered
-  // "cursor" so the colours can trail the launch arrow (phones have no mouse to do it).
-  const guide = new pointerPrototype();
-  guide.boost = 1.6;
-  pointers.push(guide);
-  cleanup.burst = (x, y) => {
-    if (stopped) return;
-    start();
-    const tx = scaleByPixelRatio(x) / canvas.width;
-    const ty = 1.0 - scaleByPixelRatio(y) / canvas.height;
-    const n = 7;
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2 + Math.random() * 0.6;
-      const c = generateColor();
-      c.r *= 4;
-      c.g *= 4;
-      c.b *= 4;
-      splat(tx, ty, Math.cos(a) * 300, Math.sin(a) * 300, c);
-    }
-    updatePointerDownData(guide, -2, scaleByPixelRatio(x), scaleByPixelRatio(y));
-  };
-  cleanup.follow = (x, y) => {
-    if (stopped) return;
-    start();
-    // no burst seeded it yet (e.g. the simulation loaded late): start here with no jump
-    if (guide.id === -1) updatePointerDownData(guide, -2, scaleByPixelRatio(x), scaleByPixelRatio(y));
-    updatePointerMoveData(guide, scaleByPixelRatio(x), scaleByPixelRatio(y), guide.color);
-  };
   return cleanup;
 }
