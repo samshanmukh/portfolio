@@ -14,14 +14,14 @@ import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
-import { LAUNCHES, LaunchFluid, type Launch } from './components/launch-fx'
 
 const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
 
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
 // arrow slides to its spot → the box settles into place and everything else fades/pops in.
 type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
-const ARROW_MS = 850 // circle pops in, arrow spawns inside it, then expand
+const ARROW_MS = 1250 // button zooms out from full screen to its size, arrow spawns inside it, then expand
+const ZOOM_S = 0.9
 const EXPAND_MS = 1100
 const SETTLE_MS = 700
 const OPEN = 'inset(0px 0px 0px 0px round 999px)'
@@ -43,8 +43,9 @@ export default function Home() {
   const boxRef = useRef<HTMLDivElement>(null)
   const arrowRef = useRef<HTMLSpanElement>(null)
   const [phase, setPhase] = useState<Phase>('measure')
-  const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN })
-  const [launch, setLaunch] = useState<Launch>('fluid')
+  const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN, ox: 0.5, oy: 0.5, zoom: 1 })
+  // ?launch=arrow-in shows the arrow already inside the button while it zooms out (to compare)
+  const [arrowIn, setArrowIn] = useState(false)
   useLayoutEffect(() => {
     const box = boxRef.current?.getBoundingClientRect()
     const el = arrowRef.current
@@ -57,9 +58,12 @@ export default function Home() {
     const cx = r.left + r.width / 2
     const cy = r.top + r.height / 2
     const half = el.offsetWidth / 2 + 3 // a few px of glass around the button
-    const pick = new URLSearchParams(window.location.search).get('launch') as Launch | null
-    if (pick && LAUNCHES.includes(pick)) setLaunch(pick)
+    setArrowIn(new URLSearchParams(window.location.search).get('launch') === 'arrow-in')
     setIntro({
+      // zoom from the button's centre, big enough that the circle covers the whole screen
+      ox: (cx - box.left) / box.width,
+      oy: (cy - box.top) / box.height,
+      zoom: (Math.hypot(window.innerWidth, window.innerHeight) * 1.05) / (half * 2),
       x: window.innerWidth / 2 - cx,
       y: window.innerHeight / 2 - (box.top + box.height / 2),
       clip: `inset(${cy - half - box.top}px ${box.right - (cx + half)}px ${box.bottom - (cy + half)}px ${cx - half - box.left}px round 999px)`,
@@ -72,7 +76,6 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   const revealed = phase === 'settle' || phase === 'done'
-  const launching = phase === 'arrow' || phase === 'expand'
   const ready = phase === 'done' // the greeting starts once everything is in place
   const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
 
@@ -154,15 +157,18 @@ export default function Home() {
             if (input.trim()) goToChat(input.trim())
           }}
           className={`relative z-30 w-full max-w-lg ${phase === 'measure' ? 'invisible' : ''}`}
+          style={{ originX: intro.ox, originY: intro.oy }}
           initial={false}
           animate={
-            phase === 'arrow' || phase === 'expand'
-              ? { x: phase === 'arrow' ? intro.x : 0, y: intro.y }
-              : { x: 0, y: 0 }
+            phase === 'arrow'
+              ? { x: intro.x, y: intro.y, scale: [intro.zoom, 1] }
+              : phase === 'expand'
+                ? { x: 0, y: intro.y, scale: 1 }
+                : { x: 0, y: 0, scale: 1 }
           }
           transition={
             phase === 'arrow'
-              ? { duration: 0 }
+              ? { x: { duration: 0 }, y: { duration: 0 }, scale: { duration: ZOOM_S, ease: [0.7, 0, 0.2, 1] } }
               : phase === 'expand'
                 ? { duration: EXPAND_MS / 1000, ease: [0.65, 0, 0.35, 1] }
                 : { type: 'spring', stiffness: 120, damping: 20 }
@@ -194,9 +200,6 @@ export default function Home() {
             <motion.span
               ref={arrowRef}
               className="flex"
-              initial={reduced ? false : { scale: 0 }}
-              animate={phase === 'measure' ? { scale: 0 } : { scale: 1 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 14 }}
             >
               <motion.button
                 type="submit"
@@ -205,17 +208,14 @@ export default function Home() {
                 whileHover={{ scale: 1.08, y: -1 }}
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 ${launching ? '' : 'disabled:opacity-70'}`}
+                className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
               >
-                {/* attention light: liquid colours swirl inside the glass while it pops in and slides,
-                    then fade so the settled button is plain neutral glass again (removed once done) */}
-                {phase !== 'done' && phase !== 'measure' && <LaunchFluid phase={phase} launch={launch} />}
-                {/* the empty glass circle lands first, then the arrow spawns inside it */}
+                {/* the empty glass circle zooms out from full screen, then the arrow spawns inside it */}
                 <motion.span
                   className="flex"
                   initial={reduced ? false : { scale: 0, opacity: 0 }}
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
+                  transition={arrowIn ? { duration: 0 } : { delay: ZOOM_S - 0.1, type: 'spring', stiffness: 520, damping: 13 }}
                 >
                   <ArrowRight className="h-5 w-5" />
                 </motion.span>

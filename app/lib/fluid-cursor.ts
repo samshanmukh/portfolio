@@ -4,19 +4,8 @@
 // Ported from yuvraj0412s/ai-native-portfolio (MIT), itself based on Pavel Dobryakov's
 // WebGL-Fluid-Simulation (MIT). Changes: takes the canvas as an argument, returns a cleanup
 // function (stops the render loop and removes listeners), and uses lighter settings on
-// small / touch screens. With opts.path it ignores the mouse and instead follows a point the
-// caller supplies each frame (CSS px within the canvas), e.g. the launch button's tiny version.
-type FluidOptions = {
-  path?: (t: number) => { x: number; y: number } | null;
-  sim?: number;
-  dye?: number;
-  radius?: number;
-  force?: number;
-  fade?: number;
-  brightness?: number;
-  colorSpeed?: number;
-};
-export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidOptions = {}): () => void {
+// small / touch screens.
+export default function startFluidCursor(canvas: HTMLCanvasElement): () => void {
   const listeners = [];
   const on = (target, type, fn, opts) => {
     target.addEventListener(type, fn, opts);
@@ -58,13 +47,6 @@ export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidO
     config.DYE_RESOLUTION = 512;
     config.PRESSURE_ITERATIONS = 10;
   }
-  if (opts.sim) config.SIM_RESOLUTION = opts.sim;
-  if (opts.dye) config.DYE_RESOLUTION = opts.dye;
-  if (opts.radius) config.SPLAT_RADIUS = opts.radius;
-  if (opts.force) config.SPLAT_FORCE = opts.force;
-  if (opts.fade) config.DENSITY_DISSIPATION = opts.fade;
-  if (opts.colorSpeed) config.COLOR_UPDATE_SPEED = opts.colorSpeed;
-  const brightness = opts.brightness ?? 0.15;
 
   function pointerPrototype() {
     this.id = -1;
@@ -962,28 +944,10 @@ export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidO
     // console.log(dt)
     if (resizeCanvas()) initFramebuffers();
     updateColors(dt);
-    followPath();
     applyInputs();
     step(dt);
     render(null);
     rafId = requestAnimationFrame(update);
-  }
-
-  const startedAt = performance.now();
-  let pathStarted = false;
-  function followPath() {
-    if (!opts.path) return;
-    const p = opts.path((performance.now() - startedAt) / 1000);
-    if (!p) return;
-    const pointer = pointers[0];
-    const x = scaleByPixelRatio(p.x);
-    const y = scaleByPixelRatio(p.y);
-    if (!pathStarted) {
-      pathStarted = true;
-      pointer.color = generateColor();
-      updatePointerMoveData(pointer, x, y, pointer.color); // seed so the first step isn't a jump from 0,0
-    }
-    updatePointerMoveData(pointer, x, y, pointer.color);
   }
 
   function calcDeltaTime() {
@@ -1198,8 +1162,6 @@ export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidO
     return radius;
   }
 
-  if (opts.path) start();
-  else {
   on(window, 'mousedown', (e) => {
     let pointer = pointers[0];
     let posX = scaleByPixelRatio(e.clientX);
@@ -1282,8 +1244,6 @@ export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidO
     }
   });
 
-  }
-
   function updatePointerDownData(pointer, id, posX, posY) {
     pointer.id = id;
     pointer.down = true;
@@ -1328,9 +1288,9 @@ export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidO
 
   function generateColor() {
     let c = HSVtoRGB(Math.random(), 1.0, 1.0);
-    c.r *= brightness;
-    c.g *= brightness;
-    c.b *= brightness;
+    c.r *= 0.15;
+    c.g *= 0.15;
+    c.b *= 0.15;
     return c;
   }
 
