@@ -213,7 +213,7 @@ export default function Home() {
                 />
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
-                  className="flex"
+                  className={`flex transition-colors duration-700 ${phase === 'arrow' || phase === 'expand' ? 'text-white' : ''}`}
                   initial={reduced ? false : { scale: 0, opacity: 0 }}
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}

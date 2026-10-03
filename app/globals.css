@@ -407,7 +407,7 @@ body {
 }
 
 
-/* Launch only: a green liquid swirl inside the send button's glass circle (same green as the status dot). */
+/* Launch only: a grey liquid swirl inside the send button's glass circle (dark grey in light mode). */
 .launch-liquid {
   overflow: hidden;
 }
@@ -419,16 +419,24 @@ body {
   border-radius: 50%;
 }
 .launch-liquid::before {
-  background: conic-gradient(from 0deg, #22c55e, #86efac, #16a34a, #4ade80, #15803d, #22c55e);
+  background: conic-gradient(from 0deg, #3f3f46, #71717a, #27272a, #52525b, #18181b, #3f3f46);
   filter: blur(5px);
   animation: liquid-spin 1.4s linear infinite;
 }
 .launch-liquid::after {
   background:
-    radial-gradient(circle at 30% 35%, rgb(255 255 255 / 0.55), transparent 40%),
-    radial-gradient(circle at 70% 65%, rgb(21 128 61 / 0.55), transparent 45%);
+    radial-gradient(circle at 30% 35%, rgb(255 255 255 / 0.3), transparent 40%),
+    radial-gradient(circle at 70% 65%, rgb(9 9 11 / 0.5), transparent 45%);
   filter: blur(4px);
   animation: liquid-spin 2.2s linear infinite reverse;
+}
+.dark .launch-liquid::before {
+  background: conic-gradient(from 0deg, #71717a, #a1a1aa, #52525b, #8b8b94, #3f3f46, #71717a);
+}
+.dark .launch-liquid::after {
+  background:
+    radial-gradient(circle at 30% 35%, rgb(255 255 255 / 0.4), transparent 40%),
+    radial-gradient(circle at 70% 65%, rgb(39 39 42 / 0.5), transparent 45%);
 }
 @keyframes liquid-spin {
   to {
