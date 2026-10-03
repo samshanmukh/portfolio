@@ -41,7 +41,7 @@ export default function Home() {
   const [focused, setFocused] = useState(false)
   const router = useRouter()
   const reduced = useReducedMotion()
-  // preview only: ?beam=<colour> tries the launch beam in another single colour
+  // preview only: ?beam=<colour> tries the launch shine in another single colour
   const [beam, setBeam] = useState<string>()
   useEffect(() => {
     const pick = new URLSearchParams(window.location.search).get('beam')
@@ -225,16 +225,11 @@ export default function Home() {
                 >
                   <span className="relative flex">
                     <ArrowRight className="h-5 w-5" />
-                    {/* launch only: a single-colour beam of light runs along the arrow (shaft, then out both
-                        tips of the head), then the arrow rests plain */}
+                    {/* launch only: the arrow holds a steady shine (one colour, on the arrow only) to catch the
+                        eye, then fades back to plain */}
                     {!reduced && phase !== 'measure' && phase !== 'done' && (
-                      <svg aria-hidden viewBox="0 0 24 24" fill="none" className="arrow-beam pointer-events-none absolute inset-0 h-5 w-5" style={beam ? ({ '--beam': beam } as CSSProperties) : undefined}>
-                        {['M5 12H19', 'M19 12L12 5', 'M19 12L12 19'].map((d, i) => (
-                          <g key={d} className={i ? 'arrow-beam-head' : 'arrow-beam-shaft'}>
-                            <path pathLength={1} className="beam-tail" d={d} />
-                            <path pathLength={1} className="beam-core" d={d} />
-                          </g>
-                        ))}
+                      <svg aria-hidden viewBox="0 0 24 24" fill="none" className="arrow-shine pointer-events-none absolute inset-0 h-5 w-5" style={beam ? ({ '--shine': beam, '--shine-glow': beam } as CSSProperties) : undefined}>
+                        <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     )}
                   </span>
