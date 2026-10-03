@@ -456,3 +456,20 @@ body {
 .dark .goo-row > [data-gooey-svg] {
   opacity: 0.6;
 }
+
+/* Focus rings: none on mouse clicks or taps; keyboard (Tab) focus gets a soft neutral ring that
+   suits the glass instead of the browser's blue one. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid rgb(113 113 122 / 0.45);
+  outline-offset: 2px;
+}
+.dark :focus-visible {
+  outline-color: rgb(212 212 216 / 0.4);
+}
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}

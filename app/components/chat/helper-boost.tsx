@@ -30,7 +30,7 @@ const categoryIcons: Record<string, typeof UserSearch> = {
 
 // Quick-question row above the chat input, plus the "more questions" bottom sheet.
 export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; disabled?: boolean }) {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false) // quick questions start tucked away; the toggle shows them
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
       <div className={`flex justify-center ${visible ? 'mb-2' : ''}`}>
         <button
           onClick={() => setVisible((v) => !v)}
-          className="tap relative flex cursor-pointer items-center gap-1 px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
+          className="tap relative flex cursor-pointer items-center gap-1 rounded-full px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
         >
           {visible ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           {visible ? 'Hide quick questions' : 'Show quick questions'}
