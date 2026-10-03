@@ -8,6 +8,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
 import { openSmsOnPhone } from './lib/open-sms'
+import { playLaunchSound } from './lib/launch-sound'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
@@ -68,6 +69,7 @@ export default function Home() {
       clip: `inset(${cy - half - box.top}px ${box.right - (cx + half)}px ${box.bottom - (cy + half)}px ${cx - half - box.left}px round 999px)`,
     })
     setPhase('arrow')
+    playLaunchSound()
     const t1 = setTimeout(() => setPhase('expand'), ARROW_MS)
     const t2 = setTimeout(() => setPhase('settle'), ARROW_MS + EXPAND_MS)
     const t3 = setTimeout(() => setPhase('done'), ARROW_MS + EXPAND_MS + SETTLE_MS)
