@@ -407,61 +407,91 @@ body {
 }
 
 
-/* Launch only: the send button's "attention light" while it pops in and slides. Four takes to
-   pick from (?launch=shine | ripple | spotlight | rim); all neutral, no colour. */
+/* Launch only: bold effects around the send button while it pops in and the ask box grows
+   (?launch=aurora | liquid | charge; see components/launch-fx.tsx). */
 
-/* shine: a glint sweeps across the glass, like light catching it */
-.launch-shine::before {
-  content: '';
-  position: absolute;
-  inset: -20% auto -20% 0;
-  width: 55%;
-  transform: translateX(-130%) skewX(-18deg);
-  background: linear-gradient(90deg, transparent, rgb(0 0 0 / 0.3) 32%, rgb(255 255 255) 50%, rgb(0 0 0 / 0.3) 68%, transparent);
-  animation: launch-shine 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.3s infinite;
+/* aurora: Apple Intelligence style colours flowing around the button */
+.launch-aurora {
+  width: 1400px;
+  height: 1400px;
+  translate: -50% -50%;
+  background: conic-gradient(from 0deg, #0894ff, #c959dd, #ff2e54, #ff9004, #ffd23f, #34d399, #0894ff);
+  animation: liquid-spin 1.6s linear infinite;
 }
-.dark .launch-shine::before {
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.2) 30%, rgb(255 255 255 / 0.95) 50%, rgb(255 255 255 / 0.2) 70%, transparent);
+.launch-aurora-flow {
+  background: linear-gradient(90deg, #0894ff, #c959dd, #ff2e54, #ff9004, #ffd23f, #34d399, #0894ff) 0 0 / 480px 100% repeat-x;
+  animation: launch-flow 1.2s linear infinite;
 }
-@keyframes launch-shine {
-  0% { transform: translateX(-130%) skewX(-18deg); }
-  70%, 100% { transform: translateX(260%) skewX(-18deg); }
+@keyframes launch-flow {
+  to { background-position-x: -480px; }
 }
 
-/* ripple: soft rings breathe out from the button */
-.launch-ripple {
-  border: 1.5px solid rgb(0 0 0 / 0.28);
-  animation: launch-ripple 1.5s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+/* liquid: a drop of liquid metal (graphite in light mode, chrome in dark) */
+.launch-metal {
+  background: linear-gradient(160deg, #7c828e, #1f2228 45%, #4b505a 70%, #121418);
 }
-.dark .launch-ripple {
-  border-color: rgb(255 255 255 / 0.5);
+.dark .launch-metal {
+  background: linear-gradient(160deg, #ffffff, #a9aeb8 45%, #f1f2f5 65%, #8a8f99);
 }
-@keyframes launch-ripple {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
-  100% { transform: translate(-50%, -50%) scale(3.4); opacity: 0; }
+.launch-ink {
+  color: #fff;
+}
+.dark .launch-ink {
+  color: #18181b;
 }
 
-/* rim: a thin light travels once around the edge of the glass */
-.launch-rim {
-  padding: 2px;
-  background: conic-gradient(from 0deg, transparent 0 50%, rgb(0 0 0 / 0.75) 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: liquid-spin 1.1s linear infinite;
+/* charge: light streaks rush into the button, then it flashes and a shockwave rolls out */
+.launch-streak {
+  left: 0;
+  top: -1px;
+  width: 64px;
+  height: 2px;
+  border-radius: 2px;
+  opacity: 0;
+  background: linear-gradient(90deg, #6366f1, #22d3ee 40%, transparent);
+  animation: launch-streak 0.5s cubic-bezier(0.5, 0, 0.9, 0.6) 0.05s backwards;
 }
-.dark .launch-rim {
-  background: conic-gradient(from 0deg, transparent 0 50%, rgb(255 255 255) 100%);
+.dark .launch-streak {
+  background: linear-gradient(90deg, #fff, #67e8f9 35%, #a78bfa 70%, transparent);
+}
+@keyframes launch-streak {
+  0% { transform: translateX(170px); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(14px); opacity: 0; }
+}
+.launch-bloom {
+  width: 150px;
+  height: 150px;
+  translate: -50% -50%;
+  background: radial-gradient(circle closest-side, rgb(99 102 241 / 0.55), rgb(34 211 238 / 0.25) 40%, transparent 70%);
+  opacity: 0;
+  animation: launch-bloom 1.9s ease-out 0.45s forwards;
+}
+.dark .launch-bloom {
+  background: radial-gradient(circle closest-side, rgb(255 255 255 / 0.75), rgb(103 232 249 / 0.35) 35%, rgb(167 139 250 / 0.15) 55%, transparent 70%);
+}
+@keyframes launch-bloom {
+  0% { opacity: 0; transform: scale(0.4); }
+  15% { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 0.35; transform: scale(1); }
+}
+.launch-shock {
+  translate: -50% -50%;
+  border: 2px solid #6366f1;
+  box-shadow: 0 0 18px 2px rgb(34 211 238 / 0.7), inset 0 0 12px rgb(99 102 241 / 0.6);
+  opacity: 0;
+  animation: launch-shock 0.8s cubic-bezier(0.1, 0.7, 0.3, 1) 0.55s;
+}
+.dark .launch-shock {
+  border-color: #e0f2fe;
+  box-shadow: 0 0 22px 4px rgb(103 232 249 / 0.8), inset 0 0 14px rgb(167 139 250 / 0.7);
+}
+@keyframes launch-shock {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(5); opacity: 0; }
 }
 @keyframes liquid-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .launch-shine::before,
-  .launch-ripple,
-  .launch-rim {
-    animation: none;
   }
 }

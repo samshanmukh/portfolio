@@ -14,15 +14,13 @@ import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
+import { LAUNCHES, LaunchFx, type Launch } from './components/launch-fx'
 
 const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
 
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
 // arrow slides to its spot → the box settles into place and everything else fades/pops in.
 type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
-// launch "attention light" takes to compare on localhost via ?launch=…
-const LAUNCHES = ['shine', 'ripple', 'spotlight', 'rim'] as const
-type Launch = (typeof LAUNCHES)[number]
 const ARROW_MS = 850 // circle pops in, arrow spawns inside it, then expand
 const EXPAND_MS = 1100
 const SETTLE_MS = 700
@@ -46,7 +44,7 @@ export default function Home() {
   const arrowRef = useRef<HTMLSpanElement>(null)
   const [phase, setPhase] = useState<Phase>('measure')
   const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN, ax: 0, ay: 0, size: 0 })
-  const [launch, setLaunch] = useState<Launch>('shine')
+  const [launch, setLaunch] = useState<Launch>('aurora')
   useLayoutEffect(() => {
     const box = boxRef.current?.getBoundingClientRect()
     const el = arrowRef.current
@@ -78,11 +76,6 @@ export default function Home() {
   }, [])
   const revealed = phase === 'settle' || phase === 'done'
   const launching = phase === 'arrow' || phase === 'expand'
-  // a pool of light on the button with the rest of the screen dimmed; the pool widens as the box opens
-  const spotlight = (r: number) => {
-    const glow = typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 0.16 : 0.1
-    return `radial-gradient(circle at center, rgba(255,255,255,${glow}) 0px, rgba(255,255,255,0) ${r}px, rgba(0,0,0,0) ${r}px, rgba(0,0,0,0.28) ${r * 2.6}px)`
-  }
   const ready = phase === 'done' // the greeting starts once everything is in place
   const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
 
@@ -178,34 +171,8 @@ export default function Home() {
                 : { type: 'spring', stiffness: 120, damping: 20 }
           }
         >
-          {/* attention light around the button while it pops in and slides (removed once done) */}
-          {phase !== 'done' && launch === 'spotlight' && (
-            <motion.span
-              aria-hidden
-              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left: intro.ax, top: intro.ay, width: '400vmax', height: '400vmax' }}
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: launching ? 1 : 0,
-                background: spotlight(phase === 'expand' || !launching ? 420 : 60),
-              }}
-              transition={{
-                opacity: { duration: launching ? 0.4 : 0.6, ease: 'easeOut' },
-                background: { duration: EXPAND_MS / 1000, ease: [0.65, 0, 0.35, 1] },
-              }}
-            />
-          )}
-          {phase !== 'done' && launch === 'ripple' && (
-            <motion.span aria-hidden initial={{ opacity: 1 }} animate={{ opacity: launching ? 1 : 0 }} transition={{ duration: 0.5 }}>
-              {[0, 0.5, 1].map((d) => (
-                <span
-                  key={d}
-                  className="launch-ripple pointer-events-none absolute rounded-full opacity-0"
-                  style={{ left: intro.ax, top: intro.ay, width: intro.size, height: intro.size, animationDelay: `${0.3 + d}s` }}
-                />
-              ))}
-            </motion.span>
-          )}
+          {/* attention effect around the button while it pops in and the box grows (removed once done) */}
+          <LaunchFx launch={launch} phase={phase} intro={intro} expandMs={EXPAND_MS} />
           <motion.div
             ref={boxRef}
             initial={{ clipPath: HIDDEN }}
@@ -245,20 +212,9 @@ export default function Home() {
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 ${launching ? '' : 'disabled:opacity-70'}`}
               >
-                {/* attention light inside the glass while it pops in and slides, then it fades so the
-                    settled button is plain neutral glass again (removed once done) */}
-                {phase !== 'done' && (launch === 'shine' || launch === 'rim') && (
-                  <motion.span
-                    aria-hidden
-                    className={`launch-${launch} pointer-events-none absolute inset-0 -z-10 rounded-full`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: launching ? 1 : 0 }}
-                    transition={{ duration: phase === 'arrow' ? 0.35 : 0.6, ease: 'easeOut' }}
-                  />
-                )}
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
-                  className="flex"
+                  className={`flex transition-colors duration-700 ${launching && launch === 'liquid' ? 'launch-ink' : ''}`}
                   initial={reduced ? false : { scale: 0, opacity: 0 }}
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
