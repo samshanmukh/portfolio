@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion'
 
 // Launch "attention" effects around the send button while it pops in and the ask box grows out of it.
-// Three takes to compare on localhost via ?launch=…; each fades out as the box settles.
-export const LAUNCHES = ['aurora', 'liquid', 'charge'] as const
+// Takes to compare on localhost via ?launch=…; each fades out as the box settles.
+export const LAUNCHES = ['spotlight', 'spot-tight', 'aurora', 'liquid', 'charge'] as const
 export type Launch = (typeof LAUNCHES)[number]
 
 type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
@@ -34,6 +34,27 @@ export function LaunchFx({ launch, phase, intro, expandMs }: { launch: Launch; p
     initial: { opacity: 0 },
     animate: { opacity: launching ? 1 : 0 },
     transition: { duration: launching ? 0.35 : 0.8, ease: 'easeOut' as const },
+  }
+
+  if (launch === 'spotlight' || launch === 'spot-tight') {
+    // a small pool of light on the button with a soft dim ring around it; it grows only a little as the box opens
+    const [start, end] = launch === 'spotlight' ? [44, 80] : [32, 52]
+    const glow = document.documentElement.classList.contains('dark') ? 0.3 : 0.12
+    const pool = (r: number) =>
+      `radial-gradient(circle at center, rgba(255,255,255,${glow}) 0px, rgba(255,255,255,0) ${r}px, rgba(0,0,0,0) ${r}px, rgba(0,0,0,0.26) ${Math.round(r * 1.8)}px, rgba(0,0,0,0) ${Math.round(r * 3.2)}px)`
+    return (
+      <motion.span
+        aria-hidden
+        className="pointer-events-none absolute h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2"
+        style={{ left: intro.ax, top: intro.ay }}
+        initial={{ opacity: 0, background: pool(start) }}
+        animate={{ opacity: launching ? 1 : 0, background: pool(phase === 'arrow' ? start : end) }}
+        transition={{
+          opacity: { duration: launching ? 0.4 : 0.6, ease: 'easeOut' },
+          background: { duration: expandMs / 1000, ease: EASE },
+        }}
+      />
+    )
   }
 
   if (launch === 'aurora') {

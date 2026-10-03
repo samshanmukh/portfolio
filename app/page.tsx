@@ -44,7 +44,7 @@ export default function Home() {
   const arrowRef = useRef<HTMLSpanElement>(null)
   const [phase, setPhase] = useState<Phase>('measure')
   const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN, ax: 0, ay: 0, size: 0 })
-  const [launch, setLaunch] = useState<Launch>('aurora')
+  const [launch, setLaunch] = useState<Launch>('spotlight')
   useLayoutEffect(() => {
     const box = boxRef.current?.getBoundingClientRect()
     const el = arrowRef.current

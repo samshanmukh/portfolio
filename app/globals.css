@@ -408,7 +408,7 @@ body {
 
 
 /* Launch only: bold effects around the send button while it pops in and the ask box grows
-   (?launch=aurora | liquid | charge; see components/launch-fx.tsx). */
+   (?launch=spotlight | spot-tight | aurora | liquid | charge; see components/launch-fx.tsx). */
 
 /* aurora: Apple Intelligence style colours flowing around the button */
 .launch-aurora {
