@@ -14,7 +14,7 @@ import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
-import { FluidTrail, LAUNCHES, LaunchFluid, LaunchFx, type Launch } from './components/launch-fx'
+import { LAUNCHES, LaunchFluid, type Launch } from './components/launch-fx'
 
 const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
 
@@ -43,7 +43,7 @@ export default function Home() {
   const boxRef = useRef<HTMLDivElement>(null)
   const arrowRef = useRef<HTMLSpanElement>(null)
   const [phase, setPhase] = useState<Phase>('measure')
-  const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN, ax: 0, ay: 0, size: 0 })
+  const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN })
   const [launch, setLaunch] = useState<Launch>('fluid')
   useLayoutEffect(() => {
     const box = boxRef.current?.getBoundingClientRect()
@@ -60,9 +60,6 @@ export default function Home() {
     const pick = new URLSearchParams(window.location.search).get('launch') as Launch | null
     if (pick && LAUNCHES.includes(pick)) setLaunch(pick)
     setIntro({
-      ax: cx - box.left,
-      ay: cy - box.top,
-      size: el.offsetWidth,
       x: window.innerWidth / 2 - cx,
       y: window.innerHeight / 2 - (box.top + box.height / 2),
       clip: `inset(${cy - half - box.top}px ${box.right - (cx + half)}px ${box.bottom - (cy + half)}px ${cx - half - box.left}px round 999px)`,
@@ -83,7 +80,6 @@ export default function Home() {
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:pb-20">
       {/* liquid colour trail that follows the cursor */}
       <FluidCursor />
-      {launch === 'fluid-trail' && phase !== 'measure' && phase !== 'done' && <FluidTrail phase={phase} anchor={arrowRef} />}
 
       {/* big faded name behind everything — rises from the bottom edge letter by letter */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center overflow-hidden">
@@ -172,8 +168,6 @@ export default function Home() {
                 : { type: 'spring', stiffness: 120, damping: 20 }
           }
         >
-          {/* attention effect around the button while it pops in and the box grows (removed once done) */}
-          <LaunchFx launch={launch} phase={phase} intro={intro} expandMs={EXPAND_MS} />
           <motion.div
             ref={boxRef}
             initial={{ clipPath: HIDDEN }}
@@ -213,10 +207,12 @@ export default function Home() {
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 ${launching ? '' : 'disabled:opacity-70'}`}
               >
-                {launch === 'fluid' && phase !== 'done' && phase !== 'measure' && <LaunchFluid phase={phase} />}
+                {/* attention light: liquid colours swirl inside the glass while it pops in and slides,
+                    then fade so the settled button is plain neutral glass again (removed once done) */}
+                {phase !== 'done' && phase !== 'measure' && <LaunchFluid phase={phase} launch={launch} />}
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
-                  className={`flex transition-colors duration-700 ${launching && launch === 'liquid' ? 'launch-ink' : ''}`}
+                  className="flex"
                   initial={reduced ? false : { scale: 0, opacity: 0 }}
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}

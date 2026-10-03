@@ -14,6 +14,7 @@ type FluidOptions = {
   force?: number;
   fade?: number;
   brightness?: number;
+  colorSpeed?: number;
 };
 export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidOptions = {}): () => void {
   const listeners = [];
@@ -62,6 +63,7 @@ export default function startFluidCursor(canvas: HTMLCanvasElement, opts: FluidO
   if (opts.radius) config.SPLAT_RADIUS = opts.radius;
   if (opts.force) config.SPLAT_FORCE = opts.force;
   if (opts.fade) config.DENSITY_DISSIPATION = opts.fade;
+  if (opts.colorSpeed) config.COLOR_UPDATE_SPEED = opts.colorSpeed;
   const brightness = opts.brightness ?? 0.15;
 
   function pointerPrototype() {
