@@ -25,7 +25,7 @@ export function Source() {
         href={socials.sourceRepo}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:opacity-85"
+        className="glass mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold"
       >
         <GithubIcon className="h-4 w-4" /> View source
       </a>

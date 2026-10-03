@@ -19,6 +19,7 @@ import { ViewRenderer } from '../views/view-renderer'
 import { WelcomeModal } from '../welcome-modal'
 import { ChatLanding } from './chat-landing'
 import { HelperBoost } from './helper-boost'
+import { morphArrived, morphing } from '../../lib/morph'
 
 type Msg = {
   role: 'user' | 'agent'
@@ -46,8 +47,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('query')
   const reduced = useReducedMotion()
-  const [mounted, setMounted] = useState(false)
+  // arriving from home by the morph: the avatar, ask box and socials glide in already, so skip their entrances
+  const [morphed] = useState(morphing)
+  const [mounted, setMounted] = useState(morphed)
   useEffect(() => setMounted(true), []) // start the input's bubble entrance once hydrated
+  // chat is in the DOM now: let the browser take its "after" snapshot (rAF is paused during the swap)
+  useEffect(() => morphArrived(), [])
 
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
@@ -234,7 +239,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       {profile.available && (
         <button
           onClick={() => openSmsOnPhone() || run('How can I reach you?')}
-          className="tap absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+          className="glass tap absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm"
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -264,6 +269,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               href="/"
               aria-label="Back to home"
               className={`relative block transition-all duration-300 ${hasView ? 'h-20 w-20' : 'h-28 w-28'}`}
+              style={{ viewTransitionName: 'avatar' }}
             >
               {/* holds still while visitors type and while answers load */}
               <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
@@ -330,8 +336,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className="w-full md:px-4"
             >
               <div
-                className={`${mounted ? 'bubble-in' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
-                style={{ animationDelay: '0.1s' }}
+                className={`${morphed ? '' : mounted ? 'bubble-in' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
+                style={{ animationDelay: '0.1s', viewTransitionName: 'askbox' }}
               >
                 <input
                   ref={inputRef}
@@ -345,7 +351,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 />
                 <motion.span
                   className="flex"
-                  initial={reduced ? false : { scale: 0 }}
+                  initial={reduced || morphed ? false : { scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.7 }}
                 >
@@ -364,7 +370,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               </div>
             </form>
             {/* socials pop in just under the input */}
-            <SocialLinks size="sm" pop delay={0.85} className="pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5" />
+            <SocialLinks size="sm" pop={!morphed} delay={0.85} style={{ viewTransitionName: 'socials' }} className="pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5" />
           </div>
         </div>
       </div>
@@ -448,21 +454,21 @@ function SmartToggle({
   onEnable: () => void
   onDisable: () => void
 }) {
-  const base = 'tap relative flex h-9 items-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors md:px-3'
+  const base = 'glass tap relative flex h-9 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition-colors md:px-3'
   if (llm === 'unsupported') {
     return (
       <span
         title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
-        className={`${base} cursor-not-allowed border-border text-muted`}
+        className={`${base} cursor-not-allowed text-muted`}
       >
         <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">no WebGPU</span>
       </span>
     )
   }
-  if (llm === 'loading') return <span className={`${base} border-border text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
+  if (llm === 'loading') return <span className={`${base} text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
   if (mode === 'llm') {
     return (
-      <button onClick={onDisable} className={`${base} cursor-pointer border-foreground/30 bg-accent text-foreground`}>
+      <button onClick={onDisable} className={`${base} cursor-pointer text-foreground`}>
         <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart: on</span>
       </button>
     )
@@ -472,7 +478,7 @@ function SmartToggle({
       onClick={onEnable}
       aria-label="Smart mode"
       title="Load a small LLM that runs free in your browser (~0.4 GB, one-time)."
-      className={`${base} cursor-pointer border-border text-muted hover:text-foreground`}
+      className={`${base} cursor-pointer text-muted hover:text-foreground`}
     >
       <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>
     </button>

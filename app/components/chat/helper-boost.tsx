@@ -30,7 +30,7 @@ const categoryIcons: Record<string, typeof UserSearch> = {
 
 // Quick-question row above the chat input, plus the "more questions" bottom sheet.
 export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; disabled?: boolean }) {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(false) // quick questions start tucked away; the toggle shows them
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
       <div className={`flex justify-center ${visible ? 'mb-2' : ''}`}>
         <button
           onClick={() => setVisible((v) => !v)}
-          className="tap relative flex cursor-pointer items-center gap-1 px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
+          className="tap relative flex cursor-pointer items-center gap-1 rounded-full px-3 py-1 text-xs text-muted transition-colors hover:text-foreground"
         >
           {visible ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           {visible ? 'Hide quick questions' : 'Show quick questions'}
@@ -66,7 +66,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
                 key={key}
                 disabled={disabled}
                 onClick={() => onAsk(quickQuestions[key])}
-                className="h-auto min-w-[76px] shrink-0 cursor-pointer rounded-xl border border-neutral-300 bg-white/80 px-2.5 py-2.5 backdrop-blur-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 hover:bg-neutral-100 md:min-w-[100px] md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
+                className="glass h-auto min-w-[76px] shrink-0 cursor-pointer rounded-xl px-2.5 py-2.5 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 md:min-w-[100px] md:px-4 md:py-3"
               >
                 <span className="flex items-center justify-center gap-2 md:gap-3">
                   <Icon size={18} strokeWidth={2} color={color} />
@@ -78,7 +78,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
           <button
             onClick={() => setOpen(true)}
             aria-label="More questions"
-            className="flex shrink-0 cursor-pointer items-center rounded-xl border border-neutral-300 bg-white/80 px-3 py-2.5 backdrop-blur-sm transition-colors hover:bg-neutral-100 md:px-4 md:py-3 dark:border-neutral-700 dark:bg-neutral-800/80 dark:hover:bg-neutral-700"
+            className="glass flex shrink-0 cursor-pointer items-center rounded-xl px-3 py-2.5 md:px-4 md:py-3"
           >
             <CircleEllipsis className="h-5 w-[18px]" strokeWidth={2} />
           </button>
@@ -155,11 +155,7 @@ function QuestionItem({ question, special, onClick }: { question: string; specia
     <motion.button
       onClick={onClick}
       whileTap={{ scale: 0.98 }}
-      className={`group flex w-full cursor-pointer items-center justify-between rounded-[10px] px-6 py-4 text-left transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
-        special
-          ? 'bg-black font-medium text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200'
-          : 'bg-accent hover:bg-neutral-200 dark:hover:bg-neutral-700'
-      }`}
+      className={`glass group flex w-full cursor-pointer items-center justify-between rounded-xl px-6 py-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${special ? 'font-medium' : ''}`}
     >
       <span className="flex items-center">
         {special && <Sparkles className="mr-2 h-4 w-4" />}

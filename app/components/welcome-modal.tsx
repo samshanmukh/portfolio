@@ -25,7 +25,7 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
       ) : (
         <button
           onClick={() => setOpen(true)}
-          className="cursor-pointer rounded-2xl bg-white/30 p-2 shadow-lg backdrop-blur-lg transition-colors hover:bg-white/60 dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+          className="glass cursor-pointer rounded-2xl p-2"
         >
           <Image
             src="/icon.jpg"
@@ -68,7 +68,7 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
                     </h2>
                     <button
                       onClick={() => setOpen(false)}
-                      className="tap relative cursor-pointer rounded-full bg-foreground p-2 text-background hover:opacity-90"
+                      className="glass tap relative cursor-pointer rounded-full p-2"
                     >
                       <X className="h-5 w-5" />
                       <span className="sr-only">Close</span>
@@ -96,7 +96,7 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
                   <div className="mt-6 flex flex-col items-center gap-4">
                     <button
                       onClick={() => setOpen(false)}
-                      className="cursor-pointer rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90"
+                      className="glass cursor-pointer rounded-full px-5 py-2.5 text-sm font-medium"
                     >
                       Start chatting
                     </button>

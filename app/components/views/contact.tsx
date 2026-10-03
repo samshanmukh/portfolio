@@ -59,7 +59,7 @@ export function Contact() {
               href={c.href}
               target={c.href.startsWith('http') || c.href.endsWith('.pdf') ? '_blank' : undefined}
               rel="noopener noreferrer"
-              className="block w-full rounded-md border border-border py-2.5 text-center text-sm font-medium transition-colors hover:bg-accent"
+              className="glass block w-full rounded-full py-2.5 text-center text-sm font-medium"
             >
               {c.cta}
             </a>

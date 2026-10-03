@@ -32,7 +32,7 @@ export function ChatLanding({ onAsk }: { onAsk: (q: string) => void }) {
             variants={item}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="flex w-full cursor-pointer items-center rounded-lg bg-accent px-4 py-3 transition-colors hover:bg-accent/80"
+            className="glass flex w-full cursor-pointer items-center rounded-xl px-4 py-3"
           >
             <span className="mr-3 rounded-full bg-background p-2">
               <Icon className="h-4 w-4" />

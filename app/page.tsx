@@ -4,10 +4,12 @@ import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
 import { openSmsOnPhone } from './lib/open-sms'
+import { morphTo } from './lib/morph'
+import { playLaunchSound } from './lib/launch-sound'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
@@ -20,6 +22,7 @@ const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
 // arrow slides to its spot → the box settles into place and everything else fades/pops in.
 type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
+const BEAM_COLORS: Record<string, string> = { violet: '#a78bfa', green: '#4ade80', amber: '#fbbf24', pink: '#f472b6', cyan: '#22d3ee' }
 const ARROW_MS = 850 // circle pops in, arrow spawns inside it, then expand
 const EXPAND_MS = 1100
 const SETTLE_MS = 700
@@ -38,6 +41,12 @@ export default function Home() {
   const [focused, setFocused] = useState(false)
   const router = useRouter()
   const reduced = useReducedMotion()
+  // preview only: ?beam=<colour> tries the launch shine in another single colour
+  const [beam, setBeam] = useState<string>()
+  useEffect(() => {
+    const pick = new URLSearchParams(window.location.search).get('beam')
+    if (pick && pick in BEAM_COLORS) setBeam(BEAM_COLORS[pick])
+  }, [])
 
   const boxRef = useRef<HTMLDivElement>(null)
   const arrowRef = useRef<HTMLSpanElement>(null)
@@ -61,6 +70,7 @@ export default function Home() {
       clip: `inset(${cy - half - box.top}px ${box.right - (cx + half)}px ${box.bottom - (cy + half)}px ${cx - half - box.left}px round 999px)`,
     })
     setPhase('arrow')
+    playLaunchSound()
     const t1 = setTimeout(() => setPhase('expand'), ARROW_MS)
     const t2 = setTimeout(() => setPhase('settle'), ARROW_MS + EXPAND_MS)
     const t3 = setTimeout(() => setPhase('done'), ARROW_MS + EXPAND_MS + SETTLE_MS)
@@ -69,7 +79,9 @@ export default function Home() {
   }, [])
   const revealed = phase === 'settle' || phase === 'done'
   const ready = phase === 'done' // the greeting starts once everything is in place
-  const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
+  // stays on screen: the avatar floats up and the ask box glides down into the chat layout
+  useEffect(() => router.prefetch('/chat'), [router]) // so the morph starts without waiting on the network
+  const goToChat = (q: string) => morphTo(router, `/chat?query=${encodeURIComponent(q)}`)
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:pb-20">
@@ -111,7 +123,7 @@ export default function Home() {
         <motion.div className="absolute top-6 left-4 z-20 sm:left-6" {...reveal(revealed, 0.1, -16)}>
           <button
             onClick={() => openSmsOnPhone() || goToChat('How can I reach you?')}
-            className="tap relative flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+            className="glass tap relative flex cursor-pointer items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap sm:px-4 sm:py-1.5 sm:text-sm"
           >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -134,6 +146,7 @@ export default function Home() {
       {/* centre memoji */}
       <motion.div
         className="relative z-10 h-52 w-52 sm:h-72 sm:w-72"
+        style={{ viewTransitionName: 'avatar' }}
         initial={{ opacity: 0, scale: 0.85, y: 20 }}
         animate={revealed ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 20 }}
         transition={{ type: 'spring', stiffness: 160, damping: 18 }}
@@ -168,6 +181,7 @@ export default function Home() {
             initial={{ clipPath: HIDDEN }}
             animate={{ clipPath: phase === 'measure' ? HIDDEN : phase === 'arrow' ? intro.clip : OPEN }}
             transition={phase === 'expand' ? { duration: EXPAND_MS / 1000, ease: [0.65, 0, 0.35, 1] } : { duration: 0 }}
+            style={{ viewTransitionName: 'askbox' }}
             className={`shimmer-border glass-field mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300`}
           >
             <span className="relative flex w-full items-center">
@@ -200,25 +214,25 @@ export default function Home() {
                 whileHover={{ scale: 1.08, y: -1 }}
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
+                className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70`}
               >
-                {/* attention light: liquid colours swirl inside the glass while it pops in and slides,
-                    then fade so the settled button is plain neutral glass again */}
-                <motion.span
-                  aria-hidden
-                  className="launch-liquid pointer-events-none absolute inset-0 -z-10 rounded-full"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: phase === 'arrow' || phase === 'expand' ? 1 : 0 }}
-                  transition={{ duration: phase === 'arrow' ? 0.35 : 0.9, ease: 'easeOut' }}
-                />
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
-                  className={`flex transition-colors duration-700 ${phase === 'arrow' || phase === 'expand' ? 'text-white' : ''}`}
+                  className="flex"
                   initial={reduced ? false : { scale: 0, opacity: 0 }}
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
                 >
-                  <ArrowRight className="h-5 w-5" />
+                  <span className="relative flex">
+                    <ArrowRight className="h-5 w-5" />
+                    {/* launch only: the arrow holds a steady shine (one colour, on the arrow only) to catch the
+                        eye, then fades back to plain */}
+                    {!reduced && phase !== 'measure' && phase !== 'done' && (
+                      <svg aria-hidden viewBox="0 0 24 24" fill="none" className="arrow-shine pointer-events-none absolute inset-0 h-5 w-5" style={beam ? ({ '--shine': beam, '--shine-glow': beam } as CSSProperties) : undefined}>
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    )}
+                  </span>
                 </motion.span>
               </motion.button>
             </motion.span>
@@ -227,7 +241,7 @@ export default function Home() {
 
         {/* socials pop in just under the input once the box has settled */}
         <div className="min-h-12 mt-4 flex w-full justify-center">
-          {revealed && <SocialLinks size="sm" pop delay={0.25} className="justify-center" />}
+          {revealed && <SocialLinks size="sm" pop delay={0.25} className="justify-center" style={{ viewTransitionName: 'socials' }} />}
         </div>
 
         <motion.div {...reveal(revealed, 0.45)} className="mt-5 flex w-full max-w-2xl flex-wrap justify-center gap-1 sm:grid sm:grid-cols-5 sm:gap-3">
@@ -237,7 +251,7 @@ export default function Home() {
               <button
                 key={key}
                 onClick={() => goToChat(quickQuestions[key])}
-                className="flex min-w-[76px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-white/30 px-2.5 py-2.5 backdrop-blur-lg transition hover:bg-accent active:scale-95 sm:aspect-square sm:w-full sm:min-w-0 sm:flex-col sm:gap-1 sm:rounded-2xl sm:px-0 sm:py-6 dark:bg-neutral-900/50 md:py-8"
+                className="glass flex min-w-[76px] cursor-pointer items-center justify-center gap-2 rounded-xl px-2.5 py-2.5 transition active:scale-95 sm:aspect-square sm:w-full sm:min-w-0 sm:flex-col sm:gap-1 sm:rounded-2xl sm:px-0 sm:py-6 md:py-8"
               >
                 <Icon size={22} strokeWidth={2} color={color} className="h-[18px] w-[18px] sm:h-[22px] sm:w-[22px]" />
                 <span className="text-sm font-medium text-foreground/80">{key}</span>

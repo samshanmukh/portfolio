@@ -27,7 +27,7 @@ export function Gym({ onAsk }: { onAsk: (q: string) => void }) {
         <p className="relative mt-6 text-sm text-muted">yes, two of my projects are literally AI gym coaches.</p>
         <button
           onClick={() => onAsk('Try the AI trainer demo')}
-          className="relative mt-6 inline-flex cursor-pointer items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-85"
+          className="glass relative mt-6 inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold"
         >
           <Camera className="h-4 w-4" /> Try the AI trainer
         </button>

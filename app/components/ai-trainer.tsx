@@ -415,7 +415,7 @@ export function AiTrainer() {
                 </p>
               )}
               {status !== 'loading' && (
-                <button onClick={start} className="cursor-pointer rounded-full bg-[#0171E3] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600">
+                <button onClick={start} className="glass cursor-pointer rounded-full px-5 py-2.5 text-sm font-semibold text-foreground">
                   {status === 'idle' ? '▶ Start training' : 'Try again'}
                 </button>
               )}
@@ -447,7 +447,7 @@ export function AiTrainer() {
             </li>
           </ul>
           {status === 'active' && (
-            <button onClick={stop} className="mt-auto cursor-pointer rounded-full border border-border px-4 py-2 text-sm transition-colors hover:bg-background">
+            <button onClick={stop} className="glass mt-auto cursor-pointer rounded-full px-4 py-2 text-sm">
               ◼ Stop
             </button>
           )}

@@ -406,40 +406,72 @@ body {
   }
 }
 
+/* Launch only: the send arrow holds a steady shine (one colour, on the arrow alone) while the launch
+   plays: it fades in as the arrow pops in, stays constant, and fades out as the box settles. In light
+   mode the arrow goes a bold, deep black with a soft silver glow (a white glow would vanish on the
+   light glass); in dark mode it glows white. */
+.arrow-shine {
+  --shine: #09090b;
+  --shine-glow: rgb(113 113 122 / 0.55);
+  overflow: visible;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 2.5px var(--shine-glow));
+  animation: arrow-shine 2.3s ease-in-out 0.3s both;
+}
+.arrow-shine path {
+  stroke: var(--shine);
+  stroke-width: 2.4;
+}
+.dark .arrow-shine {
+  --shine: #fff;
+  --shine-glow: rgb(255 255 255 / 0.9);
+  filter: drop-shadow(0 0 1.5px rgb(255 255 255)) drop-shadow(0 0 5px var(--shine-glow));
+}
+@keyframes arrow-shine {
+  0% { opacity: 0; }
+  18%, 80% { opacity: 1; }
+  100% { opacity: 0; }
+}
 
-/* Launch only: a grey liquid swirl inside the send button's glass circle (dark grey in light mode). */
-.launch-liquid {
-  overflow: hidden;
+
+/* Gooey social row: in dark mode the liquid behind the glass icons is a little see-through,
+   so the row keeps its glassy look. */
+.dark .goo-row > [data-gooey-svg] {
+  opacity: 0.6;
 }
-.launch-liquid::before,
-.launch-liquid::after {
-  content: '';
-  position: absolute;
-  inset: -50%;
-  border-radius: 50%;
+
+/* Focus rings: none on mouse clicks or taps; keyboard (Tab) focus gets a soft neutral ring that
+   suits the glass instead of the browser's blue one. */
+:focus:not(:focus-visible) {
+  outline: none;
 }
-.launch-liquid::before {
-  background: conic-gradient(from 0deg, #3f3f46, #71717a, #27272a, #52525b, #18181b, #3f3f46);
-  filter: blur(5px);
-  animation: liquid-spin 1.4s linear infinite;
+:focus-visible {
+  outline: 2px solid rgb(113 113 122 / 0.45);
+  outline-offset: 2px;
 }
-.launch-liquid::after {
-  background:
-    radial-gradient(circle at 30% 35%, rgb(255 255 255 / 0.3), transparent 40%),
-    radial-gradient(circle at 70% 65%, rgb(9 9 11 / 0.5), transparent 45%);
-  filter: blur(4px);
-  animation: liquid-spin 2.2s linear infinite reverse;
+.dark :focus-visible {
+  outline-color: rgb(212 212 216 / 0.4);
 }
-.dark .launch-liquid::before {
-  background: conic-gradient(from 0deg, #71717a, #a1a1aa, #52525b, #8b8b94, #3f3f46, #71717a);
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
 }
-.dark .launch-liquid::after {
-  background:
-    radial-gradient(circle at 30% 35%, rgb(255 255 255 / 0.4), transparent 40%),
-    radial-gradient(circle at 70% 65%, rgb(39 39 42 / 0.5), transparent 45%);
+
+/* Home → chat morph (app/lib/morph.ts): the avatar floats up and shrinks, the ask box and socials
+   glide down to the bottom, and the rest of the page cross-fades underneath. */
+::view-transition-group(avatar),
+::view-transition-group(askbox),
+::view-transition-group(socials) {
+  animation-duration: 0.7s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes liquid-spin {
-  to {
-    transform: rotate(360deg);
-  }
+::view-transition-old(askbox),
+::view-transition-new(askbox) {
+  height: 100%;
+  width: 100%;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
 }
