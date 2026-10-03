@@ -200,7 +200,7 @@ export default function Home() {
                 whileHover={{ scale: 1.08, y: -1 }}
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70"
+                className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70 ${phase === 'arrow' || phase === 'expand' ? 'launch-lit' : ''}`}
               >
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
@@ -209,9 +209,9 @@ export default function Home() {
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
                 >
-                  <span className="relative flex">
+                  <span className={`arrow-light relative flex ${phase === 'arrow' || phase === 'expand' ? 'arrow-lit' : ''}`}>
                     <ArrowRight className="h-5 w-5" />
-                    {/* launch only: a band of light sweeps across the arrow so it shimmers, then it rests plain */}
+                    {/* launch only: the arrow lights up and glows with a band of light sweeping across it, then rests plain */}
                     {(phase === 'arrow' || phase === 'expand') && (
                       <span aria-hidden className="arrow-shine pointer-events-none absolute inset-0" />
                     )}
