@@ -225,10 +225,22 @@ export default function Home() {
                 >
                   <span className="relative flex">
                     <ArrowRight className="h-5 w-5" />
-                    {/* launch only: the arrow holds a steady shine (one colour, on the arrow only) to catch the
+                    {/* launch only: the arrow holds a steady shine (on the arrow only; chrome in dark mode) to catch the
                         eye, then fades back to plain */}
                     {!reduced && phase !== 'measure' && phase !== 'done' && (
-                      <svg aria-hidden viewBox="0 0 24 24" fill="none" className="arrow-shine pointer-events-none absolute inset-0 h-5 w-5" style={beam ? ({ '--shine': beam, '--shine-glow': beam } as CSSProperties) : undefined}>
+                      <svg aria-hidden viewBox="0 0 24 24" fill="none" className={`arrow-shine pointer-events-none absolute inset-0 h-5 w-5 ${beam ? 'tinted' : ''}`} style={beam ? ({ '--shine': beam, '--shine-glow': beam } as CSSProperties) : undefined}>
+                        {/* dark mode: polished chrome, white into cool silver with a faint pearly rainbow streak */}
+                        <defs>
+                          <linearGradient id="arrow-chrome" gradientUnits="userSpaceOnUse" x1="5" y1="5" x2="19" y2="19">
+                            <stop offset="0" stopColor="#ffffff" />
+                            <stop offset="0.3" stopColor="#e4e4e7" />
+                            <stop offset="0.45" stopColor="#f5d0fe" />
+                            <stop offset="0.52" stopColor="#bae6fd" />
+                            <stop offset="0.58" stopColor="#fef9c3" />
+                            <stop offset="0.72" stopColor="#a1a1aa" />
+                            <stop offset="1" stopColor="#f4f4f5" />
+                          </linearGradient>
+                        </defs>
                         <path d="M5 12h14M12 5l7 7-7 7" />
                       </svg>
                     )}
