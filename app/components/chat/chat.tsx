@@ -234,7 +234,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       {profile.available && (
         <button
           onClick={() => openSmsOnPhone() || run('How can I reach you?')}
-          className="tap absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+          className="glass tap absolute top-6 left-4 z-[51] flex cursor-pointer items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap sm:left-6 sm:px-4 sm:py-1.5 sm:text-sm"
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -448,21 +448,21 @@ function SmartToggle({
   onEnable: () => void
   onDisable: () => void
 }) {
-  const base = 'tap relative flex h-9 items-center gap-1 rounded-full border px-2.5 text-xs font-medium transition-colors md:px-3'
+  const base = 'glass tap relative flex h-9 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition-colors md:px-3'
   if (llm === 'unsupported') {
     return (
       <span
         title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
-        className={`${base} cursor-not-allowed border-border text-muted`}
+        className={`${base} cursor-not-allowed text-muted`}
       >
         <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">no WebGPU</span>
       </span>
     )
   }
-  if (llm === 'loading') return <span className={`${base} border-border text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
+  if (llm === 'loading') return <span className={`${base} text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
   if (mode === 'llm') {
     return (
-      <button onClick={onDisable} className={`${base} cursor-pointer border-foreground/30 bg-accent text-foreground`}>
+      <button onClick={onDisable} className={`${base} cursor-pointer text-foreground`}>
         <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart: on</span>
       </button>
     )
@@ -472,7 +472,7 @@ function SmartToggle({
       onClick={onEnable}
       aria-label="Smart mode"
       title="Load a small LLM that runs free in your browser (~0.4 GB, one-time)."
-      className={`${base} cursor-pointer border-border text-muted hover:text-foreground`}
+      className={`${base} cursor-pointer text-muted hover:text-foreground`}
     >
       <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>
     </button>

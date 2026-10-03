@@ -72,7 +72,7 @@ export function Status({ onAsk }: { onAsk: (q: string) => void }) {
       <div className="mt-10 flex justify-center">
         <a
           href={`mailto:${socials.email}`}
-          className="rounded-full bg-foreground px-6 py-3 font-semibold text-background transition-opacity hover:opacity-85"
+          className="glass rounded-full px-6 py-3 font-semibold"
         >
           Contact me
         </a>

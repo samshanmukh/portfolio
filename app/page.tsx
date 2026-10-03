@@ -111,7 +111,7 @@ export default function Home() {
         <motion.div className="absolute top-6 left-4 z-20 sm:left-6" {...reveal(revealed, 0.1, -16)}>
           <button
             onClick={() => openSmsOnPhone() || goToChat('How can I reach you?')}
-            className="tap relative flex cursor-pointer items-center gap-2 rounded-full border border-border bg-white/30 px-3 py-1 text-xs font-medium whitespace-nowrap shadow-md backdrop-blur-lg transition hover:bg-white/60 sm:px-4 sm:py-1.5 sm:text-sm dark:bg-neutral-900/60 dark:hover:bg-neutral-800"
+            className="glass tap relative flex cursor-pointer items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap sm:px-4 sm:py-1.5 sm:text-sm"
           >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -234,7 +234,7 @@ export default function Home() {
               <button
                 key={key}
                 onClick={() => goToChat(quickQuestions[key])}
-                className="flex min-w-[76px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-white/30 px-2.5 py-2.5 backdrop-blur-lg transition hover:bg-accent active:scale-95 sm:aspect-square sm:w-full sm:min-w-0 sm:flex-col sm:gap-1 sm:rounded-2xl sm:px-0 sm:py-6 dark:bg-neutral-900/50 md:py-8"
+                className="glass flex min-w-[76px] cursor-pointer items-center justify-center gap-2 rounded-xl px-2.5 py-2.5 transition active:scale-95 sm:aspect-square sm:w-full sm:min-w-0 sm:flex-col sm:gap-1 sm:rounded-2xl sm:px-0 sm:py-6 md:py-8"
               >
                 <Icon size={22} strokeWidth={2} color={color} className="h-[18px] w-[18px] sm:h-[22px] sm:w-[22px]" />
                 <span className="text-sm font-medium text-foreground/80">{key}</span>
