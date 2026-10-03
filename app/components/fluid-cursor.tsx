@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 
-type Fluid = (() => void) & { burst: (x: number, y: number) => void; follow: (x: number, y: number) => void }
+// burst/follow are missing when WebGL couldn't start (the lib then returns a bare cleanup)
+type Fluid = (() => void) & { burst?: (x: number, y: number) => void; follow?: (x: number, y: number) => void }
 type Point = { x: number; y: number }
 
 // Pages steer the liquid without a mouse (the launch arrow does this) by dispatching
@@ -25,12 +26,12 @@ export function FluidCursor() {
     let pending: (Point & { at: number }) | undefined
     const onBurst = (e: Event) => {
       const p = (e as CustomEvent<Point>).detail
-      if (fluid) fluid.burst(p.x, p.y)
+      if (fluid) fluid.burst?.(p.x, p.y)
       else pending = { ...p, at: performance.now() }
     }
     const onFollow = (e: Event) => {
       const p = (e as CustomEvent<Point>).detail
-      fluid?.follow(p.x, p.y)
+      fluid?.follow?.(p.x, p.y)
     }
     window.addEventListener('fluid:burst', onBurst)
     window.addEventListener('fluid:follow', onFollow)

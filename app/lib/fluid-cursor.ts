@@ -1388,6 +1388,8 @@ export default function startFluidCursor(canvas: HTMLCanvasElement): () => void 
   cleanup.follow = (x, y) => {
     if (stopped) return;
     start();
+    // no burst seeded it yet (e.g. the simulation loaded late): start here with no jump
+    if (guide.id === -1) updatePointerDownData(guide, -2, scaleByPixelRatio(x), scaleByPixelRatio(y));
     updatePointerMoveData(guide, scaleByPixelRatio(x), scaleByPixelRatio(y), guide.color);
   };
   return cleanup;
