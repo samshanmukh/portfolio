@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
 import { openSmsOnPhone } from './lib/open-sms'
@@ -20,6 +20,7 @@ const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
 // arrow slides to its spot → the box settles into place and everything else fades/pops in.
 type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
+const BEAM_COLORS: Record<string, string> = { violet: '#a78bfa', green: '#4ade80', amber: '#fbbf24', pink: '#f472b6', cyan: '#22d3ee' }
 const ARROW_MS = 850 // circle pops in, arrow spawns inside it, then expand
 const EXPAND_MS = 1100
 const SETTLE_MS = 700
@@ -38,6 +39,12 @@ export default function Home() {
   const [focused, setFocused] = useState(false)
   const router = useRouter()
   const reduced = useReducedMotion()
+  // preview only: ?beam=<colour> tries the launch beam in another single colour
+  const [beam, setBeam] = useState<string>()
+  useEffect(() => {
+    const pick = new URLSearchParams(window.location.search).get('beam')
+    if (pick && pick in BEAM_COLORS) setBeam(BEAM_COLORS[pick])
+  }, [])
 
   const boxRef = useRef<HTMLDivElement>(null)
   const arrowRef = useRef<HTMLSpanElement>(null)
@@ -200,7 +207,7 @@ export default function Home() {
                 whileHover={{ scale: 1.08, y: -1 }}
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70 ${phase === 'arrow' || phase === 'expand' ? 'launch-lit' : ''}`}
+                className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:opacity-70`}
               >
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
@@ -209,11 +216,19 @@ export default function Home() {
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
                 >
-                  <span className={`arrow-light relative flex ${phase === 'arrow' || phase === 'expand' ? 'arrow-lit' : ''}`}>
+                  <span className="relative flex">
                     <ArrowRight className="h-5 w-5" />
-                    {/* launch only: the arrow lights up and glows with a band of light sweeping across it, then rests plain */}
-                    {(phase === 'arrow' || phase === 'expand') && (
-                      <span aria-hidden className="arrow-shine pointer-events-none absolute inset-0" />
+                    {/* launch only: a single-colour beam of light runs along the arrow (shaft, then out both
+                        tips of the head), then the arrow rests plain */}
+                    {!reduced && phase !== 'measure' && phase !== 'done' && (
+                      <svg aria-hidden viewBox="0 0 24 24" fill="none" className="arrow-beam pointer-events-none absolute inset-0 h-5 w-5" style={beam ? ({ '--beam': beam } as CSSProperties) : undefined}>
+                        {['M5 12H19', 'M19 12L12 5', 'M19 12L12 19'].map((d, i) => (
+                          <g key={d} className={i ? 'arrow-beam-head' : 'arrow-beam-shaft'}>
+                            <path pathLength={1} className="beam-tail" d={d} />
+                            <path pathLength={1} className="beam-core" d={d} />
+                          </g>
+                        ))}
+                      </svg>
                     )}
                   </span>
                 </motion.span>
