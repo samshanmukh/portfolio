@@ -12,7 +12,7 @@ import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
-import { FluidCursor } from './components/fluid-cursor'
+import { FluidCursor, fluidBurst, fluidFollow } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
 
 const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
@@ -67,6 +67,29 @@ export default function Home() {
     return () => [t1, t2, t3].forEach(clearTimeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+  // attention light: the liquid colours burst behind the arrow as it spawns, then trail it as it slides
+  useEffect(() => {
+    if (phase !== 'arrow' && phase !== 'expand' && phase !== 'settle') return
+    const centre = () => {
+      const r = arrowRef.current?.getBoundingClientRect()
+      return r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : undefined
+    }
+    if (phase === 'arrow') {
+      const t = setTimeout(() => {
+        const c = centre()
+        if (c) fluidBurst(c)
+      }, 300) // when the arrow spawns inside the circle
+      return () => clearTimeout(t)
+    }
+    let raf = 0
+    const tick = () => {
+      const c = centre()
+      if (c) fluidFollow(c)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [phase])
   const revealed = phase === 'settle' || phase === 'done'
   const ready = phase === 'done' // the greeting starts once everything is in place
   const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
