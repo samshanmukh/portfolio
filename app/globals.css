@@ -407,7 +407,7 @@ body {
 }
 
 
-/* Launch only: liquid colours swirling inside the send button's glass circle. */
+/* Launch only: a green liquid swirl inside the send button's glass circle (same green as the status dot). */
 .launch-liquid {
   overflow: hidden;
 }
@@ -419,14 +419,14 @@ body {
   border-radius: 50%;
 }
 .launch-liquid::before {
-  background: conic-gradient(from 0deg, #ff4fa3, #8b5cf6, #38bdf8, #34d399, #fbbf24, #ff4fa3);
+  background: conic-gradient(from 0deg, #22c55e, #86efac, #16a34a, #4ade80, #15803d, #22c55e);
   filter: blur(5px);
   animation: liquid-spin 1.4s linear infinite;
 }
 .launch-liquid::after {
   background:
     radial-gradient(circle at 30% 35%, rgb(255 255 255 / 0.55), transparent 40%),
-    radial-gradient(circle at 70% 65%, rgb(236 72 153 / 0.6), transparent 45%);
+    radial-gradient(circle at 70% 65%, rgb(21 128 61 / 0.55), transparent 45%);
   filter: blur(4px);
   animation: liquid-spin 2.2s linear infinite reverse;
 }
