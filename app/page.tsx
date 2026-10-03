@@ -203,14 +203,16 @@ export default function Home() {
                 className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 ${phase === 'arrow' || phase === 'expand' ? '' : 'disabled:opacity-70'}`}
               >
                 {/* attention light: liquid colours swirl inside the glass while it pops in and slides,
-                    then fade so the settled button is plain neutral glass again */}
-                <motion.span
-                  aria-hidden
-                  className="launch-liquid pointer-events-none absolute inset-0 -z-10 rounded-full"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: phase === 'arrow' || phase === 'expand' ? 1 : 0 }}
-                  transition={{ duration: phase === 'arrow' ? 0.35 : 0.9, ease: 'easeOut' }}
-                />
+                    then fade so the settled button is plain neutral glass again (removed once done) */}
+                {phase !== 'done' && (
+                  <motion.span
+                    aria-hidden
+                    className="launch-liquid pointer-events-none absolute inset-0 -z-10 rounded-full"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: phase === 'arrow' || phase === 'expand' ? 1 : 0 }}
+                    transition={{ duration: phase === 'arrow' ? 0.35 : 0.6, ease: 'easeOut' }}
+                  />
+                )}
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
                   className={`flex transition-colors duration-700 ${phase === 'arrow' || phase === 'expand' ? 'text-white' : ''}`}
