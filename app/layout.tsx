@@ -66,7 +66,8 @@ export const viewport: Viewport = {
 }
 
 // Applies the saved theme before first paint (no light/dark flash). Light is the default.
-const themeScript = `try{if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}`
+// Theme follows the visitor's system setting, live; the toggle only overrides it for the current visit.
+const themeScript = `try{localStorage.removeItem('theme')}catch(e){}try{var t=sessionStorage.getItem('theme');var d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(e){try{sessionStorage.removeItem('theme')}catch(_){}document.documentElement.classList.toggle('dark',e.matches)})}catch(e){}`
 
 // Rich JSON-LD graph so search engines / recruiter tools fully understand the page.
 const jsonLd = {

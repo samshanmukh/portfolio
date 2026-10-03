@@ -8,6 +8,11 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains('dark'))
+    // the layout script switches the page when the system setting changes; keep the icon in step
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = (e: MediaQueryListEvent) => setDark(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
   }, [])
 
   const toggle = () => {
@@ -15,7 +20,7 @@ export function ThemeToggle() {
     setDark(next)
     document.documentElement.classList.toggle('dark', next)
     try {
-      localStorage.setItem('theme', next ? 'dark' : 'light')
+      sessionStorage.setItem('theme', next ? 'dark' : 'light')
     } catch {}
   }
 
