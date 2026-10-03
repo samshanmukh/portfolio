@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Liquid } from 'liquid-gooey'
 import { FileText, Mail } from 'lucide-react'
-import { useEffect, useState, type ComponentType } from 'react'
+import { useEffect, useState, type ComponentType, type CSSProperties } from 'react'
 import { socials } from '../lib/data'
 import { GithubIcon, InstagramIcon, LinkedinIcon, XIcon } from './brand-icons'
 
@@ -25,11 +25,13 @@ export function SocialLinks({
   pop = false,
   delay = 0,
   className = '',
+  style,
 }: {
   size?: 'sm' | 'md'
   pop?: boolean
   delay?: number
   className?: string
+  style?: CSSProperties
 }) {
   const reduced = useReducedMotion()
   const animate = pop && !reduced
@@ -66,6 +68,7 @@ export function SocialLinks({
           : 'inset 0 1px 1px rgb(255 255 255 / 0.9), 0 4px 14px -4px rgb(0 0 0 / 0.14), 0 0 0 0.5px rgb(0 0 0 / 0.08)'
       }
       className={`goo-row flex items-center gap-2.5 ${className}`}
+      style={style}
     >
       {socialLinks.map(({ label, href, icon: Icon, color }, i) => (
         <Liquid.Item

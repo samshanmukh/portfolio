@@ -8,6 +8,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from
 import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
 import { openSmsOnPhone } from './lib/open-sms'
+import { morphTo } from './lib/morph'
 import { playLaunchSound } from './lib/launch-sound'
 import { quickConfig, quickQuestions } from './lib/questions'
 import { quickIcons } from './components/quick-icons'
@@ -78,7 +79,9 @@ export default function Home() {
   }, [])
   const revealed = phase === 'settle' || phase === 'done'
   const ready = phase === 'done' // the greeting starts once everything is in place
-  const goToChat = (q: string) => router.push(`/chat?query=${encodeURIComponent(q)}`)
+  // stays on screen: the avatar floats up and the ask box glides down into the chat layout
+  useEffect(() => router.prefetch('/chat'), [router]) // so the morph starts without waiting on the network
+  const goToChat = (q: string) => morphTo(router, `/chat?query=${encodeURIComponent(q)}`)
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:pb-20">
@@ -143,6 +146,7 @@ export default function Home() {
       {/* centre memoji */}
       <motion.div
         className="relative z-10 h-52 w-52 sm:h-72 sm:w-72"
+        style={{ viewTransitionName: 'avatar' }}
         initial={{ opacity: 0, scale: 0.85, y: 20 }}
         animate={revealed ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 20 }}
         transition={{ type: 'spring', stiffness: 160, damping: 18 }}
@@ -177,6 +181,7 @@ export default function Home() {
             initial={{ clipPath: HIDDEN }}
             animate={{ clipPath: phase === 'measure' ? HIDDEN : phase === 'arrow' ? intro.clip : OPEN }}
             transition={phase === 'expand' ? { duration: EXPAND_MS / 1000, ease: [0.65, 0, 0.35, 1] } : { duration: 0 }}
+            style={{ viewTransitionName: 'askbox' }}
             className={`shimmer-border glass-field mx-auto flex items-center rounded-full border border-neutral-200 bg-white/30 py-2.5 pr-2 pl-6 backdrop-blur-lg transition-all hover:border-neutral-300`}
           >
             <span className="relative flex w-full items-center">
@@ -241,7 +246,7 @@ export default function Home() {
 
         {/* socials pop in just under the input once the box has settled */}
         <div className="min-h-12 mt-4 flex w-full justify-center">
-          {revealed && <SocialLinks size="sm" pop delay={0.25} className="justify-center" />}
+          {revealed && <SocialLinks size="sm" pop delay={0.25} className="justify-center" style={{ viewTransitionName: 'socials' }} />}
         </div>
 
         <motion.div {...reveal(revealed, 0.45)} className="mt-5 flex w-full max-w-2xl flex-wrap justify-center gap-1 sm:grid sm:grid-cols-5 sm:gap-3">

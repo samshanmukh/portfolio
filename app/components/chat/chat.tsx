@@ -19,6 +19,7 @@ import { ViewRenderer } from '../views/view-renderer'
 import { WelcomeModal } from '../welcome-modal'
 import { ChatLanding } from './chat-landing'
 import { HelperBoost } from './helper-boost'
+import { morphArrived, morphing } from '../../lib/morph'
 
 type Msg = {
   role: 'user' | 'agent'
@@ -46,8 +47,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('query')
   const reduced = useReducedMotion()
-  const [mounted, setMounted] = useState(false)
+  // arriving from home by the morph: the avatar, ask box and socials glide in already, so skip their entrances
+  const [morphed] = useState(morphing)
+  const [mounted, setMounted] = useState(morphed)
   useEffect(() => setMounted(true), []) // start the input's bubble entrance once hydrated
+  // chat is in the DOM now: let the browser take its "after" snapshot (rAF is paused during the swap)
+  useEffect(() => morphArrived(), [])
 
   const [messages, setMessages] = useState<Msg[]>([])
   const [input, setInput] = useState('')
@@ -264,6 +269,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               href="/"
               aria-label="Back to home"
               className={`relative block transition-all duration-300 ${hasView ? 'h-20 w-20' : 'h-28 w-28'}`}
+              style={{ viewTransitionName: 'avatar' }}
             >
               {/* holds still while visitors type and while answers load */}
               <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
@@ -330,8 +336,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className="w-full md:px-4"
             >
               <div
-                className={`${mounted ? 'bubble-in' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
-                style={{ animationDelay: '0.1s' }}
+                className={`${morphed ? '' : mounted ? 'bubble-in' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
+                style={{ animationDelay: '0.1s', viewTransitionName: 'askbox' }}
               >
                 <input
                   ref={inputRef}
@@ -345,7 +351,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                 />
                 <motion.span
                   className="flex"
-                  initial={reduced ? false : { scale: 0 }}
+                  initial={reduced || morphed ? false : { scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.7 }}
                 >
@@ -364,7 +370,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               </div>
             </form>
             {/* socials pop in just under the input */}
-            <SocialLinks size="sm" pop delay={0.85} className="pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5" />
+            <SocialLinks size="sm" pop={!morphed} delay={0.85} style={{ viewTransitionName: 'socials' }} className="pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-5" />
           </div>
         </div>
       </div>
