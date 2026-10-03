@@ -14,7 +14,7 @@ import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
-import { LAUNCHES, LaunchFx, type Launch } from './components/launch-fx'
+import { FluidTrail, LAUNCHES, LaunchFluid, LaunchFx, type Launch } from './components/launch-fx'
 
 const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
 
@@ -44,7 +44,7 @@ export default function Home() {
   const arrowRef = useRef<HTMLSpanElement>(null)
   const [phase, setPhase] = useState<Phase>('measure')
   const [intro, setIntro] = useState({ x: 0, y: 0, clip: HIDDEN, ax: 0, ay: 0, size: 0 })
-  const [launch, setLaunch] = useState<Launch>('spotlight')
+  const [launch, setLaunch] = useState<Launch>('fluid')
   useLayoutEffect(() => {
     const box = boxRef.current?.getBoundingClientRect()
     const el = arrowRef.current
@@ -83,6 +83,7 @@ export default function Home() {
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:pb-20">
       {/* liquid colour trail that follows the cursor */}
       <FluidCursor />
+      {launch === 'fluid-trail' && phase !== 'measure' && phase !== 'done' && <FluidTrail phase={phase} anchor={arrowRef} />}
 
       {/* big faded name behind everything — rises from the bottom edge letter by letter */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center overflow-hidden">
@@ -212,6 +213,7 @@ export default function Home() {
                 transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 className={`glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 ${launching ? '' : 'disabled:opacity-70'}`}
               >
+                {launch === 'fluid' && phase !== 'done' && phase !== 'measure' && <LaunchFluid phase={phase} />}
                 {/* the empty glass circle lands first, then the arrow spawns inside it */}
                 <motion.span
                   className={`flex transition-colors duration-700 ${launching && launch === 'liquid' ? 'launch-ink' : ''}`}

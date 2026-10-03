@@ -1,10 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useEffect, useRef, type RefObject } from 'react'
 
 // Launch "attention" effects around the send button while it pops in and the ask box grows out of it.
 // Takes to compare on localhost via ?launch=…; each fades out as the box settles.
-export const LAUNCHES = ['spotlight', 'spot-tight', 'aurora', 'liquid', 'charge'] as const
+export const LAUNCHES = ['fluid', 'fluid-trail', 'spotlight', 'spot-tight', 'aurora', 'liquid', 'charge'] as const
 export type Launch = (typeof LAUNCHES)[number]
 
 type Phase = 'measure' | 'arrow' | 'expand' | 'settle' | 'done'
@@ -21,8 +22,86 @@ const DROPS = [
   { at: 0.97, size: 11, y: 1, delay: 0.18 },
 ]
 
-export function LaunchFx({ launch, phase, intro, expandMs }: { launch: Launch; phase: Phase; intro: Intro; expandMs: number }) {
-  if (phase === 'done' || phase === 'measure') return null
+// the background's liquid cursor colours, run on a tiny canvas that follows a path instead of the mouse
+function useFluid(canvas: RefObject<HTMLCanvasElement | null>, path: (t: number, el: HTMLCanvasElement) => { x: number; y: number } | null, opts: object) {
+  useEffect(() => {
+    let stop: (() => void) | undefined
+    let cancelled = false
+    import('../lib/fluid-cursor').then(({ default: start }) => {
+      const el = canvas.current
+      if (!cancelled && el) stop = start(el, { ...opts, path: (t: number) => path(t, el) })
+    })
+    return () => {
+      cancelled = true
+      stop?.()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+}
+
+// fluid: the liquid swirls around inside the round button while it pops in and slides
+export function LaunchFluid({ phase }: { phase: Phase }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useFluid(
+    ref,
+    (t, el) => {
+      const w = el.clientWidth
+      const h = el.clientHeight
+      return { x: w / 2 + w * 0.3 * Math.sin(t * 6.1), y: h / 2 + h * 0.3 * Math.sin(t * 8.3 + 1.2) }
+    },
+    { sim: 32, dye: 128, radius: 1.6, force: 2500, fade: 0.8, brightness: 0.35 },
+  )
+  return (
+    <motion.span
+      aria-hidden
+      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: phase === 'arrow' || phase === 'expand' ? 1 : 0 }}
+      transition={{ duration: phase === 'arrow' ? 0.35 : 0.7, ease: 'easeOut' }}
+    >
+      <canvas ref={ref} className="h-full w-full" />
+    </motion.span>
+  )
+}
+
+// fluid-trail (rendered at page level, under the ask box): the button leaves a small liquid trail behind it, like the cursor does on the page
+export function FluidTrail({ phase, anchor }: { phase: Phase; anchor: RefObject<HTMLElement | null> }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useFluid(
+    ref,
+    (t) => {
+      const r = anchor.current?.getBoundingClientRect()
+      if (!r) return null
+      const wobble = Math.max(0, 1 - t / 1.4) * 14 // a little swirl while it pops in, then it just follows
+      return { x: r.left + r.width / 2 + wobble * Math.cos(t * 9), y: r.top + r.height / 2 + wobble * Math.sin(t * 9) }
+    },
+    { sim: 64, dye: 512, radius: 0.03, force: 4000, fade: 0.9, brightness: 0.3 },
+  )
+  return (
+    <motion.div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 z-[5]"
+      initial={{ opacity: 1 }}
+      animate={{ opacity: phase === 'arrow' || phase === 'expand' ? 1 : 0 }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
+    >
+      <canvas ref={ref} className="h-screen w-screen" />
+    </motion.div>
+  )
+}
+
+export function LaunchFx({
+  launch,
+  phase,
+  intro,
+  expandMs,
+}: {
+  launch: Launch
+  phase: Phase
+  intro: Intro
+  expandMs: number
+}) {
+  if (phase === 'done' || phase === 'measure' || launch === 'fluid' || launch === 'fluid-trail') return null
   const launching = phase === 'arrow' || phase === 'expand'
   // a layer that follows the box's own button-to-pill reveal (the same clip on a slightly larger box)
   const clip = {
