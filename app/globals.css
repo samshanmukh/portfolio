@@ -449,3 +449,10 @@ body {
   0%, 50% { --lead: 0; }
   100% { --lead: 1.7; }
 }
+
+
+/* Gooey social row: in dark mode the liquid behind the glass icons is a little see-through,
+   so the row keeps its glassy look. */
+.dark .goo-row > [data-gooey-svg] {
+  opacity: 0.6;
+}
