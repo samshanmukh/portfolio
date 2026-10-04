@@ -428,6 +428,14 @@ body {
   --shine-glow: rgb(255 255 255 / 0.9);
   filter: drop-shadow(0 0 1.5px rgb(255 255 255)) drop-shadow(0 0 5px var(--shine-glow));
 }
+/* dark mode: the arrow turns metallic silver (gradient defined in the svg) with a soft sheen */
+.dark .arrow-shine:not(.tinted) {
+  filter: drop-shadow(0 0 1px rgb(244 244 245 / 0.7)) drop-shadow(0 0 3px rgb(212 212 216 / 0.3));
+}
+.dark .arrow-shine:not(.tinted) path {
+  stroke: url(#arrow-chrome);
+  stroke-width: 2.6;
+}
 @keyframes arrow-shine {
   0% { opacity: 0; }
   18%, 80% { opacity: 1; }

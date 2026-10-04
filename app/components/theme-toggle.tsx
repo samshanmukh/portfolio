@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { GooeyDrag } from './gooey-drag'
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(false)
@@ -25,12 +26,14 @@ export function ThemeToggle() {
   }
 
   return (
-    <button
-      onClick={toggle}
-      aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="glass tap relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
-    >
-      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </button>
+    <GooeyDrag radius={18}>
+      <button
+        onClick={toggle}
+        aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="glass tap relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full"
+      >
+        {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </button>
+    </GooeyDrag>
   )
 }
