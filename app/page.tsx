@@ -229,16 +229,14 @@ export default function Home() {
                         eye, then fades back to plain */}
                     {!reduced && phase !== 'measure' && phase !== 'done' && (
                       <svg aria-hidden viewBox="0 0 24 24" fill="none" className={`arrow-shine pointer-events-none absolute inset-0 h-5 w-5 ${beam ? 'tinted' : ''}`} style={beam ? ({ '--shine': beam, '--shine-glow': beam } as CSSProperties) : undefined}>
-                        {/* dark mode: polished chrome, white into cool silver with a faint pearly rainbow streak */}
+                        {/* dark mode: brushed metallic silver, bright on top, a darker band through the middle */}
                         <defs>
-                          <linearGradient id="arrow-chrome" gradientUnits="userSpaceOnUse" x1="5" y1="5" x2="19" y2="19">
-                            <stop offset="0" stopColor="#ffffff" />
-                            <stop offset="0.3" stopColor="#e4e4e7" />
-                            <stop offset="0.45" stopColor="#f5d0fe" />
-                            <stop offset="0.52" stopColor="#bae6fd" />
-                            <stop offset="0.58" stopColor="#fef9c3" />
-                            <stop offset="0.72" stopColor="#a1a1aa" />
-                            <stop offset="1" stopColor="#f4f4f5" />
+                          <linearGradient id="arrow-chrome" gradientUnits="userSpaceOnUse" x1="12" y1="5" x2="12" y2="19">
+                            <stop offset="0" stopColor="#fafafa" />
+                            <stop offset="0.35" stopColor="#d4d4d8" />
+                            <stop offset="0.5" stopColor="#9f9fa9" />
+                            <stop offset="0.62" stopColor="#c4c4cc" />
+                            <stop offset="1" stopColor="#e4e4e7" />
                           </linearGradient>
                         </defs>
                         <path d="M5 12h14M12 5l7 7-7 7" />
