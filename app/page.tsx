@@ -17,7 +17,15 @@ import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
 
-const GREETINGS = [{ text: `Hey, I'm ${profile.shortName}`, wave: true }, { text: 'Ask me anything!' }]
+const GREETINGS = [
+  { text: `Hey, I'm ${profile.shortName}`, wave: true },
+  { text: 'Ask me anything!' },
+  { text: 'What are you working on?' },
+  { text: "Let's connect!" },
+  { text: "Curious what I've built?" },
+  { text: "Hiring? Let's talk!" },
+  { text: 'Ask about my favorite stack' },
+]
 
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the
 // arrow slides to its spot → the box settles into place and everything else fades/pops in.
