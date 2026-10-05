@@ -282,7 +282,7 @@ export default function Home() {
         </motion.div>
       </div>
 
-      {/* what I'm listening to (hidden until Spotify is configured) */}
+      {/* now-playing card, only while Sam is playing something on Spotify */}
       {revealed && <SpotifyWidget />}
     </div>
   )

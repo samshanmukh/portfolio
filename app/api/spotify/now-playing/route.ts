@@ -1,4 +1,4 @@
-// What Sam is listening to on Spotify right now (or last played), for the corner widget.
+// What Sam is listening to on Spotify right now, for the corner widget.
 // Needs SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET and SPOTIFY_REFRESH_TOKEN (see
 // scripts/get-spotify-token.mjs). Without them it answers { configured: false } and the
 // widget stays hidden.
@@ -6,7 +6,6 @@ export const dynamic = 'force-dynamic'
 
 const TOKEN_ENDPOINT = 'https://accounts.spotify.com/api/token'
 const NOW_PLAYING_ENDPOINT = 'https://api.spotify.com/v1/me/player/currently-playing'
-const RECENTLY_PLAYED_ENDPOINT = 'https://api.spotify.com/v1/me/player/recently-played?limit=1'
 
 type SpotifyTrack = {
   name?: string
@@ -36,8 +35,11 @@ const mapTrack = (item: SpotifyTrack, isPlaying: boolean): NowPlaying => ({
 })
 
 // Spotify only gives user-context access tokens via the refresh-token flow, so swap the
-// long-lived refresh token for a short-lived access token on each request.
+// long-lived refresh token for a short-lived access token, reused until just before it expires.
+let cachedToken: { value: string; expiresAt: number } | null = null
+
 async function getAccessToken(id: string, secret: string, refresh: string) {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value
   const res = await fetch(TOKEN_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -48,7 +50,9 @@ async function getAccessToken(id: string, secret: string, refresh: string) {
     cache: 'no-store',
   })
   if (!res.ok) throw new Error('Failed to refresh Spotify access token')
-  return ((await res.json()) as { access_token: string }).access_token
+  const { access_token, expires_in } = (await res.json()) as { access_token: string; expires_in?: number }
+  cachedToken = { value: access_token, expiresAt: Date.now() + ((expires_in ?? 3600) - 60) * 1000 }
+  return access_token
 }
 
 export async function GET() {
@@ -65,12 +69,8 @@ export async function GET() {
       if (data?.item) return Response.json(mapTrack(data.item, Boolean(data.is_playing)))
     }
 
-    // 204 (nothing playing), an ad or a private session: fall back to the last track played.
-    const recent = await fetch(RECENTLY_PLAYED_ENDPOINT, { headers, cache: 'no-store' })
-    if (recent.status === 200) {
-      const item = (await recent.json())?.items?.[0]?.track
-      if (item) return Response.json(mapTrack(item, false))
-    }
+    // 204 (nothing playing), an ad or a private session: the widget stays hidden.
+    if (now.status === 401) cachedToken = null
     return Response.json({ configured: true, isPlaying: false } satisfies NowPlaying)
   } catch {
     return Response.json({ configured: true, isPlaying: false } satisfies NowPlaying)
