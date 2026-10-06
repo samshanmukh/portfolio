@@ -12,6 +12,7 @@ import { profile } from '../../lib/data'
 import { systemPrompt } from '../../lib/knowledge'
 import type { PostMeta } from '../../lib/posts'
 import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
+import { MISTRAL_LABEL, mistralAvailable, mistralStream } from '../../lib/mistral'
 import { SocialLinks } from '../social-links'
 import { SpotifyWidget } from '../spotify-widget'
 import { ThemeToggle } from '../theme-toggle'
@@ -63,6 +64,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const [llm, setLlm] = useState<LlmState>('idle')
   const [prog, setProg] = useState(0)
   const [loadText, setLoadText] = useState('')
+  // smart mode's brain: Mistral on the server when a key is set, else the in-browser model
+  const [brain, setBrain] = useState<'mistral' | 'local' | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const engineRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -70,7 +73,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const autoSubmitted = useRef(false)
 
   useEffect(() => {
-    if (!webgpuSupported()) setLlm('unsupported')
+    mistralAvailable().then((ok) => {
+      setBrain(ok ? 'mistral' : 'local')
+      if (!ok && !webgpuSupported()) setLlm('unsupported')
+    })
   }, [])
 
   const patchLast = (patch: Partial<Msg>) =>
@@ -107,23 +113,32 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       .slice(-4)
       .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
     const msgs: ChatMsg[] = [{ role: 'system', content: systemPrompt() }, ...history, { role: 'user', content: q }]
-    // still show the matching card; the local model writes the words
+    // still show the matching card; the model writes the words
     const routed = ask(q)
+    const remote = brain === 'mistral'
     setMessages((prev) => [
       ...prev,
-      { role: 'agent', tool: MODEL_LABEL, view: routed.view, text: '', status: 'thinking', shown: Infinity },
+      { role: 'agent', tool: remote ? MISTRAL_LABEL : MODEL_LABEL, view: routed.view, text: '', status: 'thinking', shown: Infinity },
     ])
+    let first = true
+    const onToken = (full: string) => {
+      if (first) {
+        first = false
+        patchLast({ status: 'typing' })
+      }
+      patchLast({ text: full })
+    }
     try {
-      let first = true
-      await chatStream(engineRef.current, msgs, (full) => {
-        if (first) {
-          first = false
-          patchLast({ status: 'typing' })
-        }
-        patchLast({ text: full })
-      })
+      if (remote) await mistralStream(msgs, onToken)
+      else await chatStream(engineRef.current, msgs, onToken)
       patchLast({ status: 'done' })
     } catch {
+      if (remote) {
+        // rate limit or Mistral hiccup: answer this one instantly instead, smart mode stays on
+        setMessages((prev) => prev.slice(0, -1))
+        await streamKeyword(routed)
+        return
+      }
       patchLast({ text: '(local model hiccup, back to quick answers)', status: 'done' })
       setMode('keyword')
     }
@@ -141,7 +156,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
     scrollRef.current?.scrollTo({ top: 0 })
-    if (mode === 'llm' && llm === 'ready' && engineRef.current) {
+    if (mode === 'llm' && llm === 'ready' && (brain === 'mistral' || engineRef.current)) {
       await runLLM(q)
     } else {
       await streamKeyword(ask(q))
@@ -169,6 +184,21 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const enableSmart = async () => {
     if (llm === 'ready') {
       setMode('llm')
+      return
+    }
+    if (brain === 'mistral') {
+      setLlm('ready')
+      setMode('llm')
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'agent',
+          tool: MISTRAL_LABEL,
+          text: `Smart mode on: I'm now running on Mistral and know everything on this site, from my projects and jobs to my blog posts. Ask me anything!`,
+          status: 'done',
+          shown: Infinity,
+        },
+      ])
       return
     }
     if (!webgpuSupported()) {
@@ -255,7 +285,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         {/* clicking Smart mode toggles it and opens the "about this portfolio" popup */}
         <WelcomeModal
           trigger={
-            <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
+            <SmartToggle llm={llm} mode={mode} prog={prog} remote={brain === 'mistral'} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
           }
         />
         <ThemeToggle />
@@ -445,12 +475,14 @@ function SmartToggle({
   llm,
   mode,
   prog,
+  remote,
   onEnable,
   onDisable,
 }: {
   llm: LlmState
   mode: 'keyword' | 'llm'
   prog: number
+  remote: boolean
   onEnable: () => void
   onDisable: () => void
 }) {
@@ -477,7 +509,7 @@ function SmartToggle({
     <button
       onClick={onEnable}
       aria-label="Smart mode"
-      title="Load a small LLM that runs free in your browser (~0.4 GB, one-time)."
+      title={remote ? 'Chat with an AI that knows everything about me.' : 'Load a small LLM that runs free in your browser (~0.4 GB, one-time).'}
       className={`${base} cursor-pointer text-muted hover:text-foreground`}
     >
       <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>
