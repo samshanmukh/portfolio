@@ -15,7 +15,7 @@ const PROVIDERS: Provider[] = [
     key: process.env.GROQ_API_KEY,
     model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     // gpt-oss reasons before answering; keep it brief and leave room for the reply
-    extra: { max_completion_tokens: 1000, reasoning_effort: 'low' },
+    extra: { max_completion_tokens: 700, reasoning_effort: 'low' },
   },
   {
     name: 'mistral',
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     messages = (Array.isArray(body?.messages) ? body.messages : [])
       // only the visitor's turns and earlier replies; the system prompt is always ours
       .filter((m: Msg) => (m?.role === 'user' || m?.role === 'assistant') && typeof m.content === 'string')
-      .slice(-8)
+      .slice(-6)
       .map((m: Msg) => ({ role: m.role, content: m.content.slice(0, 1500) }))
   } catch {
     return Response.json({ error: 'bad-request' }, { status: 400 })

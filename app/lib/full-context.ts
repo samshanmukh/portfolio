@@ -18,6 +18,7 @@ import {
   gym,
 } from './data'
 import { getPost, getPosts } from './posts'
+import { projectDetails } from './project-details'
 
 // the phone number stays out: the site only hands it out through the badge on phones
 const { sms: _sms, ...publicSocials } = socials
@@ -35,7 +36,7 @@ export function fullContext(): string {
     `PROFILE:\n${json(profile)}`,
     `LINKS (resume is ${siteUrl}${socials.resume}):\n${json(publicSocials)}`,
     `SKILLS:\n${json(skills)}`,
-    `PROJECTS:\n${json(projects)}`,
+    `PROJECTS (stack = technologies I used, features = what I built):\n${json(projects.map((p) => ({ ...p, ...projectDetails[p.name] })))}`,
     `EXPERIENCE:\n${json(experience)}`,
     `EDUCATION:\n${json(education)}`,
     `CERTIFICATIONS:\n${json(certifications)}`,
