@@ -87,8 +87,7 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
                       <h3 className="text-lg font-semibold">How does it work?</h3>
                       <p className="leading-relaxed text-foreground/80">
                         Quick answers are instant and work on any device. Flip on <strong>smart mode</strong> in the
-                        chat to load a small language model that runs <strong>entirely in your browser</strong>, no
-                        server, no API key.
+                        chat to talk to an <strong>AI version of me</strong> that knows everything on this site.
                       </p>
                     </div>
                   </section>
