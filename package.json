@@ -21,6 +21,7 @@
     "next": "^15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "rrule": "^2.8.1",
     "simple-icons": "^16.33.0"
   },
   "devDependencies": {

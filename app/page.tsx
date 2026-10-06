@@ -10,7 +10,8 @@ import { profile } from './lib/data'
 import { openSmsOnPhone } from './lib/open-sms'
 import { morphTo } from './lib/morph'
 import { playLaunchSound } from './lib/launch-sound'
-import { quickConfig, quickQuestions } from './lib/questions'
+import { quickKeys, quickQuestions } from './lib/questions'
+import { hasEvents, useEvents } from './lib/use-events'
 import { quickIcons } from './components/quick-icons'
 import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
@@ -47,6 +48,7 @@ const reveal = (show: boolean, delay = 0, y = 16) => ({
 export default function Home() {
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
+  const quick = quickKeys(hasEvents(useEvents()))
   const router = useRouter()
   const reduced = useReducedMotion()
   // preview only: ?beam=<colour> tries the launch shine in another single colour
@@ -265,8 +267,8 @@ export default function Home() {
           {revealed && <SocialLinks size="sm" pop delay={0.25} className="justify-center" style={{ viewTransitionName: 'socials' }} />}
         </div>
 
-        <motion.div {...reveal(revealed, 0.45)} className="mt-5 flex w-full max-w-2xl flex-wrap justify-center gap-1 sm:grid sm:grid-cols-5 sm:gap-3">
-          {quickConfig.map(({ key, color }) => {
+        <motion.div {...reveal(revealed, 0.45)} className={`mt-5 flex w-full max-w-2xl flex-wrap justify-center gap-1 sm:grid sm:gap-3 ${quick.length > 5 ? 'sm:grid-cols-6' : 'sm:grid-cols-5'}`}>
+          {quick.map(({ key, color }) => {
             const Icon = quickIcons[key]
             return (
               <button

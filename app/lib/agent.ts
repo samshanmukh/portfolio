@@ -31,6 +31,7 @@ export type View =
   | 'trainer'
   | 'source'
   | 'blog'
+  | 'events'
 
 export type AgentReply = {
   tool: string
@@ -122,6 +123,16 @@ export function ask(question: string): AgentReply {
       action: 'source',
       sources: [{ label: 'view source', href: socials.sourceRepo }],
       followups: ['What have you built?', "What's your stack?"],
+    }
+  }
+
+  // events Sam hosts or attends (from their Google Calendar)
+  if (/\bevents?\b/.test(q) || has(q, 'meetup', 'hackathon', 'conference', 'calendar', 'hosting', 'attending', 'going to', 'summit', 'workshop')) {
+    return {
+      tool: 'read(calendar)',
+      view: 'events',
+      text: `Here's where you can catch me IRL: events I'm hosting and the ones I'm going to, straight from my calendar. See you at one?`,
+      followups: ['How can I reach you?', 'What have you built?'],
     }
   }
 
