@@ -4,20 +4,27 @@ import { systemPrompt } from '../../lib/knowledge'
 
 // Smart mode brain: a hosted LLM answering as Sam from everything on the site.
 // Keys stay server-side (Vercel env / .env.local). Providers are tried in order
-// (Groq's free tier, then Mistral), so a rate limit on one falls through to the
+// (Groq's free models, then Mistral), so a rate limit on one falls through to the
 // next. The reply is streamed back as plain text. If none answers, a non-200
 // goes back and the chat quietly falls back to the instant answers.
 
 type Provider = { name: string; url: string; key?: string; model: string; extra?: Record<string, unknown> }
+// Groq's free tier limits each model separately (about 8k tokens a minute), and every
+// question carries ~4k tokens of context, so back-to-back questions overflow one model.
+// Falling through to sibling Groq models on the same key triples the headroom.
+const groq = (model: string, extra: Record<string, unknown>): Provider => ({
+  name: `groq ${model}`,
+  url: 'https://api.groq.com/openai/v1/chat/completions',
+  key: process.env.GROQ_API_KEY,
+  model,
+  extra,
+})
+// gpt-oss reasons before answering; keep it brief and leave room for the reply
+const GPT_OSS = { max_completion_tokens: 700, reasoning_effort: 'low' }
 const PROVIDERS: Provider[] = [
-  {
-    name: 'groq',
-    url: 'https://api.groq.com/openai/v1/chat/completions',
-    key: process.env.GROQ_API_KEY,
-    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-    // gpt-oss reasons before answering; keep it brief and leave room for the reply
-    extra: { max_completion_tokens: 700, reasoning_effort: 'low' },
-  },
+  groq(process.env.GROQ_MODEL || 'openai/gpt-oss-120b', GPT_OSS),
+  groq('openai/gpt-oss-20b', GPT_OSS),
+  groq('llama-3.1-8b-instant', { max_tokens: 400 }),
   {
     name: 'mistral',
     url: 'https://api.mistral.ai/v1/chat/completions',
@@ -27,6 +34,9 @@ const PROVIDERS: Provider[] = [
   },
 ]
 const configured = () => PROVIDERS.filter((p) => p.key)
+// a model that just rate-limited is skipped until its retry-after passes, so the next
+// question goes straight to one with room instead of paying for a doomed call
+const coolUntil = new Map<string, number>()
 
 const SYSTEM = `${systemPrompt(fullContext())}\nFormatting: chat-style plain text. You may use **bold** for names and short "- " bullet lists, nothing else (no headings, tables or code). Put a colon after a bolded name, never a dash, and never use em dashes. Don't paste raw URLs; when a link helps, write it as [short label](url). The chat already shows a card with the details, so keep lists to the few items that matter.`
 
@@ -77,6 +87,7 @@ export async function POST(req: Request) {
 
   let res: Response | null = null
   for (const p of configured()) {
+    if ((coolUntil.get(p.name) ?? 0) > Date.now()) continue
     try {
       const r = await fetch(p.url, {
         method: 'POST',
@@ -92,6 +103,10 @@ export async function POST(req: Request) {
       if (r.ok && r.body) {
         res = r
         break
+      }
+      if (r.status === 429) {
+        const wait = Number(r.headers.get('retry-after')) || 20
+        coolUntil.set(p.name, Date.now() + Math.min(wait, 120) * 1000)
       }
       const detail = await r.text().catch(() => '')
       console.error(`[chat] ${p.name} error`, r.status, detail.slice(0, 300))
