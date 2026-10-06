@@ -3,19 +3,12 @@ import { systemPrompt } from '../../lib/knowledge'
 
 // Smart mode brain: a hosted LLM answering as Sam from everything on the site.
 // Keys stay server-side (Vercel env / .env.local). Providers are tried in order
-// (Mistral, then Groq's free tier), so a rate limit on one falls through to the
+// (Groq's free tier, then Mistral), so a rate limit on one falls through to the
 // next. The reply is streamed back as plain text. If none answers, a non-200
 // goes back and the chat quietly falls back to the instant answers.
 
 type Provider = { name: string; url: string; key?: string; model: string; extra?: Record<string, unknown> }
 const PROVIDERS: Provider[] = [
-  {
-    name: 'mistral',
-    url: 'https://api.mistral.ai/v1/chat/completions',
-    key: process.env.MISTRAL_API_KEY,
-    model: process.env.MISTRAL_MODEL || 'mistral-small-latest',
-    extra: { max_tokens: 400 },
-  },
   {
     name: 'groq',
     url: 'https://api.groq.com/openai/v1/chat/completions',
@@ -23,6 +16,13 @@ const PROVIDERS: Provider[] = [
     model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     // gpt-oss reasons before answering; keep it brief and leave room for the reply
     extra: { max_completion_tokens: 1000, reasoning_effort: 'low' },
+  },
+  {
+    name: 'mistral',
+    url: 'https://api.mistral.ai/v1/chat/completions',
+    key: process.env.MISTRAL_API_KEY,
+    model: process.env.MISTRAL_MODEL || 'mistral-small-latest',
+    extra: { max_tokens: 400 },
   },
 ]
 const configured = () => PROVIDERS.filter((p) => p.key)
@@ -101,21 +101,30 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder()
   let buf = ''
   const stream = new ReadableStream({
+    // keep reading until some answer text goes out: a pull that enqueues nothing is never
+    // called again, and gpt-oss sends reasoning-only chunks (no content) before the answer
     async pull(controller) {
-      const { done, value } = await reader.read()
-      if (done) return controller.close()
-      buf += decoder.decode(value, { stream: true })
-      const lines = buf.split('\n')
-      buf = lines.pop() ?? ''
-      for (const line of lines) {
-        const data = line.startsWith('data:') ? line.slice(5).trim() : ''
-        if (!data || data === '[DONE]') continue
-        try {
-          const delta = JSON.parse(data)?.choices?.[0]?.delta?.content
-          if (typeof delta === 'string' && delta) controller.enqueue(encoder.encode(delta))
-        } catch {
-          // partial or non-JSON line; skip
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) return controller.close()
+        buf += decoder.decode(value, { stream: true })
+        const lines = buf.split('\n')
+        buf = lines.pop() ?? ''
+        let sent = false
+        for (const line of lines) {
+          const data = line.startsWith('data:') ? line.slice(5).trim() : ''
+          if (!data || data === '[DONE]') continue
+          try {
+            const delta = JSON.parse(data)?.choices?.[0]?.delta?.content
+            if (typeof delta === 'string' && delta) {
+              controller.enqueue(encoder.encode(delta))
+              sent = true
+            }
+          } catch {
+            // partial or non-JSON line; skip
+          }
         }
+        if (sent) return
       }
     },
     cancel() {
