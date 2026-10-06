@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react'
 import { openSmsOnPhone } from '../../lib/open-sms'
 import { ask, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
+import { isPresetQuestion } from '../../lib/questions'
 import { systemPrompt } from '../../lib/knowledge'
 import type { PostMeta } from '../../lib/posts'
 import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
@@ -60,7 +61,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   // questions sent while an answer is still coming; each goes out, in order, once the one before finishes
-  const [queued, setQueued] = useState<string[]>([])
+  const [queued, setQueued] = useState<{ q: string; typed: boolean }[]>([])
   const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
   const [llm, setLlm] = useState<LlmState>('idle')
   const [prog, setProg] = useState(0)
@@ -149,11 +150,13 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     }
   }
 
-  const run = async (raw: string) => {
+  // `typed`: the visitor wrote it. Pills, follow-ups and cards keep their instant answers;
+  // only typed questions go to smart mode.
+  const run = async (raw: string, typed = false) => {
     const q = raw.trim()
     if (!q) return
     if (busy) {
-      setQueued((prev) => [...prev, q])
+      setQueued((prev) => [...prev, { q, typed }])
       setInput('')
       return
     }
@@ -161,7 +164,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
     scrollRef.current?.scrollTo({ top: 0 })
-    if (mode === 'llm' && llm === 'ready' && (brain === 'hosted' || engineRef.current)) {
+    if (typed && mode === 'llm' && llm === 'ready' && (brain === 'hosted' || engineRef.current)) {
       await runLLM(q)
     } else {
       await streamKeyword(ask(q))
@@ -174,7 +177,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     if (busy || !queued.length) return
     const [next, ...rest] = queued
     setQueued(rest)
-    run(next)
+    run(next.q, next.typed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busy, queued])
 
@@ -182,7 +185,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     // wait to learn whether smart mode is on, so a question asked from home gets the smart answer
     if (initialQuery && brain && !autoSubmitted.current) {
       autoSubmitted.current = true
-      run(initialQuery)
+      run(initialQuery, !isPresetQuestion(initialQuery))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery, brain])
@@ -367,7 +370,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                run(input)
+                run(input, true)
               }}
               className="w-full md:px-4"
             >
