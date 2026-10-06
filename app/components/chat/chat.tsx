@@ -2,16 +2,19 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
-import { ArrowUp, Sparkles, Square } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { openSmsOnPhone } from '../../lib/open-sms'
 import { ask, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
+import { isPresetQuestion } from '../../lib/questions'
 import { systemPrompt } from '../../lib/knowledge'
 import type { PostMeta } from '../../lib/posts'
 import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
+import { HOSTED_LABEL, hostedAvailable, hostedStream } from '../../lib/hosted-llm'
+import { SendArrow } from '../send-arrow'
 import { SocialLinks } from '../social-links'
 import { SpotifyWidget } from '../spotify-widget'
 import { ThemeToggle } from '../theme-toggle'
@@ -19,6 +22,7 @@ import { ViewRenderer } from '../views/view-renderer'
 import { WelcomeModal } from '../welcome-modal'
 import { ChatLanding } from './chat-landing'
 import { HelperBoost } from './helper-boost'
+import { RichText } from './rich-text'
 import { morphArrived, morphing } from '../../lib/morph'
 
 type Msg = {
@@ -50,7 +54,14 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   // arriving from home by the morph: the avatar, ask box and socials glide in already, so skip their entrances
   const [morphed] = useState(morphing)
   const [mounted, setMounted] = useState(morphed)
-  useEffect(() => setMounted(true), []) // start the input's bubble entrance once hydrated
+  useEffect(() => setMounted(true), []) // start the ask box's launch once hydrated
+  // launch only (same as home): the send arrow holds its shine for a moment, then goes plain
+  const [shine, setShine] = useState(!morphed)
+  useEffect(() => {
+    if (!shine) return
+    const t = setTimeout(() => setShine(false), 2900)
+    return () => clearTimeout(t)
+  }, [shine])
   // chat is in the DOM now: let the browser take its "after" snapshot (rAF is paused during the swap)
   useEffect(() => morphArrived(), [])
 
@@ -58,11 +69,13 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   // questions sent while an answer is still coming; each goes out, in order, once the one before finishes
-  const [queued, setQueued] = useState<string[]>([])
+  const [queued, setQueued] = useState<{ q: string; typed: boolean }[]>([])
   const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
   const [llm, setLlm] = useState<LlmState>('idle')
   const [prog, setProg] = useState(0)
   const [loadText, setLoadText] = useState('')
+  // smart mode's brain: a hosted model (Mistral or Groq) when a key is set, else the in-browser model
+  const [brain, setBrain] = useState<'hosted' | 'local' | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const engineRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -70,7 +83,14 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const autoSubmitted = useRef(false)
 
   useEffect(() => {
-    if (!webgpuSupported()) setLlm('unsupported')
+    hostedAvailable().then((ok) => {
+      setBrain(ok ? 'hosted' : 'local')
+      if (ok) {
+        // a hosted model needs no download, so smart mode starts on
+        setLlm('ready')
+        setMode('llm')
+      } else if (!webgpuSupported()) setLlm('unsupported')
+    })
   }, [])
 
   const patchLast = (patch: Partial<Msg>) =>
@@ -107,33 +127,44 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       .slice(-4)
       .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
     const msgs: ChatMsg[] = [{ role: 'system', content: systemPrompt() }, ...history, { role: 'user', content: q }]
-    // still show the matching card; the local model writes the words
+    // still show the matching card; the model writes the words
     const routed = ask(q)
+    const remote = brain === 'hosted'
     setMessages((prev) => [
       ...prev,
-      { role: 'agent', tool: MODEL_LABEL, view: routed.view, text: '', status: 'thinking', shown: Infinity },
+      { role: 'agent', tool: remote ? HOSTED_LABEL : MODEL_LABEL, view: routed.view, text: '', status: 'thinking', shown: Infinity },
     ])
+    let first = true
+    const onToken = (full: string) => {
+      if (first) {
+        first = false
+        patchLast({ status: 'typing' })
+      }
+      patchLast({ text: full })
+    }
     try {
-      let first = true
-      await chatStream(engineRef.current, msgs, (full) => {
-        if (first) {
-          first = false
-          patchLast({ status: 'typing' })
-        }
-        patchLast({ text: full })
-      })
+      if (remote) await hostedStream(msgs, onToken, routed.view)
+      else await chatStream(engineRef.current, msgs, onToken)
       patchLast({ status: 'done' })
     } catch {
+      if (remote) {
+        // every provider rate-limited or down: answer this one instantly instead, smart mode stays on
+        setMessages((prev) => prev.slice(0, -1))
+        await streamKeyword(routed)
+        return
+      }
       patchLast({ text: '(local model hiccup, back to quick answers)', status: 'done' })
       setMode('keyword')
     }
   }
 
-  const run = async (raw: string) => {
+  // `typed`: the visitor wrote it. Pills, follow-ups and cards keep their instant answers;
+  // only typed questions go to smart mode.
+  const run = async (raw: string, typed = false) => {
     const q = raw.trim()
     if (!q) return
     if (busy) {
-      setQueued((prev) => [...prev, q])
+      setQueued((prev) => [...prev, { q, typed }])
       setInput('')
       return
     }
@@ -141,7 +172,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
     scrollRef.current?.scrollTo({ top: 0 })
-    if (mode === 'llm' && llm === 'ready' && engineRef.current) {
+    if (typed && mode === 'llm' && llm === 'ready' && (brain === 'hosted' || engineRef.current)) {
       await runLLM(q)
     } else {
       await streamKeyword(ask(q))
@@ -154,21 +185,37 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     if (busy || !queued.length) return
     const [next, ...rest] = queued
     setQueued(rest)
-    run(next)
+    run(next.q, next.typed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busy, queued])
 
   useEffect(() => {
-    if (initialQuery && !autoSubmitted.current) {
+    // wait to learn whether smart mode is on, so a question asked from home gets the smart answer
+    if (initialQuery && brain && !autoSubmitted.current) {
       autoSubmitted.current = true
-      run(initialQuery)
+      run(initialQuery, !isPresetQuestion(initialQuery))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQuery])
+  }, [initialQuery, brain])
 
   const enableSmart = async () => {
     if (llm === 'ready') {
       setMode('llm')
+      return
+    }
+    if (brain === 'hosted') {
+      setLlm('ready')
+      setMode('llm')
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'agent',
+          tool: HOSTED_LABEL,
+          text: `Smart mode on: I'm now a full AI model that knows everything on this site, from my projects and jobs to my blog posts. Ask me anything!`,
+          status: 'done',
+          shown: Infinity,
+        },
+      ])
       return
     }
     if (!webgpuSupported()) {
@@ -225,6 +272,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const userMsg = lastUser >= 0 ? messages[lastUser] : null
   const agentMsg = lastAgent > lastUser || (lastAgent >= 0 && lastUser < 0) ? messages[lastAgent] : null
   const hasView = !!agentMsg?.view
+  const geek = agentMsg?.view === 'projects' || agentMsg?.view === 'skills'
   const isEmpty = !userMsg && !agentMsg
   const headerHeight = hasView ? 110 : 170
 
@@ -255,7 +303,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         {/* clicking Smart mode toggles it and opens the "about this portfolio" popup */}
         <WelcomeModal
           trigger={
-            <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
+            <SmartToggle llm={llm} mode={mode} prog={prog} remote={brain === 'hosted'} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
           }
         />
         <ThemeToggle />
@@ -271,8 +319,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className={`relative block transition-all duration-300 ${hasView ? 'h-20 w-20' : 'h-28 w-28'}`}
               style={{ viewTransitionName: 'avatar' }}
             >
-              {/* holds still while visitors type and while answers load */}
-              <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
+              {/* holds still while visitors type and while answers load; a Projects or Skills answer
+                  swaps in the glasses version */}
+              <Image src="/avatar-smile.png" alt={`${profile.name}'s avatar`} fill sizes="112px" priority className={`object-contain transition-opacity duration-500 ${geek ? 'opacity-0' : 'opacity-100'}`} />
+              <Image src="/avatar-glasses.png" alt="" aria-hidden fill sizes="112px" className={`object-contain transition-opacity duration-500 ${geek ? 'opacity-100' : 'opacity-0'}`} />
             </Link>
           </div>
         </div>
@@ -280,7 +330,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       <div className="mx-auto flex h-full max-w-3xl flex-col">
         {/* scrollable answer */}
-        <div ref={scrollRef} className="custom-scrollbar flex-1 overflow-y-auto px-2" style={{ paddingTop: headerHeight }}>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-2" style={{ paddingTop: headerHeight }}>
           <AnimatePresence mode="wait">
             {isEmpty ? (
               <motion.div key="landing" className="flex min-h-full items-center justify-center" {...MOTION}>
@@ -331,12 +381,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                run(input)
+                run(input, true)
               }}
               className="w-full md:px-4"
             >
               <div
-                className={`${morphed ? '' : mounted ? 'bubble-in' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
+                className={`${morphed ? '' : mounted ? 'ask-grow' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
                 style={{ animationDelay: '0.1s', viewTransitionName: 'askbox' }}
               >
                 <input
@@ -349,11 +399,13 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   aria-label="Ask me anything"
                   className="w-full border-none bg-transparent text-base placeholder:text-neutral-500 focus:outline-none disabled:opacity-60"
                 />
+                {/* launch (same as home): the empty glass circle pops in, the arrow spawns inside it with its
+                    shine, then the box grows out of the button */}
                 <motion.span
                   className="flex"
                   initial={reduced || morphed ? false : { scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.7 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.1 }}
                 >
                   <motion.button
                     type="submit"
@@ -362,9 +414,16 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                     whileHover={{ scale: 1.08, y: -1 }}
                     whileTap={{ scale: 0.88 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                    className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2 disabled:cursor-default disabled:opacity-50"
+                    className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:cursor-default disabled:opacity-70"
                   >
-                    {busy && !input.trim() ? <Square className="h-6 w-6 p-1" /> : <ArrowUp className="h-6 w-6" />}
+                    <motion.span
+                      className="flex"
+                      initial={reduced || morphed ? false : { scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
+                    >
+                      <SendArrow shine={shine && !reduced} />
+                    </motion.span>
                   </motion.button>
                 </motion.span>
               </div>
@@ -405,7 +464,7 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
           <Dots />
         ) : (
           <>
-            {msg.shown === Infinity ? msg.text : msg.text.slice(0, msg.shown)}
+            {msg.shown === Infinity ? <RichText text={msg.text} /> : msg.text.slice(0, msg.shown)}
             {msg.status === 'typing' && <span className="caret" />}
           </>
         )}
@@ -445,12 +504,14 @@ function SmartToggle({
   llm,
   mode,
   prog,
+  remote,
   onEnable,
   onDisable,
 }: {
   llm: LlmState
   mode: 'keyword' | 'llm'
   prog: number
+  remote: boolean
   onEnable: () => void
   onDisable: () => void
 }) {
@@ -477,7 +538,7 @@ function SmartToggle({
     <button
       onClick={onEnable}
       aria-label="Smart mode"
-      title="Load a small LLM that runs free in your browser (~0.4 GB, one-time)."
+      title={remote ? 'Chat with an AI that knows everything about me.' : 'Load a small LLM that runs free in your browser (~0.4 GB, one-time).'}
       className={`${base} cursor-pointer text-muted hover:text-foreground`}
     >
       <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>

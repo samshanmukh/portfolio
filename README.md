@@ -34,7 +34,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Answer cards | `app/components/views/` |
 | Blog posts | `content/blog/*.md` |
 | Colors / theme | `app/globals.css` |
-| Memoji | `public/memoji.png` |
+| Avatar | `public/avatar-smile.png` |
 | Page metadata | `app/layout.tsx` |
 
 ## Deploy

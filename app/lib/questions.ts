@@ -68,3 +68,11 @@ export const questionsByCategory: { id: string; name: string; questions: string[
     questions: ['How can I reach you?'],
   },
 ]
+
+// every built-in question; these always get the instant answer (with its card), never a smart reply
+const presets = new Set<string>([
+  ...Object.values(quickQuestions),
+  ...specialQuestions,
+  ...questionsByCategory.flatMap((c) => c.questions),
+])
+export const isPresetQuestion = (q: string) => presets.has(q.trim())

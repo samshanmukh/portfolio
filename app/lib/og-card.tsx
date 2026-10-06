@@ -12,7 +12,7 @@ const file = (...p: string[]) => readFileSync(join(process.cwd(), ...p))
 const dataUri = (mime: string, buf: Buffer) => `data:${mime};base64,${buf.toString('base64')}`
 
 export function renderOgCard() {
-  const memoji = dataUri('image/png', file('public', 'memoji.png'))
+  const memoji = dataUri('image/png', file('public', 'avatar-smile.png'))
   // 👋 from Twemoji (CC-BY 4.0, https://github.com/jdecked/twemoji)
   const wave = dataUri('image/svg+xml', file('assets', 'og', 'wave.svg'))
   const blob = (color: string, x: number, y: number, r: number) => (
