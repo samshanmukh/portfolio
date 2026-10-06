@@ -1,3 +1,4 @@
+import { cleanReply } from '../../lib/clean-reply'
 import { fullContext } from '../../lib/full-context'
 import { systemPrompt } from '../../lib/knowledge'
 
@@ -105,31 +106,48 @@ export async function POST(req: Request) {
   const decoder = new TextDecoder()
   const encoder = new TextEncoder()
   let buf = ''
+  // the reply goes out cleaned (no speaker label, no em dashes). Text is held back until a
+  // possible label at the start is settled, and trailing spaces wait for the next word so
+  // an em dash arriving next can still swallow them.
+  let raw = ''
+  let sent = 0
+  const ready = () => {
+    const clean = cleanReply(raw)
+    if (raw.length < 40 && !raw.includes('\n')) return ''
+    const upto = clean.trimEnd().length - 1
+    if (upto <= sent) return ''
+    const out = clean.slice(sent, upto)
+    sent = upto
+    return out
+  }
   const stream = new ReadableStream({
     // keep reading until some answer text goes out: a pull that enqueues nothing is never
     // called again, and gpt-oss sends reasoning-only chunks (no content) before the answer
     async pull(controller) {
       for (;;) {
         const { done, value } = await reader.read()
-        if (done) return controller.close()
+        if (done) {
+          const rest = cleanReply(raw).slice(sent)
+          if (rest) controller.enqueue(encoder.encode(rest))
+          return controller.close()
+        }
         buf += decoder.decode(value, { stream: true })
         const lines = buf.split('\n')
         buf = lines.pop() ?? ''
-        let sent = false
+        const before = sent
         for (const line of lines) {
           const data = line.startsWith('data:') ? line.slice(5).trim() : ''
           if (!data || data === '[DONE]') continue
           try {
             const delta = JSON.parse(data)?.choices?.[0]?.delta?.content
-            if (typeof delta === 'string' && delta) {
-              controller.enqueue(encoder.encode(delta))
-              sent = true
-            }
+            if (typeof delta === 'string' && delta) raw += delta
           } catch {
             // partial or non-JSON line; skip
           }
         }
-        if (sent) return
+        const out = ready()
+        if (out) controller.enqueue(encoder.encode(out))
+        if (sent > before) return
       }
     },
     cancel() {

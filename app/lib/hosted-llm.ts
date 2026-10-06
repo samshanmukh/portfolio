@@ -2,6 +2,7 @@
 // Client side of smart mode's hosted brain (Mistral or Groq, via /api/chat). Keys never reach
 // the browser; the route answers as Sam from everything on the site.
 // ---------------------------------------------------------------------------
+import { cleanReply } from './clean-reply'
 import type { ChatMsg } from './webllm'
 
 export const HOSTED_LABEL = 'smart · hosted'
@@ -37,11 +38,8 @@ export async function hostedStream(
     const { done, value } = await reader.read()
     if (done) break
     full += decoder.decode(value, { stream: true })
-    onToken(noEmDash(full))
+    onToken(cleanReply(full))
   }
   if (!full.trim()) throw new Error('chat-empty')
-  return noEmDash(full)
+  return cleanReply(full)
 }
-
-// the site never shows em dashes to visitors; models love them, so swap any for a comma
-const noEmDash = (t: string) => t.replace(/\s*—\s*/g, ', ')
