@@ -6,6 +6,7 @@ import { AiTrainer } from '../ai-trainer'
 import { Blog } from './blog'
 import { Contact } from './contact'
 import { Education, Experience } from './experience'
+import { Events } from './events'
 import { GithubNow } from './github-now'
 import { Gym } from './gym'
 import { Presentation } from './presentation'
@@ -55,5 +56,7 @@ export function ViewRenderer({
       return <Source />
     case 'blog':
       return <Blog posts={posts} />
+    case 'events':
+      return <Events />
   }
 }

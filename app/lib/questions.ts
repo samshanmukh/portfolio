@@ -7,6 +7,7 @@ export const quickQuestions = {
   Skills: "What are your skills? What's your stack?",
   Fun: 'What do you do for fun? Tell me about the gym.',
   Contact: 'How can I reach you?',
+  Events: 'What events are you hosting or going to?',
 } as const
 
 export type QuickKey = keyof typeof quickQuestions
@@ -17,7 +18,11 @@ export const quickConfig: { key: QuickKey; color: string }[] = [
   { key: 'Skills', color: '#856ED9' },
   { key: 'Fun', color: '#B95F9D' },
   { key: 'Contact', color: '#C19433' },
+  { key: 'Events', color: '#D0644A' },
 ]
+
+// Events only shows once the calendar is connected and has something on it.
+export const quickKeys = (withEvents: boolean) => quickConfig.filter((q) => withEvents || q.key !== 'Events')
 
 // highlighted (dark) rows in the drawer
 export const specialQuestions = [
