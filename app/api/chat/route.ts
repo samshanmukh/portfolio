@@ -27,7 +27,7 @@ const PROVIDERS: Provider[] = [
 ]
 const configured = () => PROVIDERS.filter((p) => p.key)
 
-const SYSTEM = `${systemPrompt(fullContext())}\nNever use em dashes; use commas or periods instead.`
+const SYSTEM = `${systemPrompt(fullContext())}\nFormatting: chat-style plain text. You may use **bold** for names and short "- " bullet lists, nothing else (no headings, tables or code). Put a colon after a bolded name, never a dash, and never use em dashes. Don't paste raw URLs; when a link helps, write it as [short label](url). The chat already shows a card with the details, so keep lists to the few items that matter.`
 
 // Best-effort per-visitor limit so nobody can run up the Mistral bill. In-memory,
 // so it resets when the serverless instance does; Mistral's own limit backs it up.

@@ -20,6 +20,7 @@ import { ViewRenderer } from '../views/view-renderer'
 import { WelcomeModal } from '../welcome-modal'
 import { ChatLanding } from './chat-landing'
 import { HelperBoost } from './helper-boost'
+import { RichText } from './rich-text'
 import { morphArrived, morphing } from '../../lib/morph'
 
 type Msg = {
@@ -440,7 +441,7 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
           <Dots />
         ) : (
           <>
-            {msg.shown === Infinity ? msg.text : msg.text.slice(0, msg.shown)}
+            {msg.shown === Infinity ? <RichText text={msg.text} /> : msg.text.slice(0, msg.shown)}
             {msg.status === 'typing' && <span className="caret" />}
           </>
         )}
