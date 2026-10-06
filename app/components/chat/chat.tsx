@@ -75,7 +75,11 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   useEffect(() => {
     hostedAvailable().then((ok) => {
       setBrain(ok ? 'hosted' : 'local')
-      if (!ok && !webgpuSupported()) setLlm('unsupported')
+      if (ok) {
+        // a hosted model needs no download, so smart mode starts on
+        setLlm('ready')
+        setMode('llm')
+      } else if (!webgpuSupported()) setLlm('unsupported')
     })
   }, [])
 
@@ -174,12 +178,13 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   }, [busy, queued])
 
   useEffect(() => {
-    if (initialQuery && !autoSubmitted.current) {
+    // wait to learn whether smart mode is on, so a question asked from home gets the smart answer
+    if (initialQuery && brain && !autoSubmitted.current) {
       autoSubmitted.current = true
       run(initialQuery)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQuery])
+  }, [initialQuery, brain])
 
   const enableSmart = async () => {
     if (llm === 'ready') {

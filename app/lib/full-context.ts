@@ -28,7 +28,8 @@ export function fullContext(): string {
     .filter((p) => p !== null)
     .map((p) => `### ${p.title} (${p.date}, ${siteUrl}/blog/${p.slug})\n${p.content.trim()}`)
 
-  const json = (v: unknown) => JSON.stringify(v, null, 2)
+  // compact JSON keeps the prompt small enough for free tiers' per-minute token limits
+  const json = (v: unknown) => JSON.stringify(v)
   return [
     `SITE: ${siteUrl}`,
     `PROFILE:\n${json(profile)}`,
