@@ -4,7 +4,7 @@
 // Ported from yuvraj0412s/ai-native-portfolio (MIT), itself based on Pavel Dobryakov's
 // WebGL-Fluid-Simulation (MIT). Changes: takes the canvas as an argument, returns a cleanup
 // function (stops the render loop and removes listeners), and uses lighter settings on
-// small / touch screens.
+// small / touch screens, and a slightly stronger splash (bigger, brighter, lingers longer).
 export default function startFluidCursor(canvas: HTMLCanvasElement): () => void {
   const listeners = [];
   const on = (target, type, fn, opts) => {
@@ -29,12 +29,12 @@ export default function startFluidCursor(canvas: HTMLCanvasElement): () => void 
     SIM_RESOLUTION: 128,
     DYE_RESOLUTION: 1440,
     CAPTURE_RESOLUTION: 1512,
-    DENSITY_DISSIPATION: 0.5,
+    DENSITY_DISSIPATION: 0.35, // upstream 0.5; colour lingers a little longer
     VELOCITY_DISSIPATION: 3,
     PRESSURE: 0.1,
     PRESSURE_ITERATIONS: 20,
     CURL: 3,
-    SPLAT_RADIUS: 0.2,
+    SPLAT_RADIUS: 0.25, // upstream 0.2; slightly bigger splash
     SPLAT_FORCE: 6000,
     SHADING: true,
     COLOR_UPDATE_SPEED: 10,
@@ -1288,9 +1288,10 @@ export default function startFluidCursor(canvas: HTMLCanvasElement): () => void 
 
   function generateColor() {
     let c = HSVtoRGB(Math.random(), 1.0, 1.0);
-    c.r *= 0.15;
-    c.g *= 0.15;
-    c.b *= 0.15;
+    // upstream 0.15; a bit brighter so the splash reads through the glass controls
+    c.r *= 0.22;
+    c.g *= 0.22;
+    c.b *= 0.22;
     return c;
   }
 

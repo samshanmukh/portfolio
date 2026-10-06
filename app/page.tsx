@@ -2,9 +2,8 @@
 
 import Image from 'next/image'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { RollingGreeting } from './components/rolling-greeting'
 import { profile } from './lib/data'
 import { openSmsOnPhone } from './lib/open-sms'
@@ -16,6 +15,7 @@ import { ThemeToggle } from './components/theme-toggle'
 import { SocialLinks } from './components/social-links'
 import { FluidCursor } from './components/fluid-cursor'
 import { SpotifyWidget } from './components/spotify-widget'
+import { SendArrow } from './components/send-arrow'
 
 const GREETINGS = [
   { text: `Hey, I'm ${profile.shortName}`, wave: true },
@@ -159,7 +159,7 @@ export default function Home() {
         animate={revealed ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 20 }}
         transition={{ type: 'spring', stiffness: 160, damping: 18 }}
       >
-        <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="288px" priority className="object-contain" />
+        <Image src="/avatar-smile.png" alt={`${profile.name}'s avatar`} fill sizes="288px" priority className="object-contain" />
       </motion.div>
 
       {/* input + quick buttons */}
@@ -231,29 +231,7 @@ export default function Home() {
                   animate={phase === 'measure' ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 }}
                   transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
                 >
-                  <span className="relative flex">
-                    <ArrowRight className="h-5 w-5" />
-                    {/* launch only: the arrow holds a steady shine (on the arrow only; chrome in dark mode) to catch the
-                        eye, then fades back to plain */}
-                    {!reduced && phase !== 'measure' && phase !== 'done' && (
-                      <svg aria-hidden viewBox="0 0 24 24" fill="none" className={`arrow-shine pointer-events-none absolute inset-0 h-5 w-5 ${beam ? 'tinted' : ''}`} style={beam ? ({ '--shine': beam, '--shine-glow': beam } as CSSProperties) : undefined}>
-                        {/* dark mode: liquid-metal silver (libraries.dev/metal's silver: #E2E2E2 base, white highlight,
-                            a dark horizon band through the middle) */}
-                        <defs>
-                          <linearGradient id="arrow-chrome" gradientUnits="userSpaceOnUse" x1="12" y1="5" x2="12" y2="19">
-                            <stop offset="0" stopColor="#ffffff" />
-                            <stop offset="0.28" stopColor="#e2e2e2" />
-                            <stop offset="0.46" stopColor="#9a9a9a" />
-                            <stop offset="0.52" stopColor="#5c5c5c" />
-                            <stop offset="0.6" stopColor="#b4b4b4" />
-                            <stop offset="0.8" stopColor="#e2e2e2" />
-                            <stop offset="1" stopColor="#f7f7f7" />
-                          </linearGradient>
-                        </defs>
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                    )}
-                  </span>
+                  <SendArrow shine={!reduced && phase !== 'measure' && phase !== 'done'} beam={beam} />
                 </motion.span>
               </motion.button>
             </motion.span>
