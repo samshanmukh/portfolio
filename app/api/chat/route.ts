@@ -27,7 +27,7 @@ const PROVIDERS: Provider[] = [
 ]
 const configured = () => PROVIDERS.filter((p) => p.key)
 
-const SYSTEM = systemPrompt(fullContext())
+const SYSTEM = `${systemPrompt(fullContext())}\nNever use em dashes; use commas or periods instead.`
 
 // Best-effort per-visitor limit so nobody can run up the Mistral bill. In-memory,
 // so it resets when the serverless instance does; Mistral's own limit backs it up.

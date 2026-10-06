@@ -32,8 +32,11 @@ export async function hostedStream(messages: ChatMsg[], onToken: (full: string) 
     const { done, value } = await reader.read()
     if (done) break
     full += decoder.decode(value, { stream: true })
-    onToken(full)
+    onToken(noEmDash(full))
   }
   if (!full.trim()) throw new Error('chat-empty')
-  return full
+  return noEmDash(full)
 }
+
+// the site never shows em dashes to visitors; models love them, so swap any for a comma
+const noEmDash = (t: string) => t.replace(/\s*—\s*/g, ', ')
