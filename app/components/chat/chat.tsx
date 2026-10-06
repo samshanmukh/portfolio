@@ -135,7 +135,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       patchLast({ text: full })
     }
     try {
-      if (remote) await hostedStream(msgs, onToken)
+      if (remote) await hostedStream(msgs, onToken, routed.view)
       else await chatStream(engineRef.current, msgs, onToken)
       patchLast({ status: 'done' })
     } catch {

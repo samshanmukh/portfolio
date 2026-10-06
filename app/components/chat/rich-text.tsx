@@ -45,7 +45,10 @@ const BULLET = /^\s*[-*•]\s+/
 
 export function RichText({ text }: { text: string }) {
   // "**Name** – blurb" reads better as "**Name**: blurb"
-  const lines = text.replace(/\*\*(.+?)\*\*\s+[–-]\s+/g, '**$1**: ').replace(/\s+[–-]\s+(?=https?:)/g, ' · ').split('\n')
+  const lines = text.replace(/\*\*(.+?)\*\*\s+[–-]\s+/g, '**$1**: ').replace(/\s+[–-]\s+(?=https?:)/g, ' · ')
+    // the list has its own spacing, so drop blank lines around it
+    .replace(/\n{2,}(?=\s*[-*•]\s)/g, '\n')
+    .split('\n')
   const blocks: ReactNode[] = []
   let list: string[] = []
   const flush = () => {
@@ -61,6 +64,7 @@ export function RichText({ text }: { text: string }) {
   }
   lines.forEach((line, i) => {
     if (BULLET.test(line)) return list.push(line.replace(BULLET, ''))
+    if (list.length && !line.trim()) return
     flush()
     blocks.push(
       <Fragment key={i}>

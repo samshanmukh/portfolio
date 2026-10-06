@@ -18,11 +18,16 @@ export async function hostedAvailable(): Promise<boolean> {
 
 // Streams the reply via onToken(fullTextSoFar); throws on any error (every provider
 // rate-limited or down, no key) so the caller can fall back to the instant answers.
-export async function hostedStream(messages: ChatMsg[], onToken: (full: string) => void): Promise<string> {
+// `view`: the card already shown above the reply, so the model doesn't repeat it
+export async function hostedStream(
+  messages: ChatMsg[],
+  onToken: (full: string) => void,
+  view?: string
+): Promise<string> {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: messages.filter((m) => m.role !== 'system') }),
+    body: JSON.stringify({ messages: messages.filter((m) => m.role !== 'system'), view }),
   })
   if (!res.ok || !res.body) throw new Error(`chat-${res.status}`)
   const reader = res.body.getReader()

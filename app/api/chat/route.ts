@@ -57,8 +57,13 @@ export async function POST(req: Request) {
   if (limited(ip)) return Response.json({ error: 'rate-limited' }, { status: 429 })
 
   let messages: Msg[] = []
+  let system = SYSTEM
   try {
     const body = await req.json()
+    // the chat shows a card for this question already (projects, skills…); don't repeat it
+    if (typeof body?.view === 'string' && /^[a-z]{2,20}$/.test(body.view)) {
+      system += `\nA "${body.view}" card with the full details is already on screen right above your reply. Don't list or repeat what it shows; answer in 1 to 2 sentences that add something, then ask a short question.`
+    }
     messages = (Array.isArray(body?.messages) ? body.messages : [])
       // only the visitor's turns and earlier replies; the system prompt is always ours
       .filter((m: Msg) => (m?.role === 'user' || m?.role === 'assistant') && typeof m.content === 'string')
@@ -80,7 +85,7 @@ export async function POST(req: Request) {
           stream: true,
           temperature: 0.5,
           ...p.extra,
-          messages: [{ role: 'system', content: SYSTEM }, ...messages],
+          messages: [{ role: 'system', content: system }, ...messages],
         }),
       })
       if (r.ok && r.body) {
