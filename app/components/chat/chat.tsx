@@ -280,7 +280,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               style={{ viewTransitionName: 'avatar' }}
             >
               {/* holds still while visitors type and while answers load */}
-              <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
+              <Image src="/avatar-smile.png" alt={`${profile.name}'s avatar`} fill sizes="112px" priority className="object-contain" />
             </Link>
           </div>
         </div>

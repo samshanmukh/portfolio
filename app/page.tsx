@@ -159,7 +159,7 @@ export default function Home() {
         animate={revealed ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 20 }}
         transition={{ type: 'spring', stiffness: 160, damping: 18 }}
       >
-        <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="288px" priority className="object-contain" />
+        <Image src="/avatar-smile.png" alt={`${profile.name}'s avatar`} fill sizes="288px" priority className="object-contain" />
       </motion.div>
 
       {/* input + quick buttons */}
