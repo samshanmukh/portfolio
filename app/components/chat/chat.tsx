@@ -280,7 +280,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       <div className="mx-auto flex h-full max-w-3xl flex-col">
         {/* scrollable answer */}
-        <div ref={scrollRef} className="custom-scrollbar flex-1 overflow-y-auto px-2" style={{ paddingTop: headerHeight }}>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-2" style={{ paddingTop: headerHeight }}>
           <AnimatePresence mode="wait">
             {isEmpty ? (
               <motion.div key="landing" className="flex min-h-full items-center justify-center" {...MOTION}>

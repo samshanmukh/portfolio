@@ -66,23 +66,14 @@ body {
   color: #fff;
 }
 
-/* thin, quiet scrollbars (chat + carousels) */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
-}
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 10px;
-}
-.no-scrollbar {
+/* no visible scrollbars anywhere (page, chat, drawers); wheel, touch and keyboard scrolling still work */
+html,
+* {
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-.no-scrollbar::-webkit-scrollbar {
+html::-webkit-scrollbar,
+*::-webkit-scrollbar {
   display: none;
 }
 
