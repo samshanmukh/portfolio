@@ -233,6 +233,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const userMsg = lastUser >= 0 ? messages[lastUser] : null
   const agentMsg = lastAgent > lastUser || (lastAgent >= 0 && lastUser < 0) ? messages[lastAgent] : null
   const hasView = !!agentMsg?.view
+  const geek = agentMsg?.view === 'projects' || agentMsg?.view === 'skills'
   const isEmpty = !userMsg && !agentMsg
   const headerHeight = hasView ? 110 : 170
 
@@ -279,8 +280,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className={`relative block transition-all duration-300 ${hasView ? 'h-20 w-20' : 'h-28 w-28'}`}
               style={{ viewTransitionName: 'avatar' }}
             >
-              {/* holds still while visitors type and while answers load */}
-              <Image src="/avatar-smile.png" alt={`${profile.name}'s avatar`} fill sizes="112px" priority className="object-contain" />
+              {/* holds still while visitors type and while answers load; a Projects or Skills answer
+                  swaps in the glasses version */}
+              <Image src="/avatar-smile.png" alt={`${profile.name}'s avatar`} fill sizes="112px" priority className={`object-contain transition-opacity duration-500 ${geek ? 'opacity-0' : 'opacity-100'}`} />
+              <Image src="/avatar-glasses.png" alt="" aria-hidden fill sizes="112px" className={`object-contain transition-opacity duration-500 ${geek ? 'opacity-100' : 'opacity-0'}`} />
             </Link>
           </div>
         </div>
