@@ -1,13 +1,13 @@
 // ---------------------------------------------------------------------------
-// Client side of smart mode's Mistral brain (/api/chat). The key never reaches
+// Client side of smart mode's hosted brain (Mistral or Groq, via /api/chat). Keys never reach
 // the browser; the route answers as Sam from everything on the site.
 // ---------------------------------------------------------------------------
 import type { ChatMsg } from './webllm'
 
-export const MISTRAL_LABEL = 'mistral'
+export const HOSTED_LABEL = 'smart · hosted'
 
-// true when the server has a Mistral key configured
-export async function mistralAvailable(): Promise<boolean> {
+// true when the server has a Mistral or Groq key configured
+export async function hostedAvailable(): Promise<boolean> {
   try {
     const res = await fetch('/api/chat', { cache: 'no-store' })
     return res.ok && (await res.json())?.enabled === true
@@ -16,9 +16,9 @@ export async function mistralAvailable(): Promise<boolean> {
   }
 }
 
-// Streams the reply via onToken(fullTextSoFar); throws on any error (rate limit,
-// Mistral down, no key) so the caller can fall back to the instant answers.
-export async function mistralStream(messages: ChatMsg[], onToken: (full: string) => void): Promise<string> {
+// Streams the reply via onToken(fullTextSoFar); throws on any error (every provider
+// rate-limited or down, no key) so the caller can fall back to the instant answers.
+export async function hostedStream(messages: ChatMsg[], onToken: (full: string) => void): Promise<string> {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
