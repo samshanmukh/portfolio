@@ -341,9 +341,9 @@ const line = (e: CalendarEvent) =>
   `- ${e.role === 'hosting' ? 'Hosting' : 'Attending'}: ${e.title}, ${when(e)}${e.location ? `, ${e.location}` : ''}${e.url ? `, page ${e.url}` : ''}`
 
 // The same public events the Events card shows, as a short block for smart mode's prompt.
-// Empty when no calendar is connected, so smart mode never claims Sam has no plans.
-export function eventsContext({ configured, upcoming, recent }: EventsPayload, now = Date.now()): string {
-  if (!configured) return ''
+// Empty when no calendar is connected or it couldn't be read, so smart mode never claims Sam has no plans.
+export function eventsContext({ configured, error, upcoming, recent }: EventsPayload & { error?: boolean }, now = Date.now()): string {
+  if (!configured || error) return ''
   const today = new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeZone: 'America/Los_Angeles' }).format(new Date(now))
   return [
     `\nMY EVENTS (from my calendar, public ones only; today is ${today}):`,
