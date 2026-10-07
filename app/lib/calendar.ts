@@ -196,19 +196,24 @@ const email = (p: Prop | undefined) => p?.value.replace(/^mailto:/i, '').trim().
 // Sam often adds events they're going to by hand (and Luma invites come from Luma),
 // so an event Sam created only counts as hosting when it has guests or says #hosting.
 function roleOf(r: Raw, owner: string | undefined): EventRole | null {
-  const organizer = email(get(r, 'ORGANIZER'))
   const attendees = all(r, 'ATTENDEE')
   const me = owner ? attendees.find((a) => email(a) === owner) : undefined
   const rsvp = me?.params.PARTSTAT?.toUpperCase()
   if (rsvp === 'DECLINED') return null
-  if (tagged(r, HOSTING)) return 'hosting'
-  if (!organizer || (owner && organizer === owner)) {
-    return attendees.some((a) => email(a) !== owner) ? 'hosting' : 'attending'
+  if (isOwn(r, owner)) {
+    return tagged(r, HOSTING) || attendees.some((a) => email(a) !== owner) ? 'hosting' : 'attending'
   }
   return rsvp === 'ACCEPTED' ? 'attending' : null
 }
 
-const isMarked = (r: Raw) => get(r, 'CLASS')?.value.trim().toUpperCase() === 'PUBLIC' || tagged(r, MARKER)
+// Tags are only trusted in events Sam wrote; anyone else's title or description can't publish or relabel.
+function isOwn(r: Raw, owner: string | undefined): boolean {
+  const organizer = email(get(r, 'ORGANIZER'))
+  return !organizer || (!!owner && organizer === owner)
+}
+
+const isMarked = (r: Raw, owner: string | undefined) =>
+  get(r, 'CLASS')?.value.trim().toUpperCase() === 'PUBLIC' || (isOwn(r, owner) && tagged(r, MARKER))
 
 // Event pages without query or fragment: Luma's ?pk= is a personal ticket key.
 const cleanLink = (u: string) => {
@@ -281,7 +286,7 @@ export function eventsFromIcs(text: string, ownerHint?: string, now = Date.now()
     const start = parseWhen(get(r, 'DTSTART'), cal.timeZone)
     if (!start) continue
     const role = roleOf(r, owner)
-    if (!role || !isMarked(r)) continue
+    if (!role || !isMarked(r, owner)) continue
 
     const endW = parseWhen(get(r, 'DTEND'), start.tz)
     const length = endW ? endW.floating - start.floating : start.allDay ? DAY : 0
