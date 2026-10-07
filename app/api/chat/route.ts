@@ -1,3 +1,4 @@
+import { eventsContext, getEvents } from '../../lib/calendar'
 import { cleanReply } from '../../lib/clean-reply'
 import { fullContext } from '../../lib/full-context'
 import { systemPrompt } from '../../lib/knowledge'
@@ -68,7 +69,8 @@ export async function POST(req: Request) {
   if (limited(ip)) return Response.json({ error: 'rate-limited' }, { status: 429 })
 
   let messages: Msg[] = []
-  let system = SYSTEM
+  // events change, so they're read per question (getEvents caches the calendar for 15 minutes)
+  let system = SYSTEM + eventsContext(await getEvents())
   try {
     const body = await req.json()
     // the chat shows a card for this question already (projects, skills…); don't repeat it

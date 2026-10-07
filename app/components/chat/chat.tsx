@@ -10,10 +10,8 @@ import { openSmsOnPhone } from '../../lib/open-sms'
 import { ask, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
 import { isPresetQuestion } from '../../lib/questions'
-import { systemPrompt } from '../../lib/knowledge'
 import type { PostMeta } from '../../lib/posts'
-import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
-import { HOSTED_LABEL, hostedAvailable, hostedStream } from '../../lib/hosted-llm'
+import { type ChatMsg, hostedAvailable, hostedStream } from '../../lib/hosted-llm'
 import { SendArrow } from '../send-arrow'
 import { SocialLinks } from '../social-links'
 import { SpotifyWidget } from '../spotify-widget'
@@ -36,7 +34,6 @@ type Msg = {
   shown?: number
 }
 
-type LlmState = 'idle' | 'loading' | 'ready' | 'error' | 'unsupported'
 
 const MOTION = {
   initial: { opacity: 0, y: 20 },
@@ -70,27 +67,15 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const [busy, setBusy] = useState(false)
   // questions sent while an answer is still coming; each goes out, in order, once the one before finishes
   const [queued, setQueued] = useState<{ q: string; typed: boolean }[]>([])
-  const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
-  const [llm, setLlm] = useState<LlmState>('idle')
-  const [prog, setProg] = useState(0)
-  const [loadText, setLoadText] = useState('')
-  // smart mode's brain: a hosted model (Mistral or Groq) when a key is set, else the in-browser model
-  const [brain, setBrain] = useState<'hosted' | 'local' | null>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const engineRef = useRef<any>(null)
+  // smart mode is always on when the site has a hosted model; without one (or when every
+  // model is busy) typed questions get the instant answers. null until we know.
+  const [smart, setSmart] = useState<boolean | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const autoSubmitted = useRef(false)
 
   useEffect(() => {
-    hostedAvailable().then((ok) => {
-      setBrain(ok ? 'hosted' : 'local')
-      if (ok) {
-        // a hosted model needs no download, so smart mode starts on
-        setLlm('ready')
-        setMode('llm')
-      } else if (!webgpuSupported()) setLlm('unsupported')
-    })
+    hostedAvailable().then(setSmart)
   }, [])
 
   const patchLast = (patch: Partial<Msg>) =>
@@ -126,14 +111,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       .filter((m) => m.text && m.status !== 'thinking')
       .slice(-4)
       .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
-    const msgs: ChatMsg[] = [{ role: 'system', content: systemPrompt() }, ...history, { role: 'user', content: q }]
     // still show the matching card; the model writes the words
     const routed = ask(q)
-    const remote = brain === 'hosted'
-    setMessages((prev) => [
-      ...prev,
-      { role: 'agent', tool: remote ? HOSTED_LABEL : MODEL_LABEL, view: routed.view, text: '', status: 'thinking', shown: Infinity },
-    ])
+    setMessages((prev) => [...prev, { role: 'agent', view: routed.view, text: '', status: 'thinking', shown: Infinity }])
     let first = true
     const onToken = (full: string) => {
       if (first) {
@@ -143,18 +123,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       patchLast({ text: full })
     }
     try {
-      if (remote) await hostedStream(msgs, onToken, routed.view)
-      else await chatStream(engineRef.current, msgs, onToken)
+      await hostedStream([...history, { role: 'user', content: q }], onToken, routed.view)
       patchLast({ status: 'done' })
     } catch {
-      if (remote) {
-        // every provider rate-limited or down: answer this one instantly instead, smart mode stays on
-        setMessages((prev) => prev.slice(0, -1))
-        await streamKeyword(routed)
-        return
-      }
-      patchLast({ text: '(local model hiccup, back to quick answers)', status: 'done' })
-      setMode('keyword')
+      // every model rate-limited or down: answer this one instantly instead
+      setMessages((prev) => prev.slice(0, -1))
+      await streamKeyword(routed)
     }
   }
 
@@ -172,7 +146,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
     scrollRef.current?.scrollTo({ top: 0 })
-    if (typed && mode === 'llm' && llm === 'ready' && (brain === 'hosted' || engineRef.current)) {
+    if (typed && smart) {
       await runLLM(q)
     } else {
       await streamKeyword(ask(q))
@@ -191,80 +165,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
   useEffect(() => {
     // wait to learn whether smart mode is on, so a question asked from home gets the smart answer
-    if (initialQuery && brain && !autoSubmitted.current) {
+    if (initialQuery && smart !== null && !autoSubmitted.current) {
       autoSubmitted.current = true
       run(initialQuery, !isPresetQuestion(initialQuery))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQuery, brain])
-
-  const enableSmart = async () => {
-    if (llm === 'ready') {
-      setMode('llm')
-      return
-    }
-    if (brain === 'hosted') {
-      setLlm('ready')
-      setMode('llm')
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'agent',
-          tool: HOSTED_LABEL,
-          text: `Smart mode on: I'm now a full AI model that knows everything on this site, from my projects and jobs to my blog posts. Ask me anything!`,
-          status: 'done',
-          shown: Infinity,
-        },
-      ])
-      return
-    }
-    if (!webgpuSupported()) {
-      setLlm('unsupported')
-      return
-    }
-    setLlm('loading')
-    setProg(0)
-    setLoadText('initializing…')
-    try {
-      // fail fast with a clear message if there's no usable GPU adapter
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = await (navigator as any).gpu?.requestAdapter?.()
-      if (!adapter) throw new Error('WebGPU is present but no GPU adapter is available')
-      const engine = await getEngine((p) => {
-        setProg(Math.round(p.progress * 100))
-        setLoadText(p.text || '')
-      })
-      engineRef.current = engine
-      setLlm('ready')
-      setMode('llm')
-      setLoadText('')
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'agent',
-          tool: MODEL_LABEL,
-          text: `Smart mode on: I'm now a small language model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
-          status: 'done',
-          shown: Infinity,
-        },
-      ])
-    } catch (e) {
-      console.error('[smart-mode] failed to load', e)
-      setLlm('error')
-      setMode('keyword')
-      const msg = e instanceof Error ? e.message : 'unknown error'
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'agent',
-          tool: 'error',
-          text: `Couldn't start the local model (${msg}). No worries, I'll keep using quick answers, which are instant and work on any device.`,
-          status: 'done',
-          shown: Infinity,
-        },
-      ])
-    }
-  }
+  }, [initialQuery, smart])
 
   // Like the reference, the screen shows only the latest exchange.
   const lastUser = messages.findLastIndex((m) => m.role === 'user')
@@ -300,10 +206,15 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       {/* top-right: controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
-        {/* clicking Smart mode toggles it and opens the "about this portfolio" popup */}
+        {/* the sparkles open the "about this portfolio" popup */}
         <WelcomeModal
           trigger={
-            <SmartToggle llm={llm} mode={mode} prog={prog} remote={brain === 'hosted'} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
+            <button
+              aria-label="About this portfolio"
+              className="glass tap flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:text-foreground"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+            </button>
           }
         />
         <ThemeToggle />
@@ -362,20 +273,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
         {/* bottom bar */}
         <div className="sticky bottom-0 bg-background px-2 pt-3 transition-colors duration-300 md:px-0 md:pb-4">
-          {llm === 'loading' && (
-            <div className="mx-auto mb-3 w-full max-w-xl px-2">
-              <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted">
-                <span className="flex items-center gap-1">
-                  <Sparkles className="h-3.5 w-3.5" /> booting on-device LLM: one-time download, then cached
-                </span>
-                <span className="font-medium text-primary">{prog}%</span>
-              </div>
-              <div className="h-1 w-full overflow-hidden rounded-full bg-accent">
-                <div className="h-full rounded-full bg-[#0171E3] transition-all duration-300" style={{ width: `${prog}%` }} />
-              </div>
-              {loadText && <div className="mt-1 truncate text-[10px] text-muted">{loadText}</div>}
-            </div>
-          )}
           <div className="relative flex flex-col items-center gap-3">
             <HelperBoost onAsk={run} disabled={busy} />
             <form
@@ -497,51 +394,5 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
         </div>
       )}
     </div>
-  )
-}
-
-function SmartToggle({
-  llm,
-  mode,
-  prog,
-  remote,
-  onEnable,
-  onDisable,
-}: {
-  llm: LlmState
-  mode: 'keyword' | 'llm'
-  prog: number
-  remote: boolean
-  onEnable: () => void
-  onDisable: () => void
-}) {
-  const base = 'glass tap relative flex h-9 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition-colors md:px-3'
-  if (llm === 'unsupported') {
-    return (
-      <span
-        title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
-        className={`${base} cursor-not-allowed text-muted`}
-      >
-        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">no WebGPU</span>
-      </span>
-    )
-  }
-  if (llm === 'loading') return <span className={`${base} text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
-  if (mode === 'llm') {
-    return (
-      <button onClick={onDisable} className={`${base} cursor-pointer text-foreground`}>
-        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart: on</span>
-      </button>
-    )
-  }
-  return (
-    <button
-      onClick={onEnable}
-      aria-label="Smart mode"
-      title={remote ? 'Chat with an AI that knows everything about me.' : 'Load a small LLM that runs free in your browser (~0.4 GB, one-time).'}
-      className={`${base} cursor-pointer text-muted hover:text-foreground`}
-    >
-      <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>
-    </button>
   )
 }
