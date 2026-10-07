@@ -283,7 +283,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className="w-full md:px-4"
             >
               <div
-                className={`${morphed ? '' : mounted ? 'ask-grow' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
+                className={`${morphed ? '' : mounted ? 'ask-grow' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border py-2 pr-2 pl-6`}
                 style={{ animationDelay: '0.1s', viewTransitionName: 'askbox' }}
               >
                 <input
