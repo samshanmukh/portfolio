@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Compact knowledge base + system prompt for the in-browser LLM ("Smart mode").
+// Compact knowledge base + system prompt for smart mode (app/api/chat).
 // Small enough to stuff directly into the system prompt — no vector store needed.
 // ---------------------------------------------------------------------------
 import {

@@ -346,3 +346,32 @@ export async function getEvents(): Promise<EventsPayload> {
     return { configured: true, error: true, upcoming: [], recent: [] }
   }
 }
+
+// ---------- smart mode ----------
+
+function when(e: CalendarEvent): string {
+  const opts: Intl.DateTimeFormatOptions = e.allDay
+    ? { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
+    : { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: e.timeZone, timeZoneName: 'short' }
+  try {
+    return new Intl.DateTimeFormat('en-US', opts).format(new Date(e.start))
+  } catch {
+    return e.start
+  }
+}
+
+const line = (e: CalendarEvent) =>
+  `- ${e.role === 'hosting' ? 'Hosting' : 'Attending'}: ${e.title}, ${when(e)}${e.location ? `, ${e.location}` : ''}${e.url ? `, page ${e.url}` : ''}`
+
+// The same public events the Events card shows, as a short block for smart mode's prompt.
+// Empty when no calendar is connected or it couldn't be read, so smart mode never claims Sam has no plans.
+export function eventsContext({ configured, error, upcoming, recent }: EventsPayload & { error?: boolean }, now = Date.now()): string {
+  if (!configured || error) return ''
+  const today = new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeZone: 'America/Los_Angeles' }).format(new Date(now))
+  return [
+    `\nMY EVENTS (from my calendar, public ones only; today is ${today}):`,
+    'Upcoming:',
+    ...(upcoming.length ? upcoming.map(line) : ['- none on my calendar right now']),
+    ...(recent.length ? ['Recent:', ...recent.map(line)] : []),
+  ].join('\n')
+}

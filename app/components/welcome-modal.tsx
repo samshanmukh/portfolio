@@ -86,8 +86,8 @@ export function WelcomeModal({ trigger }: { trigger?: ReactNode }) {
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold">How does it work?</h3>
                       <p className="leading-relaxed text-foreground/80">
-                        Quick answers are instant and work on any device. Flip on <strong>smart mode</strong> in the
-                        chat to talk to an <strong>AI version of me</strong> that knows everything on this site.
+                        Type any question to talk to an <strong>AI version of me</strong> that knows everything on
+                        this site. The quick questions answer instantly.
                       </p>
                     </div>
                   </section>

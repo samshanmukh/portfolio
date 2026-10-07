@@ -3,9 +3,8 @@
 // the browser; the route answers as Sam from everything on the site.
 // ---------------------------------------------------------------------------
 import { cleanReply } from './clean-reply'
-import type { ChatMsg } from './webllm'
 
-export const HOSTED_LABEL = 'smart · hosted'
+export type ChatMsg = { role: 'user' | 'assistant'; content: string }
 
 // true when the server has a Mistral or Groq key configured
 export async function hostedAvailable(): Promise<boolean> {
@@ -28,7 +27,7 @@ export async function hostedStream(
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: messages.filter((m) => m.role !== 'system'), view }),
+    body: JSON.stringify({ messages, view }),
   })
   if (!res.ok || !res.body) throw new Error(`chat-${res.status}`)
   const reader = res.body.getReader()
