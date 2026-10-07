@@ -3,6 +3,7 @@
 // of their Google Calendar (GOOGLE_CALENDAR_ICS_URL). Nothing shows unless Sam
 // marks the event for the site: visibility set to Public (works on invites too),
 // or "#portfolio" in the title or description of an event Sam created.
+// Events count as Attending unless Sam created them with guests or wrote "#hosting".
 // Only public details leave the server: name, time, place and a public event
 // link. Never guests, descriptions or meeting links.
 // ---------------------------------------------------------------------------
@@ -24,6 +25,7 @@ export type CalendarEvent = {
 
 export type EventsPayload = {
   configured: boolean
+  error?: boolean // the calendar address couldn't be read
   upcoming: CalendarEvent[]
   recent: CalendarEvent[]
 }
@@ -32,6 +34,9 @@ const DAY = 86_400_000
 const UPCOMING_DAYS = 365
 const RECENT_DAYS = 120
 const MARKER = /#portfolio\b/gi
+const HOSTING = /#hosting\b/gi
+const tagged = (r: Raw, tag: RegExp) =>
+  new RegExp(tag.source, 'i').test(`${get(r, 'SUMMARY')?.value ?? ''}\n${get(r, 'DESCRIPTION')?.value ?? ''}`)
 
 // Hosts whose links are safe to show as "the event page".
 const EVENT_HOSTS = [
@@ -50,6 +55,9 @@ const EVENT_HOSTS = [
   'dice.fm',
   'mlh.io',
   'events.mlh.io',
+  'rsvp.withgoogle.com',
+  'events.withgoogle.com',
+  'gdg.community.dev',
 ]
 const MEETING_HOSTS = ['meet.google.com', 'zoom.us', 'teams.microsoft.com', 'teams.live.com', 'webex.com', 'whereby.com', 'gotomeeting.com']
 
@@ -185,23 +193,33 @@ const get = (r: Raw, name: string) => r.props.find((p) => p.name === name)
 const all = (r: Raw, name: string) => r.props.filter((p) => p.name === name)
 const email = (p: Prop | undefined) => p?.value.replace(/^mailto:/i, '').trim().toLowerCase()
 
+// Sam often adds events they're going to by hand (and Luma invites come from Luma),
+// so an event Sam created only counts as hosting when it has guests or says #hosting.
 function roleOf(r: Raw, owner: string | undefined): EventRole | null {
   const organizer = email(get(r, 'ORGANIZER'))
-  if (!organizer || (owner && organizer === owner)) return 'hosting'
-  if (!owner) return null
-  const me = all(r, 'ATTENDEE').find((a) => email(a) === owner)
-  return me?.params.PARTSTAT?.toUpperCase() === 'ACCEPTED' ? 'attending' : null
+  const attendees = all(r, 'ATTENDEE')
+  const me = owner ? attendees.find((a) => email(a) === owner) : undefined
+  const rsvp = me?.params.PARTSTAT?.toUpperCase()
+  if (rsvp === 'DECLINED') return null
+  if (tagged(r, HOSTING)) return 'hosting'
+  if (!organizer || (owner && organizer === owner)) {
+    return attendees.some((a) => email(a) !== owner) ? 'hosting' : 'attending'
+  }
+  return rsvp === 'ACCEPTED' ? 'attending' : null
 }
 
-function isMarked(r: Raw, role: EventRole): boolean {
-  if (get(r, 'CLASS')?.value.trim().toUpperCase() === 'PUBLIC') return true
-  if (role !== 'hosting') return false
-  const text = `${get(r, 'SUMMARY')?.value ?? ''}\n${get(r, 'DESCRIPTION')?.value ?? ''}`
-  return new RegExp(MARKER.source, 'i').test(text)
+const isMarked = (r: Raw) => get(r, 'CLASS')?.value.trim().toUpperCase() === 'PUBLIC' || tagged(r, MARKER)
+
+// Event pages without query or fragment: Luma's ?pk= is a personal ticket key.
+const cleanLink = (u: string) => {
+  const url = new URL(u)
+  url.search = ''
+  url.hash = ''
+  return url.toString()
 }
 
 function publicDetails(r: Raw): { title: string; location?: string; url?: string } {
-  const title = unescapeText(get(r, 'SUMMARY')?.value ?? 'Untitled event').replace(MARKER, '').replace(/\s{2,}/g, ' ').trim()
+  const title = unescapeText(get(r, 'SUMMARY')?.value ?? 'Untitled event').replace(MARKER, '').replace(HOSTING, '').replace(/\s{2,}/g, ' ').trim()
   let location = unescapeText(get(r, 'LOCATION')?.value ?? '').trim() || undefined
   const own = get(r, 'URL')?.value.trim()
   let url = own && isEventLink(own) ? own : undefined
@@ -215,7 +233,7 @@ function publicDetails(r: Raw): { title: string; location?: string; url?: string
     url = (desc.match(URL_RE) ?? []).map((u) => u.replace(/[.,;]+$/, '')).find(isEventLink)
   }
   if (!location && get(r, 'X-GOOGLE-CONFERENCE')) location = 'Online'
-  return { title: title || 'Untitled event', location, url }
+  return { title: title || 'Untitled event', location, url: url && cleanLink(url) }
 }
 
 function occurrences(r: Raw, start: When, from: number, to: number, overridden: Set<number>): number[] {
@@ -263,7 +281,7 @@ export function eventsFromIcs(text: string, ownerHint?: string, now = Date.now()
     const start = parseWhen(get(r, 'DTSTART'), cal.timeZone)
     if (!start) continue
     const role = roleOf(r, owner)
-    if (!role || !isMarked(r, role)) continue
+    if (!role || !isMarked(r)) continue
 
     const endW = parseWhen(get(r, 'DTEND'), start.tz)
     const length = endW ? endW.floating - start.floating : start.allDay ? DAY : 0
@@ -320,6 +338,6 @@ export async function getEvents(): Promise<EventsPayload> {
     return { configured: true, ...eventsFromIcs(await res.text(), owner) }
   } catch (e) {
     console.error('[events] calendar fetch failed', e instanceof Error ? e.message : e)
-    return { configured: true, upcoming: [], recent: [] }
+    return { configured: true, error: true, upcoming: [], recent: [] }
   }
 }
