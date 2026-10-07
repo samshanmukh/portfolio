@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
-import { Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -17,7 +16,6 @@ import { SocialLinks } from '../social-links'
 import { SpotifyWidget } from '../spotify-widget'
 import { ThemeToggle } from '../theme-toggle'
 import { ViewRenderer } from '../views/view-renderer'
-import { WelcomeModal } from '../welcome-modal'
 import { ChatLanding } from './chat-landing'
 import { HelperBoost } from './helper-boost'
 import { RichText } from './rich-text'
@@ -206,17 +204,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       {/* top-right: controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
-        {/* the sparkles open the "about this portfolio" popup */}
-        <WelcomeModal
-          trigger={
-            <button
-              aria-label="About this portfolio"
-              className="glass tap flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:text-foreground"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-            </button>
-          }
-        />
         <ThemeToggle />
       </div>
 
