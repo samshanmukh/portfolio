@@ -1,4 +1,6 @@
-// What Sam is listening to right now, for the corner widget. Two sources:
+// What Sam is up to right now, for the corner widget. Sources, first match wins:
+// - Discord via Lanyard (free): DISCORD_USER_ID, after joining Lanyard's Discord server
+//   (discord.gg/lanyard). Shows games and other activity, then Spotify, as Discord sees them.
 // - Last.fm (free): LASTFM_API_KEY and LASTFM_USERNAME. Spotify, YouTube Music (via a
 //   scrobbler extension) and others report plays to Last.fm. Used when both are set.
 // - Spotify: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET and SPOTIFY_REFRESH_TOKEN (see
@@ -24,6 +26,9 @@ export type NowPlaying = {
   album?: string
   albumImageUrl?: string | null
   songUrl?: string
+  // what Sam is doing: music by default, or a game / show / stream from Discord
+  kind?: 'music' | 'activity'
+  verb?: string // "Playing", "Watching", ...
 }
 
 const mapTrack = (item: SpotifyTrack, isPlaying: boolean): NowPlaying => ({
@@ -90,18 +95,86 @@ async function lastfmNowPlaying(apiKey: string, user: string): Promise<NowPlayin
   }
 }
 
+const LANYARD_ENDPOINT = 'https://api.lanyard.rest/v1/users/'
+// Discord activity types: https://discord.com/developers/docs/events/gateway-events#activity-object-activity-types
+const VERBS: Record<number, string> = { 0: 'Playing', 1: 'Streaming', 2: 'Listening to', 3: 'Watching', 5: 'Competing in' }
+
+type DiscordActivity = {
+  type: number
+  name: string
+  details?: string
+  state?: string
+  application_id?: string
+  url?: string
+  assets?: { large_image?: string }
+}
+
+// Discord asset keys come in a few shapes; turn them into image URLs.
+function discordImage(activity: DiscordActivity): string | null {
+  const key = activity.assets?.large_image
+  if (!key) return null
+  if (key.startsWith('mp:')) return `https://media.discordapp.net/${key.slice(3)}`
+  if (key.startsWith('spotify:')) return `https://i.scdn.co/image/${key.slice(8)}`
+  if (activity.application_id) return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${key}.png`
+  return null
+}
+
+// A game, show or stream on Discord comes first; then Spotify as Discord sees it.
+async function discordNowPlaying(userId: string): Promise<NowPlaying | null> {
+  const res = await fetch(`${LANYARD_ENDPOINT}${userId}`, { cache: 'no-store' })
+  if (!res.ok) return null
+  const data = (await res.json())?.data
+  if (!data) return null
+  const activity = (data.activities as DiscordActivity[] | undefined)?.find(
+    (a) => a.type !== 4 && a.name !== 'Spotify' && VERBS[a.type],
+  )
+  if (activity) {
+    return {
+      configured: true,
+      isPlaying: true,
+      kind: 'activity',
+      verb: VERBS[activity.type],
+      title: activity.name,
+      artist: [activity.details, activity.state].filter(Boolean).join(' · '),
+      albumImageUrl: discordImage(activity),
+      songUrl: activity.url ?? '',
+    }
+  }
+  const sp = data.listening_to_spotify ? data.spotify : null
+  if (sp?.song) {
+    return {
+      configured: true,
+      isPlaying: true,
+      kind: 'music',
+      title: sp.song,
+      artist: (sp.artist ?? '').replaceAll(';', ','),
+      album: sp.album ?? '',
+      albumImageUrl: sp.album_art_url ?? null,
+      songUrl: sp.track_id ? `https://open.spotify.com/track/${sp.track_id}` : '',
+    }
+  }
+  return null
+}
+
+const idle: NowPlaying = { configured: true, isPlaying: false }
+
 export async function GET() {
-  const { LASTFM_API_KEY: lastfmKey, LASTFM_USERNAME: lastfmUser } = process.env
+  const { DISCORD_USER_ID: discordId, LASTFM_API_KEY: lastfmKey, LASTFM_USERNAME: lastfmUser } = process.env
+  if (discordId) {
+    const now = await discordNowPlaying(discordId).catch(() => null)
+    if (now) return Response.json(now)
+  }
+
   if (lastfmKey && lastfmUser) {
     try {
       return Response.json(await lastfmNowPlaying(lastfmKey, lastfmUser))
     } catch {
-      return Response.json({ configured: true, isPlaying: false } satisfies NowPlaying)
+      return Response.json(idle)
     }
   }
 
   const { SPOTIFY_CLIENT_ID: id, SPOTIFY_CLIENT_SECRET: secret, SPOTIFY_REFRESH_TOKEN: refresh } = process.env
-  if (!id || !secret || !refresh) return Response.json({ configured: false, isPlaying: false } satisfies NowPlaying)
+  if (!id || !secret || !refresh) return Response.json(discordId ? idle : ({ configured: false, isPlaying: false } satisfies NowPlaying))
 
   try {
     const token = await getAccessToken(id, secret, refresh)

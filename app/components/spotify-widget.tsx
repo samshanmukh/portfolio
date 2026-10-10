@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import { Gamepad2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { NowPlaying } from '../api/spotify/now-playing/route'
 import { GooeyDrag } from './gooey-drag'
@@ -23,8 +24,8 @@ function Equalizer() {
 }
 
 // Small frosted-glass "now playing" pill for the top-right corner, beside the theme
-// button. It only shows while a track is actually playing (Spotify or Last.fm) and
-// shrinks away when playback stops. Phones get the cover and equalizer; wider screens
+// button. It only shows while Sam is playing something (music from Discord, Last.fm or
+// Spotify, or a game / show from Discord) and shrinks away when it stops. Phones get the cover and equalizer; wider screens
 // add the song and artist.
 export function SpotifyWidget({ className = '' }: { className?: string }) {
   const [track, setTrack] = useState<NowPlaying | null>(null)
@@ -59,6 +60,13 @@ export function SpotifyWidget({ className = '' }: { className?: string }) {
   }, [])
 
   const playing = track?.isPlaying && track.title ? track : null
+  const music = playing?.kind !== 'activity'
+  // "Listening to X by Y" for music; "Playing Valorant" (or Watching, Streaming) from Discord
+  const label = playing
+    ? music
+      ? `Sam is listening to ${playing.title}${playing.artist ? ` by ${playing.artist}` : ''}`
+      : `Sam is ${(playing.verb ?? 'Playing').toLowerCase()} ${playing.title}`
+    : ''
 
   return (
     <AnimatePresence>
@@ -74,24 +82,27 @@ export function SpotifyWidget({ className = '' }: { className?: string }) {
           {/* draggable with the same liquid bend as the theme button and social icons */}
           <GooeyDrag radius={18}>
             <a
-              href={playing.songUrl || 'https://www.last.fm'}
+              href={playing.songUrl || undefined}
               target="_blank"
               rel="noopener noreferrer"
               draggable={false}
-              aria-label={`Sam is listening to ${playing.title} by ${playing.artist}`}
-              title={`Now playing: ${playing.title} · ${playing.artist}`}
+              aria-label={label}
+              title={playing.artist ? `${label} · ${playing.artist}` : label}
               className="glass tap flex h-9 min-w-0 items-center gap-2 overflow-hidden rounded-full p-1 pr-3"
             >
               {playing.albumImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- remote cover art
-                <img src={playing.albumImageUrl} alt="" draggable={false} className="record-spin h-7 w-7 shrink-0 rounded-full object-cover" />
+                <img src={playing.albumImageUrl} alt="" draggable={false} className={`h-7 w-7 shrink-0 object-cover ${music ? 'record-spin rounded-full' : 'rounded-lg'}`} />
               ) : (
-                <span className="h-7 w-7 shrink-0 rounded-full bg-foreground/10" aria-hidden />
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground/10" aria-hidden>
+                  {!music && <Gamepad2 className="h-4 w-4 text-foreground/70" />}
+                </span>
               )}
-              <Equalizer />
+              {music ? <Equalizer /> : <span className="h-2 w-2 shrink-0 animate-pulse rounded-full bg-foreground/60" aria-hidden />}
               <span className="hidden max-w-[160px] min-w-0 truncate text-xs leading-tight sm:block lg:max-w-[220px]">
+                {!music && <span className="text-muted">{playing.verb ?? 'Playing'} </span>}
                 <span className="font-semibold text-foreground">{playing.title}</span>
-                <span className="text-muted"> · {playing.artist}</span>
+                {playing.artist && <span className="text-muted"> · {playing.artist}</span>}
               </span>
             </a>
           </GooeyDrag>
