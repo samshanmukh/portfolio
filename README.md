@@ -48,6 +48,18 @@ features whichever repo was pushed most recently as "Currently building". Set `G
 fine-grained token with read-only access to public repositories) so GitHub's anonymous 60-requests/hour limit
 isn't hit; without it the cards fall back to the static list in `app/lib/data.ts`.
 
+### Booking meetings from the chat (optional)
+
+When a visitor wants to meet, the chat shows a booking card: video, phone or in person, a free slot from Sam's calendar
+(in the visitor's time zone), name and email, and a place or number when needed. Confirming books it onto Sam's
+Google Calendar with a note on what the visitor asked in the chat, and Google sends them the invite (with a Meet link
+for video). It runs through a small Google Apps Script under Sam's own account, so no Google Cloud project is needed.
+
+1. Follow the setup steps at the top of `scripts/booking-calendar.gs` (paste it into script.google.com, add the
+   Google Calendar service, set `SECRET`, deploy as a web app). Hours, slot length and time zone are set there too.
+2. Set `BOOKING_SCRIPT_URL` (the web app URL) and `BOOKING_SECRET` (the same string as `SECRET`) in Vercel and
+   `.env.local`, then redeploy. Without them the card offers email instead.
+
 ### Now-playing widget (optional)
 
 A pill beside the theme button shows what Sam is playing (music, a game, a show), only while something plays. It stays hidden

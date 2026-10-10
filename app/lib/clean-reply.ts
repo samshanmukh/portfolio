@@ -11,3 +11,12 @@ export const cleanReply = (t: string) =>
     .replace(/\s*—\s*/g, ', ')
     .replace(/ +– +/g, ', ')
     .replace(/ +,/g, ',')
+
+// Smart mode ends a reply with [[book]] when the visitor wants to meet, and the chat shows the
+// booking card under it. The marker never shows, not even half-streamed ("[[bo").
+const BOOK = /\s*\[\[book\]\]\s*/gi
+const BOOK_PARTIAL = /\s*\[(?:\[(?:b(?:o(?:o(?:k\]?)?)?)?)?)?$/i
+export const splitBooking = (t: string) => ({
+  book: /\[\[book\]\]/i.test(t),
+  text: t.replace(BOOK, ' ').replace(BOOK_PARTIAL, '').trim(),
+})
