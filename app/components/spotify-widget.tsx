@@ -1,22 +1,20 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import type { NowPlaying } from '../api/spotify/now-playing/route'
 
 const POLL_MS = 15_000
 
-// Three-bar equalizer, neutral like the rest of the glass controls.
-function Equalizer({ still }: { still: boolean }) {
+// Three-bar equalizer, neutral like the rest of the glass controls; bounces via .eq-bar.
+function Equalizer() {
   return (
     <span className="flex h-3 items-end gap-[2px]" aria-hidden>
-      {[0, 0.2, 0.4].map((delay) => (
-        <motion.span
+      {[0, 0.25, 0.5].map((delay) => (
+        <span
           key={delay}
-          className="w-[2px] rounded-full bg-foreground/70"
-          style={{ height: still ? '60%' : undefined }}
-          animate={still ? undefined : { height: ['25%', '100%', '25%'] }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay }}
+          className="eq-bar h-full w-[2px] rounded-full bg-foreground/70"
+          style={{ animationDelay: `-${delay}s` }}
         />
       ))}
     </span>
@@ -29,7 +27,6 @@ function Equalizer({ still }: { still: boolean }) {
 // add the song and artist.
 export function SpotifyWidget({ className = '' }: { className?: string }) {
   const [track, setTrack] = useState<NowPlaying | null>(null)
-  const reduced = useReducedMotion() ?? false
 
   useEffect(() => {
     let active = true
@@ -80,11 +77,11 @@ export function SpotifyWidget({ className = '' }: { className?: string }) {
         >
           {playing.albumImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- remote cover art
-            <img src={playing.albumImageUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+            <img src={playing.albumImageUrl} alt="" className="record-spin h-7 w-7 shrink-0 rounded-full object-cover" />
           ) : (
             <span className="h-7 w-7 shrink-0 rounded-full bg-foreground/10" aria-hidden />
           )}
-          <Equalizer still={reduced} />
+          <Equalizer />
           <span className="hidden max-w-[160px] min-w-0 truncate text-xs leading-tight sm:block lg:max-w-[220px]">
             <span className="font-semibold text-foreground">{playing.title}</span>
             <span className="text-muted"> · {playing.artist}</span>

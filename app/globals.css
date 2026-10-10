@@ -453,3 +453,28 @@ textarea:focus-visible {
 ::view-transition-new(root) {
   animation-duration: 0.4s;
 }
+
+/* Now-playing pill (app/components/spotify-widget.tsx): the equalizer bars bounce and the
+   cover spins like a record while a song plays. Small and slow, so they run even with
+   reduced motion on, as Sam asked. */
+@keyframes eq-bar {
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.eq-bar {
+  transform-origin: bottom;
+  animation: eq-bar 0.9s ease-in-out infinite;
+}
+@keyframes record-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.record-spin {
+  animation: record-spin 6s linear infinite;
+}
