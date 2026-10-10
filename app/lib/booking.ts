@@ -21,7 +21,8 @@ async function call<T>(body: Record<string, unknown>): Promise<T> {
     cache: 'no-store',
   })
   if (!res.ok) throw new Error(`booking-${res.status}`)
-  const data = await res.json()
+  // a sign-in page instead of JSON means the deployment isn't open to "Anyone"
+  const data = await res.json().catch(() => ({ error: 'not-json (deploy the script with access: Anyone)' }))
   if (data?.error) throw new Error(String(data.error))
   return data as T
 }

@@ -11,7 +11,9 @@ export async function GET() {
     return Response.json({ enabled: true, ...(await getSlots()) })
   } catch (e) {
     console.error('[book] slots error', e)
-    return Response.json({ enabled: true, error: 'unavailable', slots: [] }, { status: 502 })
+    // the reason ("forbidden" = secrets differ, "booking-401" = script not open to Anyone…) helps setup
+    const reason = e instanceof Error ? e.message.slice(0, 80) : 'unknown'
+    return Response.json({ enabled: true, error: 'unavailable', reason, slots: [] }, { status: 502 })
   }
 }
 

@@ -272,13 +272,14 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                     className="flex w-full flex-col items-start"
                   >
-                    {m.view && (
+                    {m.view && m.view !== 'book' && (
                       <div className="mb-3 w-full">
                         <ViewRenderer view={m.view} posts={posts} onAsk={run} chat={chatUpTo(i)} />
                       </div>
                     )}
                     <AgentText msg={m} onAsk={run} busy={busy} last={i === lastAgent} />
-                    {m.book && m.status === 'done' && m.view !== 'book' && (
+                    {/* the booking card comes under its answer, which points to it ("in the card below") */}
+                    {(m.book || m.view === 'book') && m.status === 'done' && (
                       <div className="mt-2 w-full">
                         <ViewRenderer view="book" posts={posts} onAsk={run} chat={chatUpTo(i)} />
                       </div>
