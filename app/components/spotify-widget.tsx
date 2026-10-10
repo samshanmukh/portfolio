@@ -25,8 +25,8 @@ function Equalizer() {
 
 // Small frosted-glass "now playing" pill for the top-right corner, beside the theme
 // button. It only shows while Sam is playing something (music from Discord, Last.fm or
-// Spotify, or a game / show from Discord) and shrinks away when it stops. Phones get the cover and equalizer; wider screens
-// add the song and artist.
+// Spotify, or a game / show from Discord) and shrinks away when it stops. Phones get the
+// cover and equalizer; wider screens add the song and artist.
 export function SpotifyWidget({ className = '' }: { className?: string }) {
   const [track, setTrack] = useState<NowPlaying | null>(null)
 
