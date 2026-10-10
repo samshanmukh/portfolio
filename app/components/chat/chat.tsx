@@ -1,12 +1,12 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { openSmsOnPhone } from '../../lib/open-sms'
-import { ask, type Source, type View } from '../../lib/agent'
+import { ask, requestedView, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
 import { isPresetQuestion } from '../../lib/questions'
 import type { PostMeta } from '../../lib/posts'
@@ -107,11 +107,12 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const runLLM = async (q: string) => {
     const history: ChatMsg[] = messages
       .filter((m) => m.text && m.status !== 'thinking')
-      .slice(-4)
+      .slice(-6)
       .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
-    // still show the matching card; the model writes the words
+    // the model writes the words; a card comes along only when the question asks for it outright
     const routed = ask(q)
-    setMessages((prev) => [...prev, { role: 'agent', view: routed.view, text: '', status: 'thinking', shown: Infinity }])
+    const view = requestedView(q)
+    setMessages((prev) => [...prev, { role: 'agent', view, text: '', status: 'thinking', shown: Infinity }])
     let first = true
     const onToken = (full: string) => {
       if (first) {
@@ -121,7 +122,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       patchLast({ text: full })
     }
     try {
-      await hostedStream([...history, { role: 'user', content: q }], onToken, routed.view)
+      await hostedStream([...history, { role: 'user', content: q }], onToken, view)
       patchLast({ status: 'done' })
     } catch {
       // every model rate-limited or down: answer this one instantly instead
@@ -143,7 +144,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setBusy(true)
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
-    scrollRef.current?.scrollTo({ top: 0 })
     if (typed && smart) {
       await runLLM(q)
     } else {
@@ -170,15 +170,23 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery, smart])
 
-  // Like the reference, the screen shows only the latest exchange.
+  // One continuous conversation, like iMessage: every question and answer stays on screen.
   const lastUser = messages.findLastIndex((m) => m.role === 'user')
   const lastAgent = messages.findLastIndex((m) => m.role === 'agent')
-  const userMsg = lastUser >= 0 ? messages[lastUser] : null
-  const agentMsg = lastAgent > lastUser || (lastAgent >= 0 && lastUser < 0) ? messages[lastAgent] : null
+  const agentMsg = lastAgent > lastUser ? messages[lastAgent] : null
   const hasView = !!agentMsg?.view
   const geek = agentMsg?.view === 'projects' || agentMsg?.view === 'skills'
-  const isEmpty = !userMsg && !agentMsg
+  const isEmpty = !messages.length
   const headerHeight = hasView ? 110 : 170
+
+  // a new question scrolls up to just under the header, so its answer (and any card) reads from the top
+  useEffect(() => {
+    if (lastUser < 0) return
+    const box = scrollRef.current
+    const el = box?.querySelector<HTMLElement>(`[data-msg="${lastUser}"]`)
+    if (box && el) box.scrollTo({ top: el.offsetTop - headerHeight - 12, behavior: reduced ? 'auto' : 'smooth' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastUser])
 
   return (
     <div className="relative h-dvh overflow-hidden">
@@ -229,33 +237,49 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       <div className="mx-auto flex h-full max-w-3xl flex-col">
         {/* scrollable answer */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-2" style={{ paddingTop: headerHeight }}>
-          <AnimatePresence mode="wait">
-            {isEmpty ? (
-              <motion.div key="landing" className="flex min-h-full items-center justify-center" {...MOTION}>
-                <ChatLanding onAsk={run} />
-              </motion.div>
-            ) : (
-              <motion.div key={lastUser + ':' + lastAgent} {...MOTION} className="flex w-full flex-col px-4 pb-6">
-                {userMsg && (
-                  <div className="mx-auto mb-2 max-w-[85%] rounded-3xl bg-bubble px-5 py-2 text-white">{userMsg.text}</div>
-                )}
-
-                {agentMsg?.view && (
-                  <div className="mb-4 w-full">
-                    <ViewRenderer view={agentMsg.view} posts={posts} onAsk={run} />
-                  </div>
-                )}
-
-                {agentMsg ? (
-                  <AgentText msg={agentMsg} onAsk={run} busy={busy} />
+          {isEmpty ? (
+            <motion.div key="landing" className="flex min-h-full items-center justify-center" {...MOTION}>
+              <ChatLanding onAsk={run} />
+            </motion.div>
+          ) : (
+            <div className="relative flex min-h-full w-full flex-col justify-end gap-3 px-4 pb-6">
+              {messages.map((m, i) =>
+                m.role === 'user' ? (
+                  <motion.div
+                    key={i}
+                    data-msg={i}
+                    initial={reduced ? false : { opacity: 0, y: 12, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="ml-auto max-w-[80%] origin-bottom-right rounded-3xl rounded-br-md bg-bubble px-4 py-2 break-words text-white"
+                  >
+                    {m.text}
+                  </motion.div>
                 ) : (
-                  <div className="pt-4">
-                    <Dots />
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <motion.div
+                    key={i}
+                    data-msg={i}
+                    initial={reduced ? false : { opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="flex w-full flex-col items-start"
+                  >
+                    {m.view && (
+                      <div className="mb-3 w-full">
+                        <ViewRenderer view={m.view} posts={posts} onAsk={run} />
+                      </div>
+                    )}
+                    <AgentText msg={m} onAsk={run} busy={busy} last={i === lastAgent} />
+                  </motion.div>
+                )
+              )}
+              {lastUser === messages.length - 1 && (
+                <div className="mr-auto rounded-3xl rounded-bl-md bg-accent px-4 py-3">
+                  <Dots />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* bottom bar */}
@@ -335,15 +359,15 @@ function Dots() {
   )
 }
 
-function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void; busy: boolean }) {
+function AgentText({ msg, onAsk, busy, last }: { msg: Msg; onAsk: (q: string) => void; busy: boolean; last: boolean }) {
   return (
-    <div className="w-full">
+    <div className="max-w-[85%]">
       {msg.tool && msg.tool !== 'init()' && (
         <div className="glass mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-mono text-[11px] text-muted">
           ⚙ {msg.tool}
         </div>
       )}
-      <div className="py-2 leading-relaxed break-words whitespace-pre-wrap">
+      <div className="rounded-3xl rounded-bl-md bg-accent px-4 py-2 leading-relaxed break-words whitespace-pre-wrap">
         {msg.status === 'thinking' ? (
           <Dots />
         ) : (
@@ -353,7 +377,8 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
           </>
         )}
       </div>
-      {msg.status === 'done' && (
+      {/* links and follow-ups only under the newest answer, so older ones don't pile up */}
+      {last && msg.status === 'done' && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {msg.sources
             ?.filter((s) => s.href)

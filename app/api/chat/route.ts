@@ -39,7 +39,7 @@ const configured = () => PROVIDERS.filter((p) => p.key)
 // question goes straight to one with room instead of paying for a doomed call
 const coolUntil = new Map<string, number>()
 
-const SYSTEM = `${systemPrompt(fullContext())}\nFormatting: chat-style plain text. You may use **bold** for names and short "- " bullet lists, nothing else (no headings, tables or code). Put a colon after a bolded name, never a dash, and never use em dashes. Don't paste raw URLs; when a link helps, write it as [short label](url). The chat already shows a card with the details, so keep lists to the few items that matter.`
+const SYSTEM = `${systemPrompt(fullContext())}\nFormatting: chat-style plain text. You may use **bold** for names and short "- " bullet lists, nothing else (no headings, tables or code). Put a colon after a bolded name, never a dash, and never use em dashes. Don't paste raw URLs; when a link helps, write it as [short label](url). Keep lists to the few items that matter.\nThis is an ongoing chat: read the earlier messages to work out what "it" or "that" refers to. If asked what you think about something, give a short honest take grounded in how you actually used it in the facts above, and don't invent experiences, benchmarks or numbers.`
 
 // Best-effort per-visitor limit so nobody can run up the Mistral bill. In-memory,
 // so it resets when the serverless instance does; Mistral's own limit backs it up.
@@ -131,7 +131,8 @@ export async function POST(req: Request) {
   const ready = () => {
     const clean = cleanReply(raw)
     if (raw.length < 40 && !raw.includes('\n')) return ''
-    const upto = clean.trimEnd().length - 1
+    // hold back trailing spaces and a dash that may still turn into a comma
+    const upto = clean.replace(/\s*[—–]?\s*$/, '').length - 1
     if (upto <= sent) return ''
     const out = clean.slice(sent, upto)
     sent = upto
