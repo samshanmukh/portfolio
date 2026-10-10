@@ -16,7 +16,8 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { questionsByCategory, quickConfig, quickQuestions, specialQuestions } from '../../lib/questions'
+import { questionsByCategory, quickKeys, quickQuestions, specialQuestions } from '../../lib/questions'
+import { hasEvents, useEvents } from '../../lib/use-events'
 import { quickIcons } from '../quick-icons'
 
 const categoryIcons: Record<string, typeof UserSearch> = {
@@ -32,6 +33,7 @@ const categoryIcons: Record<string, typeof UserSearch> = {
 export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; disabled?: boolean }) {
   const [visible, setVisible] = useState(false) // quick questions start tucked away; the toggle shows them
   const [open, setOpen] = useState(false)
+  const quick = quickKeys(hasEvents(useEvents()))
 
   useEffect(() => {
     if (!open) return
@@ -59,7 +61,7 @@ export function HelperBoost({ onAsk, disabled }: { onAsk: (q: string) => void; d
 
       {visible && (
         <div className="flex w-full flex-wrap gap-1 md:gap-3" style={{ justifyContent: 'safe center' }}>
-          {quickConfig.map(({ key, color }) => {
+          {quick.map(({ key, color }) => {
             const Icon = quickIcons[key]
             return (
               <button

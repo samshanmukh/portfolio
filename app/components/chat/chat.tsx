@@ -1,24 +1,24 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import Image from 'next/image'
-import { ArrowUp, Sparkles, Square } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { openSmsOnPhone } from '../../lib/open-sms'
-import { ask, type Source, type View } from '../../lib/agent'
+import { ask, requestedView, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
-import { systemPrompt } from '../../lib/knowledge'
+import { isPresetQuestion } from '../../lib/questions'
 import type { PostMeta } from '../../lib/posts'
-import { chatStream, getEngine, MODEL_LABEL, webgpuSupported, type ChatMsg } from '../../lib/webllm'
+import { type ChatMsg, hostedAvailable, hostedStream } from '../../lib/hosted-llm'
+import { SendArrow } from '../send-arrow'
 import { SocialLinks } from '../social-links'
 import { SpotifyWidget } from '../spotify-widget'
 import { ThemeToggle } from '../theme-toggle'
 import { ViewRenderer } from '../views/view-renderer'
-import { WelcomeModal } from '../welcome-modal'
 import { ChatLanding } from './chat-landing'
 import { HelperBoost } from './helper-boost'
+import { RichText } from './rich-text'
 import { morphArrived, morphing } from '../../lib/morph'
 
 type Msg = {
@@ -32,7 +32,6 @@ type Msg = {
   shown?: number
 }
 
-type LlmState = 'idle' | 'loading' | 'ready' | 'error' | 'unsupported'
 
 const MOTION = {
   initial: { opacity: 0, y: 20 },
@@ -50,7 +49,14 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   // arriving from home by the morph: the avatar, ask box and socials glide in already, so skip their entrances
   const [morphed] = useState(morphing)
   const [mounted, setMounted] = useState(morphed)
-  useEffect(() => setMounted(true), []) // start the input's bubble entrance once hydrated
+  useEffect(() => setMounted(true), []) // start the ask box's launch once hydrated
+  // launch only (same as home): the send arrow holds its shine for a moment, then goes plain
+  const [shine, setShine] = useState(!morphed)
+  useEffect(() => {
+    if (!shine) return
+    const t = setTimeout(() => setShine(false), 2900)
+    return () => clearTimeout(t)
+  }, [shine])
   // chat is in the DOM now: let the browser take its "after" snapshot (rAF is paused during the swap)
   useEffect(() => morphArrived(), [])
 
@@ -58,19 +64,16 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   // questions sent while an answer is still coming; each goes out, in order, once the one before finishes
-  const [queued, setQueued] = useState<string[]>([])
-  const [mode, setMode] = useState<'keyword' | 'llm'>('keyword')
-  const [llm, setLlm] = useState<LlmState>('idle')
-  const [prog, setProg] = useState(0)
-  const [loadText, setLoadText] = useState('')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const engineRef = useRef<any>(null)
+  const [queued, setQueued] = useState<{ q: string; typed: boolean }[]>([])
+  // smart mode is always on when the site has a hosted model; without one (or when every
+  // model is busy) typed questions get the instant answers. null until we know.
+  const [smart, setSmart] = useState<boolean | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const autoSubmitted = useRef(false)
 
   useEffect(() => {
-    if (!webgpuSupported()) setLlm('unsupported')
+    hostedAvailable().then(setSmart)
   }, [])
 
   const patchLast = (patch: Partial<Msg>) =>
@@ -104,44 +107,44 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const runLLM = async (q: string) => {
     const history: ChatMsg[] = messages
       .filter((m) => m.text && m.status !== 'thinking')
-      .slice(-4)
+      .slice(-6)
       .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
-    const msgs: ChatMsg[] = [{ role: 'system', content: systemPrompt() }, ...history, { role: 'user', content: q }]
-    // still show the matching card; the local model writes the words
+    // the model writes the words; a card comes along only when the question asks for it outright
     const routed = ask(q)
-    setMessages((prev) => [
-      ...prev,
-      { role: 'agent', tool: MODEL_LABEL, view: routed.view, text: '', status: 'thinking', shown: Infinity },
-    ])
+    const view = requestedView(q)
+    setMessages((prev) => [...prev, { role: 'agent', view, text: '', status: 'thinking', shown: Infinity }])
+    let first = true
+    const onToken = (full: string) => {
+      if (first) {
+        first = false
+        patchLast({ status: 'typing' })
+      }
+      patchLast({ text: full })
+    }
     try {
-      let first = true
-      await chatStream(engineRef.current, msgs, (full) => {
-        if (first) {
-          first = false
-          patchLast({ status: 'typing' })
-        }
-        patchLast({ text: full })
-      })
+      await hostedStream([...history, { role: 'user', content: q }], onToken, view)
       patchLast({ status: 'done' })
     } catch {
-      patchLast({ text: '(local model hiccup, back to quick answers)', status: 'done' })
-      setMode('keyword')
+      // every model rate-limited or down: answer this one instantly instead
+      setMessages((prev) => prev.slice(0, -1))
+      await streamKeyword(routed)
     }
   }
 
-  const run = async (raw: string) => {
+  // `typed`: the visitor wrote it. Pills, follow-ups and cards keep their instant answers;
+  // only typed questions go to smart mode.
+  const run = async (raw: string, typed = false) => {
     const q = raw.trim()
     if (!q) return
     if (busy) {
-      setQueued((prev) => [...prev, q])
+      setQueued((prev) => [...prev, { q, typed }])
       setInput('')
       return
     }
     setBusy(true)
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
-    scrollRef.current?.scrollTo({ top: 0 })
-    if (mode === 'llm' && llm === 'ready' && engineRef.current) {
+    if (typed && smart) {
       await runLLM(q)
     } else {
       await streamKeyword(ask(q))
@@ -154,79 +157,36 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     if (busy || !queued.length) return
     const [next, ...rest] = queued
     setQueued(rest)
-    run(next)
+    run(next.q, next.typed)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busy, queued])
 
   useEffect(() => {
-    if (initialQuery && !autoSubmitted.current) {
+    // wait to learn whether smart mode is on, so a question asked from home gets the smart answer
+    if (initialQuery && smart !== null && !autoSubmitted.current) {
       autoSubmitted.current = true
-      run(initialQuery)
+      run(initialQuery, !isPresetQuestion(initialQuery))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQuery])
+  }, [initialQuery, smart])
 
-  const enableSmart = async () => {
-    if (llm === 'ready') {
-      setMode('llm')
-      return
-    }
-    if (!webgpuSupported()) {
-      setLlm('unsupported')
-      return
-    }
-    setLlm('loading')
-    setProg(0)
-    setLoadText('initializing…')
-    try {
-      // fail fast with a clear message if there's no usable GPU adapter
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const adapter = await (navigator as any).gpu?.requestAdapter?.()
-      if (!adapter) throw new Error('WebGPU is present but no GPU adapter is available')
-      const engine = await getEngine((p) => {
-        setProg(Math.round(p.progress * 100))
-        setLoadText(p.text || '')
-      })
-      engineRef.current = engine
-      setLlm('ready')
-      setMode('llm')
-      setLoadText('')
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'agent',
-          tool: MODEL_LABEL,
-          text: `Smart mode on: I'm now a small language model running entirely in your browser (no server, no API key). Ask me anything about Sam.`,
-          status: 'done',
-          shown: Infinity,
-        },
-      ])
-    } catch (e) {
-      console.error('[smart-mode] failed to load', e)
-      setLlm('error')
-      setMode('keyword')
-      const msg = e instanceof Error ? e.message : 'unknown error'
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'agent',
-          tool: 'error',
-          text: `Couldn't start the local model (${msg}). No worries, I'll keep using quick answers, which are instant and work on any device.`,
-          status: 'done',
-          shown: Infinity,
-        },
-      ])
-    }
-  }
-
-  // Like the reference, the screen shows only the latest exchange.
+  // One continuous conversation, like iMessage: every question and answer stays on screen.
   const lastUser = messages.findLastIndex((m) => m.role === 'user')
   const lastAgent = messages.findLastIndex((m) => m.role === 'agent')
-  const userMsg = lastUser >= 0 ? messages[lastUser] : null
-  const agentMsg = lastAgent > lastUser || (lastAgent >= 0 && lastUser < 0) ? messages[lastAgent] : null
+  const agentMsg = lastAgent > lastUser ? messages[lastAgent] : null
   const hasView = !!agentMsg?.view
-  const isEmpty = !userMsg && !agentMsg
+  const geek = agentMsg?.view === 'projects' || agentMsg?.view === 'skills'
+  const isEmpty = !messages.length
   const headerHeight = hasView ? 110 : 170
+
+  // a new question scrolls up to just under the header, so its answer (and any card) reads from the top
+  useEffect(() => {
+    if (lastUser < 0) return
+    const box = scrollRef.current
+    const el = box?.querySelector<HTMLElement>(`[data-msg="${lastUser}"]`)
+    if (box && el) box.scrollTo({ top: el.offsetTop - headerHeight - 12, behavior: reduced ? 'auto' : 'smooth' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastUser])
 
   return (
     <div className="relative h-dvh overflow-hidden">
@@ -249,12 +209,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       {/* top-right: controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
         <SpotifyWidget />
-        {/* clicking Smart mode toggles it and opens the "about this portfolio" popup */}
-        <WelcomeModal
-          trigger={
-            <SmartToggle llm={llm} mode={mode} prog={prog} onEnable={enableSmart} onDisable={() => setMode('keyword')} />
-          }
-        />
         <ThemeToggle />
       </div>
 
@@ -268,8 +222,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
               className={`relative block transition-all duration-300 ${hasView ? 'h-20 w-20' : 'h-28 w-28'}`}
               style={{ viewTransitionName: 'avatar' }}
             >
-              {/* holds still while visitors type and while answers load */}
-              <Image src="/memoji.png" alt={`${profile.name} memoji`} fill sizes="112px" priority className="object-contain" />
+              {/* holds still while visitors type and while answers load; a Projects or Skills answer
+                  swaps in the glasses version */}
+              <Image src="/avatar-smile.png" alt={`${profile.name}'s avatar`} fill sizes="112px" priority className={`object-contain transition-opacity duration-500 ${geek ? 'opacity-0' : 'opacity-100'}`} />
+              <Image src="/avatar-glasses.png" alt="" aria-hidden fill sizes="112px" className={`object-contain transition-opacity duration-500 ${geek ? 'opacity-100' : 'opacity-0'}`} />
             </Link>
           </div>
         </div>
@@ -277,63 +233,65 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       <div className="mx-auto flex h-full max-w-3xl flex-col">
         {/* scrollable answer */}
-        <div ref={scrollRef} className="custom-scrollbar flex-1 overflow-y-auto px-2" style={{ paddingTop: headerHeight }}>
-          <AnimatePresence mode="wait">
-            {isEmpty ? (
-              <motion.div key="landing" className="flex min-h-full items-center justify-center" {...MOTION}>
-                <ChatLanding onAsk={run} />
-              </motion.div>
-            ) : (
-              <motion.div key={lastUser + ':' + lastAgent} {...MOTION} className="flex w-full flex-col px-4 pb-6">
-                {userMsg && (
-                  <div className="mx-auto mb-2 max-w-[85%] rounded-3xl bg-bubble px-5 py-2 text-white">{userMsg.text}</div>
-                )}
-
-                {agentMsg?.view && (
-                  <div className="mb-4 w-full">
-                    <ViewRenderer view={agentMsg.view} posts={posts} onAsk={run} />
-                  </div>
-                )}
-
-                {agentMsg ? (
-                  <AgentText msg={agentMsg} onAsk={run} busy={busy} />
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-2" style={{ paddingTop: headerHeight }}>
+          {isEmpty ? (
+            <motion.div key="landing" className="flex min-h-full items-center justify-center" {...MOTION}>
+              <ChatLanding onAsk={run} />
+            </motion.div>
+          ) : (
+            <div className="relative flex min-h-full w-full flex-col justify-end gap-3 px-4 pb-6">
+              {messages.map((m, i) =>
+                m.role === 'user' ? (
+                  <motion.div
+                    key={i}
+                    data-msg={i}
+                    initial={reduced ? false : { opacity: 0, y: 12, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    className="ml-auto max-w-[80%] origin-bottom-right rounded-3xl rounded-br-md bg-bubble px-4 py-2 break-words text-white"
+                  >
+                    {m.text}
+                  </motion.div>
                 ) : (
-                  <div className="pt-4">
-                    <Dots />
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <motion.div
+                    key={i}
+                    data-msg={i}
+                    initial={reduced ? false : { opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="flex w-full flex-col items-start"
+                  >
+                    {m.view && (
+                      <div className="mb-3 w-full">
+                        <ViewRenderer view={m.view} posts={posts} onAsk={run} />
+                      </div>
+                    )}
+                    <AgentText msg={m} onAsk={run} busy={busy} last={i === lastAgent} />
+                  </motion.div>
+                )
+              )}
+              {lastUser === messages.length - 1 && (
+                <div className="mr-auto rounded-3xl rounded-bl-md bg-accent px-4 py-3">
+                  <Dots />
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* bottom bar */}
         <div className="sticky bottom-0 bg-background px-2 pt-3 transition-colors duration-300 md:px-0 md:pb-4">
-          {llm === 'loading' && (
-            <div className="mx-auto mb-3 w-full max-w-xl px-2">
-              <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted">
-                <span className="flex items-center gap-1">
-                  <Sparkles className="h-3.5 w-3.5" /> booting on-device LLM: one-time download, then cached
-                </span>
-                <span className="font-medium text-primary">{prog}%</span>
-              </div>
-              <div className="h-1 w-full overflow-hidden rounded-full bg-accent">
-                <div className="h-full rounded-full bg-[#0171E3] transition-all duration-300" style={{ width: `${prog}%` }} />
-              </div>
-              {loadText && <div className="mt-1 truncate text-[10px] text-muted">{loadText}</div>}
-            </div>
-          )}
           <div className="relative flex flex-col items-center gap-3">
             <HelperBoost onAsk={run} disabled={busy} />
             <form
               onSubmit={(e) => {
                 e.preventDefault()
-                run(input)
+                run(input, true)
               }}
               className="w-full md:px-4"
             >
               <div
-                className={`${morphed ? '' : mounted ? 'bubble-in' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border border-[#E5E5E9] bg-input py-2 pr-2 pl-6`}
+                className={`${morphed ? '' : mounted ? 'ask-grow' : 'invisible'} shimmer-border glass-field mx-auto flex items-center rounded-full border py-2 pr-2 pl-6`}
                 style={{ animationDelay: '0.1s', viewTransitionName: 'askbox' }}
               >
                 <input
@@ -346,11 +304,13 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   aria-label="Ask me anything"
                   className="w-full border-none bg-transparent text-base placeholder:text-neutral-500 focus:outline-none disabled:opacity-60"
                 />
+                {/* launch (same as home): the empty glass circle pops in, the arrow spawns inside it with its
+                    shine, then the box grows out of the button */}
                 <motion.span
                   className="flex"
                   initial={reduced || morphed ? false : { scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.7 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 14, delay: reduced ? 0 : 0.1 }}
                 >
                   <motion.button
                     type="submit"
@@ -359,9 +319,16 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                     whileHover={{ scale: 1.08, y: -1 }}
                     whileTap={{ scale: 0.88 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 15 }}
-                    className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2 disabled:cursor-default disabled:opacity-50"
+                    className="glass-primary flex cursor-pointer items-center justify-center rounded-full p-2.5 disabled:cursor-default disabled:opacity-70"
                   >
-                    {busy && !input.trim() ? <Square className="h-6 w-6 p-1" /> : <ArrowUp className="h-6 w-6" />}
+                    <motion.span
+                      className="flex"
+                      initial={reduced || morphed ? false : { scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.3, type: 'spring', stiffness: 520, damping: 13 }}
+                    >
+                      <SendArrow shine={shine && !reduced} />
+                    </motion.span>
                   </motion.button>
                 </motion.span>
               </div>
@@ -389,25 +356,26 @@ function Dots() {
   )
 }
 
-function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void; busy: boolean }) {
+function AgentText({ msg, onAsk, busy, last }: { msg: Msg; onAsk: (q: string) => void; busy: boolean; last: boolean }) {
   return (
-    <div className="w-full">
+    <div className="max-w-[85%]">
       {msg.tool && msg.tool !== 'init()' && (
         <div className="glass mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-mono text-[11px] text-muted">
           ⚙ {msg.tool}
         </div>
       )}
-      <div className="py-2 leading-relaxed break-words whitespace-pre-wrap">
+      <div className="rounded-3xl rounded-bl-md bg-accent px-4 py-2 leading-relaxed break-words whitespace-pre-wrap">
         {msg.status === 'thinking' ? (
           <Dots />
         ) : (
           <>
-            {msg.shown === Infinity ? msg.text : msg.text.slice(0, msg.shown)}
+            {msg.shown === Infinity ? <RichText text={msg.text} /> : msg.text.slice(0, msg.shown)}
             {msg.status === 'typing' && <span className="caret" />}
           </>
         )}
       </div>
-      {msg.status === 'done' && (
+      {/* links and follow-ups only under the newest answer, so older ones don't pile up */}
+      {last && msg.status === 'done' && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {msg.sources
             ?.filter((s) => s.href)
@@ -435,49 +403,5 @@ function AgentText({ msg, onAsk, busy }: { msg: Msg; onAsk: (q: string) => void;
         </div>
       )}
     </div>
-  )
-}
-
-function SmartToggle({
-  llm,
-  mode,
-  prog,
-  onEnable,
-  onDisable,
-}: {
-  llm: LlmState
-  mode: 'keyword' | 'llm'
-  prog: number
-  onEnable: () => void
-  onDisable: () => void
-}) {
-  const base = 'glass tap relative flex h-9 items-center gap-1 rounded-full px-2.5 text-xs font-medium transition-colors md:px-3'
-  if (llm === 'unsupported') {
-    return (
-      <span
-        title="On-device AI needs WebGPU (Chrome or Edge on desktop)."
-        className={`${base} cursor-not-allowed text-muted`}
-      >
-        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">no WebGPU</span>
-      </span>
-    )
-  }
-  if (llm === 'loading') return <span className={`${base} text-foreground`}><Sparkles className="h-3.5 w-3.5" /> {prog}%</span>
-  if (mode === 'llm') {
-    return (
-      <button onClick={onDisable} className={`${base} cursor-pointer text-foreground`}>
-        <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart: on</span>
-      </button>
-    )
-  }
-  return (
-    <button
-      onClick={onEnable}
-      aria-label="Smart mode"
-      title="Load a small LLM that runs free in your browser (~0.4 GB, one-time)."
-      className={`${base} cursor-pointer text-muted hover:text-foreground`}
-    >
-      <Sparkles className="h-3.5 w-3.5" /> <span className="hidden md:inline">smart mode</span>
-    </button>
   )
 }

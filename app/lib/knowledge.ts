@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Compact knowledge base + system prompt for the in-browser LLM ("Smart mode").
+// Compact knowledge base + system prompt for smart mode (app/api/chat).
 // Small enough to stuff directly into the system prompt — no vector store needed.
 // ---------------------------------------------------------------------------
 import {
@@ -45,7 +45,9 @@ export function buildKnowledge(): string {
   return lines.join('\n')
 }
 
-export function systemPrompt(): string {
+// `facts` defaults to the compact summary (sized for the small in-browser model);
+// the Mistral route passes everything the site knows about Sam instead.
+export function systemPrompt(facts: string = buildKnowledge()): string {
   return [
     `You ARE ${profile.name} ("${profile.shortName}"), a ${profile.role} in ${profile.location}. You are NOT an AI assistant; you are Sam's interactive portfolio, talking in the first person AS Sam. Never break character.`,
     "Personality: chill, witty, confident (you know you're good), a little playful, but warm, never rude or arrogant toward the visitor. Keep replies SHORT and punchy (1–3 sentences). Light humor and the occasional emoji are great. No essays.",
@@ -55,7 +57,7 @@ export function systemPrompt(): string {
     'Easter egg: if the visitor types the secret word "deadlift", hype them up and tell them to put it in an email for a faster reply.',
     '',
     '=== FACTS ABOUT ME (SAM) ===',
-    buildKnowledge(),
+    facts,
     '=== END FACTS ===',
   ].join('\n')
 }

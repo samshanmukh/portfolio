@@ -31,6 +31,7 @@ export type View =
   | 'trainer'
   | 'source'
   | 'blog'
+  | 'events'
 
 export type AgentReply = {
   tool: string
@@ -122,6 +123,16 @@ export function ask(question: string): AgentReply {
       action: 'source',
       sources: [{ label: 'view source', href: socials.sourceRepo }],
       followups: ['What have you built?', "What's your stack?"],
+    }
+  }
+
+  // events Sam hosts or attends (from their Google Calendar)
+  if (/\bevents?\b/.test(q) || has(q, 'meetup', 'hackathon', 'conference', 'calendar', 'hosting', 'attending', 'going to', 'summit', 'workshop')) {
+    return {
+      tool: 'read(calendar)',
+      view: 'events',
+      text: `Here's where you can catch me IRL: events I'm hosting and the ones I'm going to, straight from my calendar. See you at one?`,
+      followups: ['How can I reach you?', 'What have you built?'],
     }
   }
 
@@ -287,4 +298,31 @@ export function suggest(raw: string): string[] {
   const n = raw.toLowerCase().trim()
   if (!n) return []
   return SUGGESTIONS.filter((s) => s.toLowerCase().startsWith(n) && s.toLowerCase() !== n).slice(0, 5)
+}
+
+// Typed questions are answered by the model in a chat bubble; a card only comes with the answer
+// when the visitor asks for that thing outright ("what have you built?", "your resume"), not
+// whenever a word like "you", "use" or "tell me" shows up. Pills and follow-ups keep their cards.
+const YOUR = String.raw`(?:your|sam'?s|his)`
+const ASKS: [View, RegExp][] = [
+  ['resume', /\b(resume|résumé|cv)\b/],
+  ['contact', new RegExp(String.raw`\bhow (?:do|can|should) i (?:reach|contact|email|message|get in touch)|\b${YOUR} (?:contact|email|socials|links)\b|^contact\b`)],
+  ['projects', new RegExp(String.raw`\bwhat (?:have|did) you (?:build|built|make|made|ship|shipped)\b|\b${YOUR} (?:projects|portfolio)\b|\b(?:show|list|see)\b.*\bprojects\b|^projects\b`)],
+  ['skills', new RegExp(String.raw`\b${YOUR} (?:skills|stack|tech stack|skill set|skillset)\b|\bwhat(?:'s| is) ${YOUR} stack\b|\b(?:show|list)\b.*\bskills\b|^(?:skills|stack)\b`)],
+  ['experience', new RegExp(String.raw`\bwhere (?:have|did|do) you work|\b${YOUR} (?:experience|work history|jobs|career)\b|^experience\b`)],
+  ['education', new RegExp(String.raw`\b${YOUR} (?:education|degree|degrees|school)\b|\bwhere did you (?:study|go to school)\b`)],
+  ['events', new RegExp(String.raw`\b(?:${YOUR}|upcoming|which|what) events\b|\bwhere (?:will|are) you (?:be|going)\b`)],
+  ['blog', new RegExp(String.raw`\b${YOUR} (?:blog|posts|articles|writing)\b`)],
+  ['testimonials', /\bwhat do (?:people|others|coworkers|colleagues) say\b|\b(?:testimonials|recommendations)\b/],
+  ['status', /\bare you (?:looking|available|open to|hiring)\b/],
+  ['now', /\bwhat are you (?:working on|building|up to) (?:now|right now|lately|these days)\b/],
+  ['gym', new RegExp(String.raw`\b${YOUR} (?:gym|hobbies|workouts?)\b`)],
+  ['trainer', /\b(?:squat trainer|the demo)\b/],
+  ['source', /\b(?:this site|this website|this portfolio)\b.*\b(?:built|made|source|code)\b|\bsource code\b/],
+  ['me', new RegExp(String.raw`^(?:who are you|who is sam|tell me about (?:yourself|you|sam)|about you)\b`)],
+]
+
+export function requestedView(question: string): View | undefined {
+  const q = question.toLowerCase().trim()
+  return ASKS.find(([, re]) => re.test(q))?.[0]
 }
