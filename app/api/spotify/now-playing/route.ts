@@ -161,6 +161,17 @@ async function discordNowPlaying(userId: string): Promise<NowPlaying | null> {
   return null
 }
 
+// Some feeds hand back HTML-escaped text ("HEROES &amp; VILLAINS"); React would show it literally.
+const unescape = (text: string) =>
+  text.replace(/&(amp|lt|gt|quot|#39);/g, (_, e: string) => ({ amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'" })[e] ?? _)
+
+const clean = (now: NowPlaying): NowPlaying => ({
+  ...now,
+  title: now.title && unescape(now.title),
+  artist: now.artist && unescape(now.artist),
+  album: now.album && unescape(now.album),
+})
+
 const idle: NowPlaying = { configured: true, isPlaying: false }
 
 export async function GET() {
@@ -168,12 +179,12 @@ export async function GET() {
   const discordId = process.env.DISCORD_USER_ID?.trim() // a pasted ID can carry stray spaces
   if (discordId) {
     const now = await discordNowPlaying(discordId).catch(() => null)
-    if (now) return Response.json(now)
+    if (now) return Response.json(clean(now))
   }
 
   if (lastfmKey && lastfmUser) {
     try {
-      return Response.json(await lastfmNowPlaying(lastfmKey, lastfmUser))
+      return Response.json(clean(await lastfmNowPlaying(lastfmKey, lastfmUser)))
     } catch {
       return Response.json(idle)
     }
