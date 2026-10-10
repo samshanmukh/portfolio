@@ -24,7 +24,7 @@ function Equalizer({ still }: { still: boolean }) {
 }
 
 // Frosted-glass "now playing" card in the bottom-right corner. It only shows while a
-// track is actually playing on Sam's Spotify and slides away when playback stops.
+// track is actually playing (Spotify or Last.fm) and slides away when playback stops.
 export function SpotifyWidget({ className = 'bottom-4 right-4' }: { className?: string }) {
   const [track, setTrack] = useState<NowPlaying | null>(null)
   const reduced = useReducedMotion() ?? false
@@ -68,7 +68,7 @@ export function SpotifyWidget({ className = 'bottom-4 right-4' }: { className?: 
           href={playing.songUrl || 'https://open.spotify.com'}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`Sam is listening to ${playing.title} by ${playing.artist} on Spotify`}
+          aria-label={`Sam is listening to ${playing.title} by ${playing.artist}`}
           title={`${playing.title} · ${playing.artist}`}
           className={`glass fixed z-50 flex max-w-[calc(100vw-2rem)] items-center gap-3 rounded-2xl p-2 pr-3 sm:pr-4 ${className}`}
           initial={{ opacity: 0, y: 16, scale: 0.96 }}
