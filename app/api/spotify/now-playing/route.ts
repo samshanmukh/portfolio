@@ -28,12 +28,14 @@ export type NowPlaying = {
   songUrl?: string
   // what Sam is doing: music by default, or a game / show / stream from Discord
   kind?: 'music' | 'activity'
+  source?: 'discord' | 'lastfm' | 'spotify' // where this came from, handy when checking the live API
   verb?: string // "Playing", "Watching", ...
 }
 
 const mapTrack = (item: SpotifyTrack, isPlaying: boolean): NowPlaying => ({
   configured: true,
   isPlaying,
+  source: 'spotify',
   title: item.name ?? '',
   artist: (item.artists ?? []).map((a) => a.name).join(', '),
   album: item.album?.name ?? '',
@@ -87,6 +89,7 @@ async function lastfmNowPlaying(apiKey: string, user: string): Promise<NowPlayin
   return {
     configured: true,
     isPlaying: true,
+    source: 'lastfm',
     title: item.name ?? '',
     artist: item.artist?.['#text'] ?? '',
     album: item.album?.['#text'] ?? '',
@@ -133,6 +136,7 @@ async function discordNowPlaying(userId: string): Promise<NowPlaying | null> {
       configured: true,
       isPlaying: true,
       kind: 'activity',
+      source: 'discord',
       verb: VERBS[activity.type],
       title: activity.name,
       artist: [activity.details, activity.state].filter(Boolean).join(' · '),
@@ -146,6 +150,7 @@ async function discordNowPlaying(userId: string): Promise<NowPlaying | null> {
       configured: true,
       isPlaying: true,
       kind: 'music',
+      source: 'discord',
       title: sp.song,
       artist: (sp.artist ?? '').replaceAll(';', ','),
       album: sp.album ?? '',
@@ -159,7 +164,8 @@ async function discordNowPlaying(userId: string): Promise<NowPlaying | null> {
 const idle: NowPlaying = { configured: true, isPlaying: false }
 
 export async function GET() {
-  const { DISCORD_USER_ID: discordId, LASTFM_API_KEY: lastfmKey, LASTFM_USERNAME: lastfmUser } = process.env
+  const { LASTFM_API_KEY: lastfmKey, LASTFM_USERNAME: lastfmUser } = process.env
+  const discordId = process.env.DISCORD_USER_ID?.trim() // a pasted ID can carry stray spaces
   if (discordId) {
     const now = await discordNowPlaying(discordId).catch(() => null)
     if (now) return Response.json(now)
