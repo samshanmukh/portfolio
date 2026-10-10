@@ -32,6 +32,7 @@ export type View =
   | 'source'
   | 'blog'
   | 'events'
+  | 'book'
 
 export type AgentReply = {
   tool: string
@@ -236,6 +237,16 @@ export function ask(question: string): AgentReply {
     }
   }
 
+  // meet / call: the booking card, never a made-up time or place
+  if (has(q, 'meet', 'meeting', 'schedule', 'book a', 'coffee', 'call with', 'a call', 'appointment', 'calendly')) {
+    return {
+      view: 'book',
+      tool: 'open(booking)',
+      text: `Let's do it! Pick how we meet and a time that works in the card below, and it goes straight onto my calendar. What do you want to chat about?`,
+      followups: ['What have you built?', 'Where have you worked?'],
+    }
+  }
+
   // contact / hire
   if (has(q, 'reach', 'contact', 'email', 'hire', 'hiring', 'connect', 'touch', 'message', 'dm')) {
     return {
@@ -305,6 +316,7 @@ export function suggest(raw: string): string[] {
 // whenever a word like "you", "use" or "tell me" shows up. Pills and follow-ups keep their cards.
 const YOUR = String.raw`(?:your|sam'?s|his)`
 const ASKS: [View, RegExp][] = [
+  ['book', /\b(?:book|schedule|set up|arrange)\b.*\b(?:call|meeting|meet|chat|time|coffee)\b|\b(?:can|could|shall|should) we (?:meet|talk|chat|hop on|grab|have a call)\b|\bmeet (?:up|you)\b|\bgrab (?:a )?coffee\b|\b(?:a|quick) (?:call|meeting)\b/],
   ['resume', /\b(resume|résumé|cv)\b/],
   ['contact', new RegExp(String.raw`\bhow (?:do|can|should) i (?:reach|contact|email|message|get in touch)|\b${YOUR} (?:contact|email|socials|links)\b|^contact\b`)],
   ['projects', new RegExp(String.raw`\bwhat (?:have|did) you (?:build|built|make|made|ship|shipped)\b|\b${YOUR} (?:projects|portfolio)\b|\b(?:show|list|see)\b.*\bprojects\b|^projects\b`)],
