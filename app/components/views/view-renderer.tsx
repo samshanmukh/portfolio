@@ -1,6 +1,7 @@
 'use client'
 
 import type { View } from '../../lib/agent'
+import type { ChatMsg } from '../../lib/hosted-llm'
 import type { PostMeta } from '../../lib/posts'
 import { AiTrainer } from '../ai-trainer'
 import { Blog } from './blog'
@@ -23,10 +24,13 @@ export function ViewRenderer({
   view,
   posts,
   onAsk,
+  chat,
 }: {
   view: View
   posts: PostMeta[]
   onAsk: (q: string) => void
+  // the conversation so far, for cards that use it (booking notes what was asked)
+  chat?: ChatMsg[]
 }) {
   switch (view) {
     case 'me':
@@ -60,6 +64,6 @@ export function ViewRenderer({
     case 'events':
       return <Events />
     case 'book':
-      return <Book />
+      return <Book chat={chat} />
   }
 }

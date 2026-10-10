@@ -237,14 +237,12 @@ export function ask(question: string): AgentReply {
     }
   }
 
-  // meet / call: the booking page, never a made-up time or place
+  // meet / call: the booking card, never a made-up time or place
   if (has(q, 'meet', 'meeting', 'schedule', 'book a', 'coffee', 'call with', 'a call', 'appointment', 'calendly')) {
     return {
       view: 'book',
       tool: 'open(booking)',
-      text: socials.booking
-        ? `Let's do it! Pick a time that works for you and leave your name and email, and it lands right on my calendar. What do you want to chat about?`
-        : `Let's do it! Shoot me an email at ${socials.email} and we'll find a time. What do you want to chat about?`,
+      text: `Let's do it! Pick how we meet and a time that works in the card below, and it goes straight onto my calendar. What do you want to chat about?`,
       followups: ['What have you built?', 'Where have you worked?'],
     }
   }

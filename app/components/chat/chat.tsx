@@ -174,6 +174,13 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery, smart])
 
+  // the conversation up to message i, as the model sees it (the booking card sends it along)
+  const chatUpTo = (i: number): ChatMsg[] =>
+    messages
+      .slice(0, i + 1)
+      .filter((m) => m.text && m.status !== 'thinking')
+      .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
+
   // One continuous conversation, like iMessage: every question and answer stays on screen.
   const lastUser = messages.findLastIndex((m) => m.role === 'user')
   const lastAgent = messages.findLastIndex((m) => m.role === 'agent')
@@ -267,13 +274,13 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   >
                     {m.view && (
                       <div className="mb-3 w-full">
-                        <ViewRenderer view={m.view} posts={posts} onAsk={run} />
+                        <ViewRenderer view={m.view} posts={posts} onAsk={run} chat={chatUpTo(i)} />
                       </div>
                     )}
                     <AgentText msg={m} onAsk={run} busy={busy} last={i === lastAgent} />
                     {m.book && m.status === 'done' && m.view !== 'book' && (
                       <div className="mt-2 w-full">
-                        <ViewRenderer view="book" posts={posts} onAsk={run} />
+                        <ViewRenderer view="book" posts={posts} onAsk={run} chat={chatUpTo(i)} />
                       </div>
                     )}
                   </motion.div>
