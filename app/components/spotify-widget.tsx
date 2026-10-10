@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import type { NowPlaying } from '../api/spotify/now-playing/route'
+import { GooeyDrag } from './gooey-drag'
 
 const POLL_MS = 15_000
 
@@ -62,31 +63,39 @@ export function SpotifyWidget({ className = '' }: { className?: string }) {
   return (
     <AnimatePresence>
       {playing && (
-        <motion.a
+        <motion.div
           key="now-playing"
-          href={playing.songUrl || 'https://www.last.fm'}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Sam is listening to ${playing.title} by ${playing.artist}`}
-          title={`Now playing: ${playing.title} · ${playing.artist}`}
-          className={`glass tap flex h-9 min-w-0 items-center gap-2 overflow-hidden rounded-full p-1 pr-3 ${className}`}
+          className={`min-w-0 ${className}`}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           transition={{ type: 'spring', stiffness: 320, damping: 24 }}
         >
-          {playing.albumImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- remote cover art
-            <img src={playing.albumImageUrl} alt="" className="record-spin h-7 w-7 shrink-0 rounded-full object-cover" />
-          ) : (
-            <span className="h-7 w-7 shrink-0 rounded-full bg-foreground/10" aria-hidden />
-          )}
-          <Equalizer />
-          <span className="hidden max-w-[160px] min-w-0 truncate text-xs leading-tight sm:block lg:max-w-[220px]">
-            <span className="font-semibold text-foreground">{playing.title}</span>
-            <span className="text-muted"> · {playing.artist}</span>
-          </span>
-        </motion.a>
+          {/* draggable with the same liquid bend as the theme button and social icons */}
+          <GooeyDrag radius={18}>
+            <a
+              href={playing.songUrl || 'https://www.last.fm'}
+              target="_blank"
+              rel="noopener noreferrer"
+              draggable={false}
+              aria-label={`Sam is listening to ${playing.title} by ${playing.artist}`}
+              title={`Now playing: ${playing.title} · ${playing.artist}`}
+              className="glass tap flex h-9 min-w-0 items-center gap-2 overflow-hidden rounded-full p-1 pr-3"
+            >
+              {playing.albumImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- remote cover art
+                <img src={playing.albumImageUrl} alt="" draggable={false} className="record-spin h-7 w-7 shrink-0 rounded-full object-cover" />
+              ) : (
+                <span className="h-7 w-7 shrink-0 rounded-full bg-foreground/10" aria-hidden />
+              )}
+              <Equalizer />
+              <span className="hidden max-w-[160px] min-w-0 truncate text-xs leading-tight sm:block lg:max-w-[220px]">
+                <span className="font-semibold text-foreground">{playing.title}</span>
+                <span className="text-muted"> · {playing.artist}</span>
+              </span>
+            </a>
+          </GooeyDrag>
+        </motion.div>
       )}
     </AnimatePresence>
   )
