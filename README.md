@@ -50,8 +50,12 @@ isn't hit; without it the cards fall back to the static list in `app/lib/data.ts
 
 ### Now-playing widget (optional)
 
-A card in the bottom-right corner shows the song Sam is playing, only while something plays. It stays hidden
+A pill beside the theme button shows what Sam is playing (music, a game, a show), only while something plays. It stays hidden
 until one of these sources is set in Vercel (also `.env.local` for dev).
+
+**Discord via Lanyard (free, checked first):** `DISCORD_USER_ID`. Join [Lanyard's Discord server](https://discord.gg/lanyard),
+then copy your user ID (Discord Settings > Advanced > Developer Mode, right-click your name > Copy User ID). The card
+then shows games, shows and Spotify as Discord sees them, while Discord is open on one of your devices.
 
 **Last.fm (free, used when set):** `LASTFM_API_KEY`, `LASTFM_USERNAME`.
 
