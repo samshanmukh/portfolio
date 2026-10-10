@@ -23,9 +23,11 @@ function Equalizer({ still }: { still: boolean }) {
   )
 }
 
-// Frosted-glass "now playing" card in the bottom-right corner. It only shows while a
-// track is actually playing (Spotify or Last.fm) and slides away when playback stops.
-export function SpotifyWidget({ className = 'bottom-4 right-4' }: { className?: string }) {
+// Small frosted-glass "now playing" pill for the top-right corner, beside the theme
+// button. It only shows while a track is actually playing (Spotify or Last.fm) and
+// shrinks away when playback stops. Phones get the cover and equalizer; wider screens
+// add the song and artist.
+export function SpotifyWidget({ className = '' }: { className?: string }) {
   const [track, setTrack] = useState<NowPlaying | null>(null)
   const reduced = useReducedMotion() ?? false
 
@@ -65,37 +67,27 @@ export function SpotifyWidget({ className = 'bottom-4 right-4' }: { className?: 
       {playing && (
         <motion.a
           key="now-playing"
-          href={playing.songUrl || 'https://open.spotify.com'}
+          href={playing.songUrl || 'https://www.last.fm'}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Sam is listening to ${playing.title} by ${playing.artist}`}
-          title={`${playing.title} · ${playing.artist}`}
-          className={`glass fixed z-50 flex max-w-[calc(100vw-2rem)] items-center gap-3 rounded-2xl p-2 pr-3 sm:pr-4 ${className}`}
-          initial={{ opacity: 0, y: 16, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-          whileHover={reduced ? undefined : { y: -2 }}
+          title={`Now playing: ${playing.title} · ${playing.artist}`}
+          className={`glass tap flex h-9 min-w-0 items-center gap-2 overflow-hidden rounded-full p-1 pr-3 ${className}`}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 24 }}
         >
-          {playing.albumImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- remote Spotify CDN art
-            <img
-              src={playing.albumImageUrl}
-              alt=""
-              className="h-10 w-10 shrink-0 rounded-lg object-cover sm:h-12 sm:w-12"
-            />
+          {playing.albumImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- remote cover art
+            <img src={playing.albumImageUrl} alt="" className="h-7 w-7 shrink-0 rounded-full object-cover" />
+          ) : (
+            <span className="h-7 w-7 shrink-0 rounded-full bg-foreground/10" aria-hidden />
           )}
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="flex items-center gap-1.5 text-[10px] font-medium tracking-wide text-muted uppercase">
-              <Equalizer still={reduced} />
-              Now playing
-            </span>
-            <span className="mt-1 max-w-[150px] truncate text-xs font-semibold text-foreground sm:max-w-[200px] sm:text-sm">
-              {playing.title}
-            </span>
-            <span className="max-w-[150px] truncate text-[11px] text-muted sm:max-w-[200px] sm:text-xs">
-              {playing.artist}
-            </span>
+          <Equalizer still={reduced} />
+          <span className="hidden max-w-[160px] min-w-0 truncate text-xs leading-tight sm:block lg:max-w-[220px]">
+            <span className="font-semibold text-foreground">{playing.title}</span>
+            <span className="text-muted"> · {playing.artist}</span>
           </span>
         </motion.a>
       )}
