@@ -190,10 +190,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
   return (
     <div className="relative h-dvh overflow-hidden">
-      {/* now-playing corner widget; only on wide screens where it clears the input */}
-      <div className="hidden xl:block">
-        <SpotifyWidget className="right-6 bottom-12" />
-      </div>
 
       {/* top-left: open to chat & connect */}
       {profile.available && (
@@ -212,6 +208,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
 
       {/* top-right: controls */}
       <div className="absolute top-5 right-4 z-[51] flex items-center gap-1.5 sm:right-8 sm:gap-2">
+        <SpotifyWidget />
         <ThemeToggle />
       </div>
 

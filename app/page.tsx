@@ -123,8 +123,9 @@ export default function Home() {
         </motion.div>
       </div>
 
-      {/* top-right: theme */}
-      <motion.div className="absolute top-6 right-4 z-20 sm:right-8" {...reveal(revealed, 0.1, -16)}>
+      {/* top-right: now playing (only while a song plays) and theme */}
+      <motion.div className="absolute top-6 right-4 z-20 flex items-center gap-2 sm:right-8" {...reveal(revealed, 0.1, -16)}>
+        <SpotifyWidget />
         <ThemeToggle />
       </motion.div>
 
@@ -261,9 +262,6 @@ export default function Home() {
           })}
         </motion.div>
       </div>
-
-      {/* what I'm listening to (hidden until Spotify is configured) */}
-      {revealed && <SpotifyWidget />}
     </div>
   )
 }

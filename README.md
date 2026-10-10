@@ -48,9 +48,18 @@ features whichever repo was pushed most recently as "Currently building". Set `G
 fine-grained token with read-only access to public repositories) so GitHub's anonymous 60-requests/hour limit
 isn't hit; without it the cards fall back to the static list in `app/lib/data.ts`.
 
-### Spotify widget (optional)
+### Now-playing widget (optional)
 
-The widget stays hidden until these three Vercel env vars are set (also `.env.local` for dev):
+A card in the bottom-right corner shows the song Sam is playing, only while something plays. It stays hidden
+until one of these sources is set in Vercel (also `.env.local` for dev).
+
+**Last.fm (free, used when set):** `LASTFM_API_KEY`, `LASTFM_USERNAME`.
+
+1. Make a free account at [last.fm](https://www.last.fm) and connect Spotify under Settings > Applications.
+   For YouTube Music, add a scrobbler browser extension such as Web Scrobbler.
+2. Create an API key at [last.fm/api/account/create](https://www.last.fm/api/account/create).
+
+**Spotify (needs Spotify Premium on the app owner's account since March 2026):**
 `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `SPOTIFY_REFRESH_TOKEN`.
 
 1. Create an app at [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard) and add
