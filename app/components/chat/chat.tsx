@@ -10,6 +10,7 @@ import { ask, requestedView, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
 import { isPresetQuestion } from '../../lib/questions'
 import type { PostMeta } from '../../lib/posts'
+import { splitBooking } from '../../lib/clean-reply'
 import { type ChatMsg, hostedAvailable, hostedStream } from '../../lib/hosted-llm'
 import { SendArrow } from '../send-arrow'
 import { SocialLinks } from '../social-links'
@@ -28,6 +29,8 @@ type Msg = {
   view?: View
   sources?: Source[]
   followups?: string[]
+  // smart mode asked for the booking card under its reply
+  book?: boolean
   status?: 'thinking' | 'typing' | 'done'
   shown?: number
 }
@@ -119,7 +122,8 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
         first = false
         patchLast({ status: 'typing' })
       }
-      patchLast({ text: full })
+      const { text, book } = splitBooking(full)
+      patchLast(book ? { text, book } : { text })
     }
     try {
       await hostedStream([...history, { role: 'user', content: q }], onToken, view)
@@ -267,6 +271,11 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                       </div>
                     )}
                     <AgentText msg={m} onAsk={run} busy={busy} last={i === lastAgent} />
+                    {m.book && m.status === 'done' && m.view !== 'book' && (
+                      <div className="mt-2 w-full">
+                        <ViewRenderer view="book" posts={posts} onAsk={run} />
+                      </div>
+                    )}
                   </motion.div>
                 )
               )}

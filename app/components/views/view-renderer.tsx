@@ -4,6 +4,7 @@ import type { View } from '../../lib/agent'
 import type { PostMeta } from '../../lib/posts'
 import { AiTrainer } from '../ai-trainer'
 import { Blog } from './blog'
+import { Book } from './book'
 import { Contact } from './contact'
 import { Education, Experience } from './experience'
 import { Events } from './events'
@@ -58,5 +59,7 @@ export function ViewRenderer({
       return <Blog posts={posts} />
     case 'events':
       return <Events />
+    case 'book':
+      return <Book />
   }
 }

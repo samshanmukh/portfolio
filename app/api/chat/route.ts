@@ -1,5 +1,6 @@
 import { eventsContext, getEvents } from '../../lib/calendar'
 import { cleanReply } from '../../lib/clean-reply'
+import { socials } from '../../lib/data'
 import { fullContext } from '../../lib/full-context'
 import { systemPrompt } from '../../lib/knowledge'
 
@@ -39,7 +40,7 @@ const configured = () => PROVIDERS.filter((p) => p.key)
 // question goes straight to one with room instead of paying for a doomed call
 const coolUntil = new Map<string, number>()
 
-const SYSTEM = `${systemPrompt(fullContext())}\nFormatting: chat-style plain text. You may use **bold** for names and short "- " bullet lists, nothing else (no headings, tables or code). Put a colon after a bolded name, never a dash, and never use em dashes. Don't paste raw URLs; when a link helps, write it as [short label](url). Keep lists to the few items that matter.\nThis is an ongoing chat: read the earlier messages to work out what "it" or "that" refers to. If asked what you think about something, give a short honest take grounded in how you actually used it in the facts above, and don't invent experiences, benchmarks or numbers.`
+const SYSTEM = `${systemPrompt(fullContext())}\nFormatting: chat-style plain text. You may use **bold** for names and short "- " bullet lists, nothing else (no headings, tables or code). Put a colon after a bolded name, never a dash, and never use em dashes. Don't paste raw URLs; when a link helps, write it as [short label](url). Keep lists to the few items that matter.\nThis is an ongoing chat: read the earlier messages to work out what "it" or "that" refers to. If asked what you think about something, give a short honest take grounded in how you actually used it in the facts above, and don't invent experiences, benchmarks or numbers.\nMeetings: you can't see or book your calendar from this chat, so never agree to, confirm or suggest a time, date or place, never say where you hang out, and don't invite visitors to meet unprompted. When the visitor wants to meet, call, video chat or grab coffee (or says yes to it), say in one short sentence that they can pick a time and leave their name and email ${socials.booking ? 'on your booking page below' : `by emailing you at ${socials.email}`}, then end the reply with [[book]] (the chat turns that into a booking button; never write a booking link yourself).`
 
 // Best-effort per-visitor limit so nobody can run up the Mistral bill. In-memory,
 // so it resets when the serverless instance does; Mistral's own limit backs it up.

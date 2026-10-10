@@ -51,6 +51,9 @@ export const socials = {
   instagram: 'https://www.instagram.com/samshanmukh',
   // phones: the availability badge opens Messages with this prefilled; `?&body=` works on iOS and Android
   sms: 'sms:+13322546972?&body=Hey!',
+  // Google Calendar booking page (Calendar > Create > Appointment schedule > Share). Visitors pick
+  // a slot and leave their name and email, and it lands on Sam's calendar. Empty: email instead.
+  booking: '',
   // Put your PDF at /public/resume.pdf and this just works. Or swap in any URL.
   resume: '/resume.pdf',
   // Public source — proof the site is hand-coded from scratch.
