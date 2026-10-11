@@ -44,6 +44,8 @@ function doPost(e) {
   }
   if (req.action === 'cancel') return out(cancel(req))
   if (req.action === 'place') return out(findPlace(req.q))
+  if (req.action === 'lookup') return out(lookup(req.email))
+  if (req.action === 'cancelCode') return out(cancelWithCode(req.email, req.code))
   return out({ error: 'unknown-action' })
 }
 
@@ -107,6 +109,56 @@ function findPlace(q) {
   const r = Maps.newGeocoder().setRegion('us').setBounds(37.0, -122.7, 38.1, -121.6).geocode(q)
   const hit = r && r.status === 'OK' && r.results[0]
   return { address: hit ? hit.formatted_address : null }
+}
+
+const MARK = 'Booked from the chat on samkarri.com'
+const WHAT = { 'Video call': 'video call', 'Phone call': 'call', Coffee: 'coffee' }
+
+// The visitor's next meeting booked from the chat, by the email it was booked with.
+function nextBooking(email) {
+  email = String(email || '').toLowerCase()
+  const items = Calendar.Events.list('primary', {
+    timeMin: new Date().toISOString(),
+    timeMax: new Date(Date.now() + 60 * 86400000).toISOString(),
+    q: email,
+    singleEvents: true,
+    orderBy: 'startTime',
+  }).items || []
+  return items.find(
+    (ev) => String(ev.description || '').indexOf(MARK) === 0 && (ev.attendees || []).some((a) => String(a.email).toLowerCase() === email)
+  )
+}
+
+// Cancelling from another browser: email the visitor a code, so only the inbox owner can cancel.
+function lookup(email) {
+  const ev = nextBooking(email)
+  if (!ev) return { found: 0 }
+  const code = String(Math.floor(100000 + Math.random() * 900000))
+  CacheService.getScriptCache().put('code:' + String(email).toLowerCase(), JSON.stringify({ code, id: ev.id, tries: 0 }), 600)
+  const when = Utilities.formatDate(new Date(ev.start.dateTime), TZ, "EEE, MMM d 'at' h:mm a z")
+  MailApp.sendEmail(
+    email,
+    `Your code to cancel ${ev.summary}`,
+    `Your code is ${code}\n\nType it in the chat on samkarri.com to cancel "${ev.summary}" on ${when}. It works for 10 minutes.\n\nIf you didn't ask for this, you can ignore this email and nothing changes.`
+  )
+  const kind = String(ev.summary).split(' with ')[0]
+  return { found: 1, start: ev.start.dateTime, what: WHAT[kind] || 'meeting' }
+}
+
+function cancelWithCode(email, code) {
+  const cache = CacheService.getScriptCache()
+  const key = 'code:' + String(email || '').toLowerCase()
+  const saved = JSON.parse(cache.get(key) || 'null')
+  if (!saved) return { error: 'expired' }
+  if (saved.code !== String(code)) {
+    saved.tries += 1
+    if (saved.tries >= 5) cache.remove(key)
+    else cache.put(key, JSON.stringify(saved), 600)
+    return { error: saved.tries >= 5 ? 'expired' : 'bad-code' }
+  }
+  cache.remove(key)
+  Calendar.Events.remove('primary', saved.id, { sendUpdates: 'all' })
+  return { ok: true }
 }
 
 // Cancel a meeting booked from the chat: only one this script made, and only for the email it

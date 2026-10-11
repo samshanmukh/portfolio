@@ -56,6 +56,17 @@ export async function findPlace(q: string): Promise<string | null> {
   return r.address || null
 }
 
+// finds their next meeting booked from the chat and emails them a code to cancel it
+export async function lookupBooking(email: string): Promise<{ found: number; start?: string; what?: string }> {
+  return call<{ found: number; start?: string; what?: string }>({ action: 'lookup', email })
+}
+
+// cancels that meeting once they type the code from the email
+export async function cancelWithCode(email: string, code: string): Promise<void> {
+  await call<{ ok: true }>({ action: 'cancelCode', email, code })
+  cached = null
+}
+
 // takes a meeting booked from the chat off Sam's calendar (the script checks the email matches)
 export async function cancelBooking(id: string, email: string): Promise<void> {
   await call<{ ok: true }>({ action: 'cancel', id, email })

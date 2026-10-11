@@ -1,4 +1,4 @@
-import { bookingEnabled, cancelBooking, createBooking, findPlace, getSlots, type MeetingType } from '../../lib/booking'
+import { bookingEnabled, cancelBooking, cancelWithCode, createBooking, findPlace, lookupBooking, getSlots, type MeetingType } from '../../lib/booking'
 
 // In-chat booking. GET: open slots on Sam's calendar. POST: book one, with a note on what the
 // visitor asked about in the chat, so the invite lands on Sam's calendar with that context.
@@ -17,7 +17,8 @@ export async function GET(req: Request) {
       return Response.json({ address: await findPlace(str(place, 160)) })
     } catch (e) {
       console.error('[book] place error', e)
-      return Response.json({ address: null })
+      // "unknown-action" means the live script is still an old version
+      return Response.json({ address: null, reason: e instanceof Error ? e.message.slice(0, 80) : 'unknown' })
     }
   }
   try {
@@ -54,6 +55,17 @@ function lookupLimited(ip: string): boolean {
   recent.push(now)
   lookups.set(ip, recent)
   if (lookups.size > 5000) lookups.clear()
+  return false
+}
+
+const codes = new Map<string, number[]>()
+function codeLimited(key: string): boolean {
+  const now = Date.now()
+  const recent = (codes.get(key) ?? []).filter((t) => now - t < HOUR_MS)
+  if (recent.length >= 5) return true
+  recent.push(now)
+  codes.set(key, recent)
+  if (codes.size > 5000) codes.clear()
   return false
 }
 
@@ -114,6 +126,36 @@ export async function POST(req: Request) {
       console.error('[book] cancel error', e)
       const msg = e instanceof Error ? e.message : ''
       return Response.json({ error: msg === 'not-found' ? 'not-found' : 'failed' }, { status: msg === 'not-found' ? 404 : 502 })
+    }
+  }
+
+  // cancel from another browser: look the meeting up by email, which emails them a code...
+  if (body.action === 'lookup') {
+    const email = str(body.email, 254)
+    if (!EMAIL.test(email)) return Response.json({ error: 'invalid' }, { status: 400 })
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local'
+    // each lookup can send an email, so only a handful per visitor and per address
+    if (codeLimited(`ip:${ip}`) || codeLimited(`email:${email.toLowerCase()}`)) return Response.json({ error: 'rate-limited' }, { status: 429 })
+    try {
+      return Response.json(await lookupBooking(email))
+    } catch (e) {
+      console.error('[book] lookup error', e)
+      return Response.json({ error: 'failed' }, { status: 502 })
+    }
+  }
+  // ...and the code from that email cancels it
+  if (body.action === 'cancelCode') {
+    const email = str(body.email, 254)
+    const code = str(body.code, 6)
+    if (!EMAIL.test(email) || !/^\d{6}$/.test(code)) return Response.json({ error: 'invalid' }, { status: 400 })
+    try {
+      await cancelWithCode(email, code)
+      return Response.json({ ok: true })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'bad-code' || msg === 'expired') return Response.json({ error: msg }, { status: 400 })
+      console.error('[book] cancel-code error', e)
+      return Response.json({ error: 'failed' }, { status: 502 })
     }
   }
 
