@@ -237,12 +237,12 @@ export function ask(question: string): AgentReply {
     }
   }
 
-  // meet / call: the booking card, never a made-up time or place
+  // meet / call: the chat books it by asking a few questions (booking-flow.ts), never a made-up time or place
   if (has(q, 'meet', 'meeting', 'schedule', 'book a', 'coffee', 'call with', 'a call', 'appointment', 'calendly')) {
     return {
       view: 'book',
       tool: 'open(booking)',
-      text: `Let's do it! Pick how we meet and a time that works in the card below, and it goes straight onto my calendar. What do you want to chat about?`,
+      text: `I'd love that! Let's find a time.`,
       followups: ['What have you built?', 'Where have you worked?'],
     }
   }

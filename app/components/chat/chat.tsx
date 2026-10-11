@@ -10,7 +10,9 @@ import { ask, requestedView, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
 import { isPresetQuestion } from '../../lib/questions'
 import type { PostMeta } from '../../lib/posts'
+import { answer as bookingAnswer, question as bookingQuestion, dayLabel, timeLabel, type Flow } from '../../lib/booking-flow'
 import { splitBooking } from '../../lib/clean-reply'
+import { socials } from '../../lib/data'
 import { type ChatMsg, hostedAvailable, hostedStream } from '../../lib/hosted-llm'
 import { SendArrow } from '../send-arrow'
 import { SocialLinks } from '../social-links'
@@ -29,8 +31,6 @@ type Msg = {
   view?: View
   sources?: Source[]
   followups?: string[]
-  // smart mode asked for the booking card under its reply
-  book?: boolean
   status?: 'thinking' | 'typing' | 'done'
   shown?: number
 }
@@ -117,22 +117,108 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     const view = requestedView(q)
     setMessages((prev) => [...prev, { role: 'agent', view, text: '', status: 'thinking', shown: Infinity }])
     let first = true
+    let book = false
     const onToken = (full: string) => {
       if (first) {
         first = false
         patchLast({ status: 'typing' })
       }
-      const { text, book } = splitBooking(full)
-      patchLast(book ? { text, book } : { text })
+      const split = splitBooking(full)
+      book ||= split.book
+      patchLast({ text: split.text })
     }
     try {
       await hostedStream([...history, { role: 'user', content: q }], onToken, view)
       patchLast({ status: 'done' })
+      return book
     } catch {
       // every model rate-limited or down: answer this one instantly instead
       setMessages((prev) => prev.slice(0, -1))
       await streamKeyword(routed)
+      return false
     }
+  }
+
+  // Booking a meeting is a soft back-and-forth: one question at a time with tap-to-answer chips.
+  // Only the visitor's own "Yes, book it" books it (through /api/book onto Sam's calendar).
+  const flowRef = useRef<Flow | null>(null)
+  // what the visitor asked before booking, so the invite says what they want to talk about
+  const bookingChat = useRef<ChatMsg[]>([])
+  const say = (text: string, chips?: string[], sources?: Source[]) => streamKeyword({ tool: '', text, followups: chips, sources })
+
+  const startBooking = async (chat: ChatMsg[], intro = '') => {
+    bookingChat.current = chat
+    let slots: string[] = []
+    try {
+      const d = await (await fetch('/api/book', { cache: 'no-store' })).json()
+      if (d?.enabled && Array.isArray(d.slots)) slots = d.slots
+    } catch {
+      // booking unreachable: offer email below
+    }
+    if (!slots.length) {
+      flowRef.current = null
+      return say(`${intro} I can't book from here right now, but email me at ${socials.email} and we'll find a time.`.trim(), undefined, [
+        { label: 'email', href: `mailto:${socials.email}?subject=${encodeURIComponent("Let's meet")}` },
+      ])
+    }
+    const flow: Flow = { stage: 'type', slots }
+    flowRef.current = flow
+    await say(`${intro} ${bookingQuestion(flow).text}`.trim(), bookingQuestion(flow).chips)
+  }
+
+  const continueBooking = async (q: string) => {
+    const step = bookingAnswer(flowRef.current!, q)
+    if ('done' in step) {
+      flowRef.current = null
+      return say(step.done.text, step.done.chips)
+    }
+    if ('flow' in step) {
+      flowRef.current = step.flow
+      return say(step.say.text, step.say.chips)
+    }
+    const f = step.book
+    setMessages((prev) => [...prev, { role: 'agent', text: '', status: 'thinking', shown: 0 }])
+    let d: { ok?: boolean; error?: string; start?: string; meet?: string | null } = {}
+    try {
+      const r = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: f.type, start: f.start, name: f.name, email: f.email, phone: f.phone, place: f.place, chat: bookingChat.current }),
+      })
+      d = await r.json().catch(() => ({}))
+    } catch {
+      // network error: handled below
+    }
+    setMessages((prev) => prev.slice(0, -1))
+    if (d.ok) {
+      flowRef.current = null
+      const when = `${dayLabel(d.start || f.start!)} at ${timeLabel(d.start || f.start!)}`
+      return say(
+        `Done! You're on my calendar for ${when}, and the invite is on its way to ${f.email}. Looking forward to it! Anything else you want to know before then?`,
+        undefined,
+        d.meet ? [{ label: 'Meet link', href: d.meet }] : undefined
+      )
+    }
+    if (d.error === 'slot-taken') {
+      let slots = f.slots.filter((s) => s !== f.start)
+      try {
+        const fresh = await (await fetch('/api/book', { cache: 'no-store' })).json()
+        if (Array.isArray(fresh?.slots)) slots = fresh.slots
+      } catch {
+        // keep the old list minus the taken slot
+      }
+      const flow: Flow = { ...f, slots, stage: 'day', day: undefined, start: undefined }
+      flowRef.current = flow
+      return say(`Oh no, someone just took that slot. ${bookingQuestion(flow).text}`, bookingQuestion(flow).chips)
+    }
+    flowRef.current = null
+    return say(
+      d.error === 'rate-limited'
+        ? `That's a lot of bookings for one day! Email me at ${socials.email} and we'll sort it out.`
+        : `Hmm, something went wrong booking that. Email me at ${socials.email} and we'll find a time.`,
+      undefined,
+      [{ label: 'email', href: `mailto:${socials.email}?subject=${encodeURIComponent("Let's meet")}` }]
+    )
   }
 
   // `typed`: the visitor wrote it. Pills, follow-ups and cards keep their instant answers;
@@ -148,8 +234,19 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setBusy(true)
     setInput('')
     setMessages((prev) => [...prev, { role: 'user', text: q }])
-    if (typed && smart) {
-      await runLLM(q)
+    // the conversation so far, for the booking note
+    const chat: ChatMsg[] = [
+      ...messages.filter((m) => m.text && m.status !== 'thinking').map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }) as ChatMsg),
+      { role: 'user', content: q },
+    ]
+    // a quick-question pill mid-booking means they moved on
+    if (flowRef.current && isPresetQuestion(q)) flowRef.current = null
+    if (flowRef.current) {
+      await continueBooking(q)
+    } else if (ask(q).view === 'book' || requestedView(q) === 'book') {
+      await startBooking(chat, "I'd love that!")
+    } else if (typed && smart) {
+      if (await runLLM(q)) await startBooking(chat)
     } else {
       await streamKeyword(ask(q))
     }
@@ -173,13 +270,6 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery, smart])
-
-  // the conversation up to message i, as the model sees it (the booking card sends it along)
-  const chatUpTo = (i: number): ChatMsg[] =>
-    messages
-      .slice(0, i + 1)
-      .filter((m) => m.text && m.status !== 'thinking')
-      .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
 
   // One continuous conversation, like iMessage: every question and answer stays on screen.
   const lastUser = messages.findLastIndex((m) => m.role === 'user')
@@ -274,16 +364,10 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   >
                     {m.view && m.view !== 'book' && (
                       <div className="mb-3 w-full">
-                        <ViewRenderer view={m.view} posts={posts} onAsk={run} chat={chatUpTo(i)} />
+                        <ViewRenderer view={m.view} posts={posts} onAsk={run} />
                       </div>
                     )}
                     <AgentText msg={m} onAsk={run} busy={busy} last={i === lastAgent} />
-                    {/* the booking card comes under its answer, which points to it ("in the card below") */}
-                    {(m.book || m.view === 'book') && m.status === 'done' && (
-                      <div className="mt-2 w-full">
-                        <ViewRenderer view="book" posts={posts} onAsk={run} chat={chatUpTo(i)} />
-                      </div>
-                    )}
                   </motion.div>
                 )
               )}
