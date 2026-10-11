@@ -44,8 +44,20 @@ export async function createBooking(b: {
   phone?: string
   place?: string
   description: string
-}): Promise<{ ok: true; start: string; meet: string | null }> {
-  const r = await call<{ ok: true; start: string; meet: string | null }>({ action: 'book', ...b })
+}): Promise<{ ok: true; id?: string; start: string; meet: string | null }> {
+  const r = await call<{ ok: true; id?: string; start: string; meet: string | null }>({ action: 'book', ...b })
   cached = null
   return r
+}
+
+// a street address for the place the visitor named, or null when Maps can't find it
+export async function findPlace(q: string): Promise<string | null> {
+  const r = await call<{ address: string | null }>({ action: 'place', q })
+  return r.address || null
+}
+
+// takes a meeting booked from the chat off Sam's calendar (the script checks the email matches)
+export async function cancelBooking(id: string, email: string): Promise<void> {
+  await call<{ ok: true }>({ action: 'cancel', id, email })
+  cached = null
 }

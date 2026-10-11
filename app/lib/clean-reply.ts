@@ -12,11 +12,13 @@ export const cleanReply = (t: string) =>
     .replace(/ +– +/g, ', ')
     .replace(/ +,/g, ',')
 
-// Smart mode ends a reply with [[book]] when the visitor wants to meet, and the chat then asks
-// the booking questions. The marker never shows, not even half-streamed ("[[bo").
-const BOOK = /\s*\[\[book\]\]\s*/gi
-const BOOK_PARTIAL = /\s*\[(?:\[(?:b(?:o(?:o(?:k\]?)?)?)?)?)?$/i
+// Smart mode ends a reply with [[book]] when the visitor wants to meet, or [[cancel]] when they
+// want to cancel or move one, and the chat then takes over. The markers never show, not even
+// half-streamed ("[[bo").
+const MARKER = /\s*\[\[(?:book|cancel)\]\]\s*/gi
+const MARKER_PARTIAL = /\s*\[(?:\[[a-z]*\]?)?$/i
 export const splitBooking = (t: string) => ({
   book: /\[\[book\]\]/i.test(t),
-  text: t.replace(BOOK, ' ').replace(BOOK_PARTIAL, '').trim(),
+  cancel: /\[\[cancel\]\]/i.test(t),
+  text: t.replace(MARKER, ' ').replace(MARKER_PARTIAL, '').trim(),
 })
