@@ -289,7 +289,9 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     const { rebook } = cancelAsk.current!
     cancelAsk.current = null
     const b = booked.current!
-    if (!/^(yes|yep|yeah|sure|ok|okay|please|do it|cancel)/i.test(q.trim())) return say("Great, it stays on my calendar. What else can I tell you?")
+    // a clear yes only: "please don't" or "sure, but keep it" keeps the meeting
+    const t = q.trim()
+    if (!/^(yes|yep|yeah|sure|ok|okay|please do|do it|cancel it)\b/i.test(t) || /\b(no|not|don'?t|keep|wait|stop|actually)\b/i.test(t)) return say("Great, it stays on my calendar. What else can I tell you?")
     setMessages((prev) => [...prev, { role: 'agent', text: '', status: 'thinking', shown: 0 }])
     let d: { ok?: boolean; error?: string } = {}
     try {

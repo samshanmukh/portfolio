@@ -10,6 +10,9 @@ export async function GET(req: Request) {
   // ?place=corgi cafe SF: the address Google Maps finds for it
   const place = new URL(req.url).searchParams.get('place')
   if (place !== null) {
+    // each lookup runs on Sam's Google quota, so a visitor gets a few dozen an hour
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local'
+    if (lookupLimited(ip)) return Response.json({ address: null })
     try {
       return Response.json({ address: await findPlace(str(place, 160)) })
     } catch (e) {
@@ -39,6 +42,18 @@ function limited(key: string): boolean {
   recent.push(now)
   hits.set(key, recent)
   if (hits.size > 5000) hits.clear()
+  return false
+}
+
+const HOUR_MS = 60 * 60 * 1000
+const lookups = new Map<string, number[]>()
+function lookupLimited(ip: string): boolean {
+  const now = Date.now()
+  const recent = (lookups.get(ip) ?? []).filter((t) => now - t < HOUR_MS)
+  if (recent.length >= 30) return true
+  recent.push(now)
+  lookups.set(ip, recent)
+  if (lookups.size > 5000) lookups.clear()
   return false
 }
 
