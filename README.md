@@ -50,15 +50,16 @@ isn't hit; without it the cards fall back to the static list in `app/lib/data.ts
 
 ### Booking meetings from the chat (optional)
 
-When a visitor wants to meet, the chat shows a booking card: video, phone or in person, a free slot from Sam's calendar
-(in the visitor's time zone), name and email, and a place or number when needed. Confirming books it onto Sam's
+When a visitor wants to meet, the chat asks softly, one question at a time with tap-to-answer chips: video, phone or
+in person, a day and a free time from Sam's calendar (in the visitor's time zone), a place or number when needed, name
+and email. Their "Yes, book it" books it onto Sam's
 Google Calendar with a note on what the visitor asked in the chat, and Google sends them the invite (with a Meet link
 for video). It runs through a small Google Apps Script under Sam's own account, so no Google Cloud project is needed.
 
 1. Follow the setup steps at the top of `scripts/booking-calendar.gs` (paste it into script.google.com, add the
    Google Calendar service, set `SECRET`, deploy as a web app). Hours, slot length and time zone are set there too.
 2. Set `BOOKING_SCRIPT_URL` (the web app URL) and `BOOKING_SECRET` (the same string as `SECRET`) in Vercel and
-   `.env.local`, then redeploy. Without them the card offers email instead.
+   `.env.local`, then redeploy. Without them the chat offers email instead.
 
 ### Now-playing widget (optional)
 
