@@ -133,16 +133,24 @@ function nextBooking(email) {
 function lookup(email) {
   const ev = nextBooking(email)
   if (!ev) return { found: 0 }
-  const code = String(Math.floor(100000 + Math.random() * 900000))
-  CacheService.getScriptCache().put('code:' + String(email).toLowerCase(), JSON.stringify({ code, id: ev.id, tries: 0 }), 600)
+  // from a random UUID's hash, not Math.random
+  const bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, Utilities.getUuid())
+  const n = bytes.slice(0, 4).reduce((acc, b) => acc * 256 + (b & 255), 0)
+  const code = String(100000 + (n % 900000))
+  const kind = String(ev.summary).split(' with ')[0]
+  CacheService.getScriptCache().put(
+    'code:' + String(email).toLowerCase(),
+    JSON.stringify({ code, id: ev.id, tries: 0, start: ev.start.dateTime, what: WHAT[kind] || 'meeting' }),
+    600
+  )
   const when = Utilities.formatDate(new Date(ev.start.dateTime), TZ, "EEE, MMM d 'at' h:mm a z")
   MailApp.sendEmail(
     email,
     `Your code to cancel ${ev.summary}`,
     `Your code is ${code}\n\nType it in the chat on samkarri.com to cancel "${ev.summary}" on ${when}. It works for 10 minutes.\n\nIf you didn't ask for this, you can ignore this email and nothing changes.`
   )
-  const kind = String(ev.summary).split(' with ')[0]
-  return { found: 1, start: ev.start.dateTime, what: WHAT[kind] || 'meeting' }
+  // nothing about the meeting until the code proves it's them
+  return { found: 1 }
 }
 
 function cancelWithCode(email, code) {
@@ -156,9 +164,14 @@ function cancelWithCode(email, code) {
     else cache.put(key, JSON.stringify(saved), 600)
     return { error: saved.tries >= 5 ? 'expired' : 'bad-code' }
   }
+  try {
+    Calendar.Events.remove('primary', saved.id, { sendUpdates: 'all' })
+  } catch (err) {
+    // already gone counts as cancelled; anything else keeps the code for another try
+    if (!/not ?found|deleted|410|404/i.test(String(err))) return { error: 'failed' }
+  }
   cache.remove(key)
-  Calendar.Events.remove('primary', saved.id, { sendUpdates: 'all' })
-  return { ok: true }
+  return { ok: true, start: saved.start, what: saved.what }
 }
 
 // Cancel a meeting booked from the chat: only one this script made, and only for the email it

@@ -174,7 +174,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   // "cancel our meeting", "can't make it Monday": about a meeting, not "never mind" mid-booking
   const wantsCancel = (q: string) =>
     /\b(cancel|call (it )?off|reschedul|can'?t make it|cannot make it|(move|remove|delete) (it|the|our|my))/i.test(q) &&
-    (!!booked.current || /\b(meeting|meet|call|coffee|appointment|booking|invite|monday|tuesday|wednesday|thursday|friday)\b/i.test(q))
+    ((!!booked.current && !flowRef.current) || /\b(meeting|meet|call|coffee|appointment|booking|invite|monday|tuesday|wednesday|thursday|friday)\b/i.test(q))
 
   const say = (text: string, chips?: string[], sources?: Source[]) => streamKeyword({ tool: '', text, followups: chips, sources })
 
@@ -292,23 +292,23 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setMessages((prev) => prev.slice(0, -1))
     return d
   }
-  const cancelled = (rebook: boolean) => {
-    const done = "Done, I've cancelled it and you'll get an email from Google about it."
+  const cancelled = (rebook: boolean, what = 'it') => {
+    const done = `Done, I've cancelled ${what} and you'll get an email from Google about it.`
     return rebook ? startBooking(bookingChat.current, `${done} Let's find a new time.`) : say(`${done} If you want to meet another time, just say so!`)
   }
   const couldNot = () => say(`Hmm, I couldn't cancel it from here. You can decline the invite from your calendar, or email me at ${socials.email}.`, undefined, emailLink)
 
   const lookUp = async (email: string, rebook: boolean) => {
     const d = await post({ action: 'lookup', email })
-    if (d.found && d.start) {
+    // the same answer whether or not a meeting exists, so nobody can probe someone's email
+    if (typeof d.found === 'number') {
       cancelAsk.current = { stage: 'code', email, rebook }
       return say(
-        `Found it: our ${d.what || 'meeting'} on ${dayLabel(d.start)} at ${timeLabel(d.start)}. To make sure it's you, I just emailed a 6-digit code to ${email}. Type it here and I'll cancel it.`,
+        `If there's a meeting booked with ${email}, I just emailed it a 6-digit code so I know it's you. Type it here and I'll cancel it. (No email in a minute? Tell me the email you booked with.)`,
         [NEVER_MIND]
       )
     }
     cancelAsk.current = null
-    if (d.found === 0) return say(`I can't find an upcoming meeting booked with ${email}. If you used another email, tell me that one, or email me at ${socials.email}.`, undefined, emailLink)
     if (d.error === 'rate-limited') return say(`That's a few tries already. Email me at ${socials.email} and I'll cancel it for you.`, undefined, emailLink)
     return couldNot()
   }
@@ -350,7 +350,11 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       const d = await post({ action: 'cancelCode', email: ask.email, code })
       if (d.ok) {
         cancelAsk.current = null
-        return cancelled(ask.rebook)
+        return cancelled(ask.rebook, d.start ? `our ${d.what || 'meeting'} on ${dayLabel(d.start)} at ${timeLabel(d.start)}` : 'it')
+      }
+      if (d.error === 'rate-limited') {
+        cancelAsk.current = null
+        return say(`That's a few tries already. Email me at ${socials.email} and I'll cancel it for you.`, undefined, emailLink)
       }
       if (d.error === 'bad-code') return say("That code doesn't match. Check the email and try again?", [NEVER_MIND])
       cancelAsk.current = null
