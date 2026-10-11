@@ -42,6 +42,8 @@ function doPost(e) {
       lock.releaseLock()
     }
   }
+  if (req.action === 'cancel') return out(cancel(req))
+  if (req.action === 'place') return out(findPlace(req.q))
   return out({ error: 'unknown-action' })
 }
 
@@ -94,5 +96,32 @@ function book(req) {
   }
   // sendUpdates: the visitor gets a normal Google Calendar invite from Sam
   const created = Calendar.Events.insert(event, 'primary', { conferenceDataVersion: 1, sendUpdates: 'all' })
-  return { ok: true, start: created.start.dateTime, meet: created.hangoutLink || null }
+  return { ok: true, id: created.id, start: created.start.dateTime, meet: created.hangoutLink || null }
+}
+
+// Looks up a place the visitor named ("corgi cafe SF") with Google Maps, so the chat can check
+// it with them and the invite carries a real address. Leans toward the Bay Area.
+function findPlace(q) {
+  q = String(q || '').slice(0, 160)
+  if (!q) return { address: null }
+  const r = Maps.newGeocoder().setRegion('us').setBounds(37.0, -122.7, 38.1, -121.6).geocode(q)
+  const hit = r && r.status === 'OK' && r.results[0]
+  return { address: hit ? hit.formatted_address : null }
+}
+
+// Cancel a meeting booked from the chat: only one this script made, and only for the email it
+// was booked with. The visitor gets Google's normal cancellation email.
+function cancel(req) {
+  let ev
+  try {
+    ev = Calendar.Events.get('primary', String(req.id || ''))
+  } catch (err) {
+    return { error: 'not-found' }
+  }
+  if (ev.status === 'cancelled') return { ok: true }
+  const email = String(req.email || '').toLowerCase()
+  const guest = (ev.attendees || []).some((a) => String(a.email).toLowerCase() === email)
+  if (!guest || String(ev.description || '').indexOf('Booked from the chat on samkarri.com') !== 0) return { error: 'not-found' }
+  Calendar.Events.remove('primary', ev.id, { sendUpdates: 'all' })
+  return { ok: true }
 }

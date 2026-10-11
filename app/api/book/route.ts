@@ -1,12 +1,25 @@
-import { bookingEnabled, createBooking, getSlots, type MeetingType } from '../../lib/booking'
+import { bookingEnabled, cancelBooking, createBooking, findPlace, getSlots, type MeetingType } from '../../lib/booking'
 
 // In-chat booking. GET: open slots on Sam's calendar. POST: book one, with a note on what the
 // visitor asked about in the chat, so the invite lands on Sam's calendar with that context.
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: Request) {
   if (!bookingEnabled()) return Response.json({ enabled: false })
+  // ?place=corgi cafe SF: the address Google Maps finds for it
+  const place = new URL(req.url).searchParams.get('place')
+  if (place !== null) {
+    // each lookup runs on Sam's Google quota, so a visitor gets a few dozen an hour
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local'
+    if (lookupLimited(ip)) return Response.json({ address: null })
+    try {
+      return Response.json({ address: await findPlace(str(place, 160)) })
+    } catch (e) {
+      console.error('[book] place error', e)
+      return Response.json({ address: null })
+    }
+  }
   try {
     return Response.json({ enabled: true, ...(await getSlots()) })
   } catch (e) {
@@ -29,6 +42,18 @@ function limited(key: string): boolean {
   recent.push(now)
   hits.set(key, recent)
   if (hits.size > 5000) hits.clear()
+  return false
+}
+
+const HOUR_MS = 60 * 60 * 1000
+const lookups = new Map<string, number[]>()
+function lookupLimited(ip: string): boolean {
+  const now = Date.now()
+  const recent = (lookups.get(ip) ?? []).filter((t) => now - t < HOUR_MS)
+  if (recent.length >= 30) return true
+  recent.push(now)
+  lookups.set(ip, recent)
+  if (lookups.size > 5000) lookups.clear()
   return false
 }
 
@@ -75,6 +100,21 @@ export async function POST(req: Request) {
     body = await req.json()
   } catch {
     return Response.json({ error: 'bad-request' }, { status: 400 })
+  }
+
+  // cancel: the visitor's browser kept the event id from booking, and the email must match
+  if (body.action === 'cancel') {
+    const id = str(body.id, 200)
+    const email = str(body.email, 254)
+    if (!id || !EMAIL.test(email)) return Response.json({ error: 'invalid' }, { status: 400 })
+    try {
+      await cancelBooking(id, email)
+      return Response.json({ ok: true })
+    } catch (e) {
+      console.error('[book] cancel error', e)
+      const msg = e instanceof Error ? e.message : ''
+      return Response.json({ error: msg === 'not-found' ? 'not-found' : 'failed' }, { status: msg === 'not-found' ? 404 : 502 })
+    }
   }
 
   const type = body.type as MeetingType

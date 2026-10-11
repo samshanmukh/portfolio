@@ -10,7 +10,7 @@ import { ask, requestedView, type Source, type View } from '../../lib/agent'
 import { profile } from '../../lib/data'
 import { isPresetQuestion } from '../../lib/questions'
 import type { PostMeta } from '../../lib/posts'
-import { answer as bookingAnswer, question as bookingQuestion, dayLabel, timeLabel, type Flow } from '../../lib/booking-flow'
+import { afterPlace, answer as bookingAnswer, question as bookingQuestion, dayLabel, timeLabel, type Flow } from '../../lib/booking-flow'
 import { splitBooking } from '../../lib/clean-reply'
 import { socials } from '../../lib/data'
 import { type ChatMsg, hostedAvailable, hostedStream } from '../../lib/hosted-llm'
@@ -117,25 +117,26 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     const view = requestedView(q)
     setMessages((prev) => [...prev, { role: 'agent', view, text: '', status: 'thinking', shown: Infinity }])
     let first = true
-    let book = false
+    let marker: 'book' | 'cancel' | null = null
     const onToken = (full: string) => {
       if (first) {
         first = false
         patchLast({ status: 'typing' })
       }
       const split = splitBooking(full)
-      book ||= split.book
+      if (split.cancel) marker = 'cancel'
+      else if (split.book && !marker) marker = 'book'
       patchLast({ text: split.text })
     }
     try {
       await hostedStream([...history, { role: 'user', content: q }], onToken, view)
       patchLast({ status: 'done' })
-      return book
+      return marker
     } catch {
       // every model rate-limited or down: answer this one instantly instead
       setMessages((prev) => prev.slice(0, -1))
       await streamKeyword(routed)
-      return false
+      return null
     }
   }
 
@@ -144,6 +145,31 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const flowRef = useRef<Flow | null>(null)
   // what the visitor asked before booking, so the invite says what they want to talk about
   const bookingChat = useRef<ChatMsg[]>([])
+  // the meeting this visitor booked here, kept across reloads so "cancel it" can really cancel it
+  type Booked = { id: string; email: string; start: string; what: string }
+  const booked = useRef<Booked | null>(null)
+  useEffect(() => {
+    try {
+      const b = JSON.parse(localStorage.getItem('booked-meeting') || 'null')
+      if (b?.id && Date.parse(b.start) > Date.now()) booked.current = b
+    } catch {
+      // no storage: nothing to restore
+    }
+  }, [])
+  const remember = (b: Booked | null) => {
+    booked.current = b
+    try {
+      if (b) localStorage.setItem('booked-meeting', JSON.stringify(b))
+      else localStorage.removeItem('booked-meeting')
+    } catch {
+      // no storage: it still works for this visit
+    }
+  }
+  // set while we're asking "cancel it?"; `rebook` means they wanted another time
+  const cancelAsk = useRef<{ rebook: boolean } | null>(null)
+  const KEEP = 'Keep it'
+  const CANCEL_YES = 'Yes, cancel it'
+
   const say = (text: string, chips?: string[], sources?: Source[]) => streamKeyword({ tool: '', text, followups: chips, sources })
 
   const startBooking = async (chat: ChatMsg[], intro = '') => {
@@ -176,9 +202,25 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       flowRef.current = step.flow
       return say(step.say.text, step.say.chips)
     }
+    if ('lookup' in step) {
+      // check the place on Google Maps, so the invite carries a real address
+      setMessages((prev) => [...prev, { role: 'agent', text: '', status: 'thinking', shown: 0 }])
+      let address: string | null = null
+      try {
+        const d = await (await fetch(`/api/book?place=${encodeURIComponent(step.lookup.place!)}`, { cache: 'no-store' })).json()
+        if (typeof d?.address === 'string') address = d.address
+      } catch {
+        // not found or offline: keep the place as they wrote it
+      }
+      setMessages((prev) => prev.slice(0, -1))
+      const s = address ? { flow: { ...step.lookup, found: address, stage: 'placeCheck' as const }, say: bookingQuestion({ ...step.lookup, found: address, stage: 'placeCheck' }) } : afterPlace(step.lookup)
+      if (!('flow' in s)) return
+      flowRef.current = s.flow
+      return say(s.say.text, s.say.chips)
+    }
     const f = step.book
     setMessages((prev) => [...prev, { role: 'agent', text: '', status: 'thinking', shown: 0 }])
-    let d: { ok?: boolean; error?: string; start?: string; meet?: string | null } = {}
+    let d: { ok?: boolean; id?: string; error?: string; start?: string; meet?: string | null } = {}
     try {
       const r = await fetch('/api/book', {
         method: 'POST',
@@ -192,6 +234,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     setMessages((prev) => prev.slice(0, -1))
     if (d.ok) {
       flowRef.current = null
+      if (d.id) remember({ id: d.id, email: f.email!, start: d.start || f.start!, what: f.type === 'inPerson' ? 'coffee' : f.type === 'phone' ? 'call' : 'video call' })
       const when = `${dayLabel(d.start || f.start!)} at ${timeLabel(d.start || f.start!)}`
       return say(
         `Done! You're on my calendar for ${when}, and the invite is on its way to ${f.email}. Looking forward to it! Anything else you want to know before then?`,
@@ -227,6 +270,53 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     )
   }
 
+  // Cancelling (or moving) the meeting they booked here: ask once, then really take it off
+  // Sam's calendar. Without a booking from this browser, point them to the invite instead.
+  const startCancel = async (q: string) => {
+    const b = booked.current
+    if (!b) {
+      return say(
+        `I can't find a meeting booked from this browser. You can decline the invite from your calendar, or email me at ${socials.email} and I'll sort it out.`,
+        undefined,
+        [{ label: 'email', href: `mailto:${socials.email}?subject=${encodeURIComponent('Our meeting')}` }]
+      )
+    }
+    cancelAsk.current = { rebook: /reschedul|\bmove\b|another (time|day)|different (time|day)|\bpush|\bchange/i.test(q) }
+    await say(`Cancel our ${b.what} on ${dayLabel(b.start)} at ${timeLabel(b.start)}?`, [CANCEL_YES, KEEP])
+  }
+
+  const finishCancel = async (q: string) => {
+    const { rebook } = cancelAsk.current!
+    cancelAsk.current = null
+    const b = booked.current!
+    // a clear yes only: "please don't" or "sure, but keep it" keeps the meeting
+    const t = q.trim()
+    if (!/^(yes|yep|yeah|sure|ok|okay|please do|do it|cancel it)\b/i.test(t) || /\b(no|not|don'?t|keep|wait|stop|actually)\b/i.test(t)) return say("Great, it stays on my calendar. What else can I tell you?")
+    setMessages((prev) => [...prev, { role: 'agent', text: '', status: 'thinking', shown: 0 }])
+    let d: { ok?: boolean; error?: string } = {}
+    try {
+      const r = await fetch('/api/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel', id: b.id, email: b.email }),
+      })
+      d = await r.json().catch(() => ({}))
+    } catch {
+      // network error: handled below
+    }
+    setMessages((prev) => prev.slice(0, -1))
+    if (d.ok || d.error === 'not-found') {
+      remember(null)
+      if (rebook) return startBooking(bookingChat.current, `Done, I've cancelled it and you'll get an email from Google about it. Let's find a new time.`)
+      return say(`Done, I've cancelled it and you'll get an email from Google about it. If you want to meet another time, just say so!`)
+    }
+    return say(
+      `Hmm, I couldn't cancel it from here. You can decline the invite from your calendar, or email me at ${socials.email}.`,
+      undefined,
+      [{ label: 'email', href: `mailto:${socials.email}?subject=${encodeURIComponent('Our meeting')}` }]
+    )
+  }
+
   // `typed`: the visitor wrote it. Pills, follow-ups and cards keep their instant answers;
   // only typed questions go to smart mode.
   const run = async (raw: string, typed = false) => {
@@ -247,12 +337,21 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     ]
     // a quick-question pill mid-booking means they moved on
     if (flowRef.current && isPresetQuestion(q)) flowRef.current = null
-    if (flowRef.current) {
+    if (cancelAsk.current && isPresetQuestion(q)) cancelAsk.current = null
+    if (cancelAsk.current) {
+      await finishCancel(q)
+    } else if (booked.current && /\b(cancel|call (it )?off|reschedul|can'?t make it|cannot make it|(move|remove|delete) (it|the|our|my))/i.test(q)) {
+      // their booked meeting comes first, even mid-way through booking another
+      flowRef.current = null
+      await startCancel(q)
+    } else if (flowRef.current) {
       await continueBooking(q)
     } else if (ask(q).view === 'book' || requestedView(q) === 'book') {
       await startBooking(chat, "I'd love that!")
     } else if (typed && smart) {
-      if (await runLLM(q)) await startBooking(chat)
+      const marker = await runLLM(q)
+      if (marker === 'cancel') await startCancel(q)
+      else if (marker === 'book') await startBooking(chat)
     } else {
       await streamKeyword(ask(q))
     }

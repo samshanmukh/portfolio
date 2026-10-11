@@ -5,7 +5,7 @@
 // ---------------------------------------------------------------------------
 import type { MeetingType } from './booking'
 
-export type Stage = 'type' | 'day' | 'time' | 'place' | 'phone' | 'name' | 'email' | 'confirm'
+export type Stage = 'type' | 'day' | 'time' | 'place' | 'placeCheck' | 'phone' | 'name' | 'email' | 'confirm'
 export type Flow = {
   stage: Stage
   slots: string[]
@@ -13,17 +13,21 @@ export type Flow = {
   day?: string // yyyy-mm-dd in the visitor's time zone
   start?: string
   place?: string
+  found?: string // the address Google Maps found for `place`, waiting for the visitor's ok
   phone?: string
   name?: string
   email?: string
 }
 export type Say = { text: string; chips?: string[] }
-// what the visitor's answer leads to: the next question, a confirmed booking, or leaving the flow
-export type Step = { flow: Flow; say: Say } | { book: Flow } | { done: Say }
+// what the visitor's answer leads to: the next question, a place to look up, a confirmed booking,
+// or leaving the flow
+export type Step = { flow: Flow; say: Say } | { lookup: Flow } | { book: Flow } | { done: Say }
 
 export const NEVER_MIND = 'Never mind'
 const YES = 'Yes, book it'
 const CHANGE = 'Change the time'
+const THAT_ONE = 'Yes, that one'
+const ELSEWHERE = 'Somewhere else'
 
 const TYPES: { type: MeetingType; chip: string; words: RegExp; label: string }[] = [
   { type: 'video', chip: 'Video call', words: /video|google meet|zoom|online|virtual/, label: 'a video call' },
@@ -55,6 +59,8 @@ export function question(f: Flow): Say {
     }
     case 'place':
       return { text: 'Where should we meet? A café you like, your office, anywhere easy for you.' }
+    case 'placeCheck':
+      return { text: `I found ${f.place} at ${f.found}. Is that the right place?`, chips: [THAT_ONE, ELSEWHERE] }
     case 'phone':
       return { text: "What's the best number to call you on?" }
     case 'name':
@@ -71,6 +77,9 @@ export function question(f: Flow): Say {
     }
   }
 }
+
+// after the place is settled: their name, or straight to the recap if we have it
+export const afterPlace = (f: Flow): Step => next({ ...f, found: undefined }, f.name ? 'confirm' : 'name')
 
 const next = (f: Flow, stage: Stage): Step => {
   const flow = { ...f, stage }
@@ -127,7 +136,14 @@ export function answer(f: Flow, raw: string): Step {
       return next(flow, f.type === 'inPerson' ? 'place' : f.type === 'phone' ? 'phone' : f.name ? 'confirm' : 'name')
     }
     case 'place':
-      return raw.trim().length < 2 ? again(f, '') : next({ ...f, place: raw.trim().slice(0, 160) }, f.name ? 'confirm' : 'name')
+      return raw.trim().length < 2 ? again(f, '') : { lookup: { ...f, place: raw.trim().slice(0, 160) } }
+    case 'placeCheck':
+      if (a === norm(THAT_ONE) || /^(yes|yep|yeah|yup|correct|right|that'?s it|sure|ok|okay|perfect)\b/.test(a))
+        return afterPlace({ ...f, place: f.found!.toLowerCase().includes(f.place!.toLowerCase()) ? f.found : `${f.place}, ${f.found}` })
+      if (a === norm(ELSEWHERE) || /^(no|nope|nah|wrong|not that)\b/.test(a))
+        return { flow: { ...f, found: undefined, stage: 'place' }, say: { text: 'No problem. What is the name of the place and the area or street?' } }
+      // they typed another place instead: look that one up
+      return { lookup: { ...f, found: undefined, place: raw.trim().slice(0, 160) } }
     case 'phone':
       return raw.replace(/\D/g, '').length < 7
         ? again(f, "Hmm, that doesn't look like a phone number.")
