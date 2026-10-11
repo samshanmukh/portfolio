@@ -203,9 +203,15 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
       let slots = f.slots.filter((s) => s !== f.start)
       try {
         const fresh = await (await fetch('/api/book', { cache: 'no-store' })).json()
-        if (Array.isArray(fresh?.slots)) slots = fresh.slots
+        if (Array.isArray(fresh?.slots) && fresh.slots.length) slots = fresh.slots
       } catch {
         // keep the old list minus the taken slot
+      }
+      if (!slots.length) {
+        flowRef.current = null
+        return say(`Oh no, someone just took that slot and it was the last one open. Email me at ${socials.email} and we'll find a time.`, undefined, [
+          { label: 'email', href: `mailto:${socials.email}?subject=${encodeURIComponent("Let's meet")}` },
+        ])
       }
       const flow: Flow = { ...f, slots, stage: 'day', day: undefined, start: undefined }
       flowRef.current = flow

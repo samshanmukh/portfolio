@@ -95,17 +95,22 @@ export function answer(f: Flow, raw: string): Step {
     }
     case 'day': {
       const all = days(f.slots)
+      // a whole word or date only, so "no" or "may" never quietly picks the first day
+      const word = (w: string) => new RegExp(`\\b${w}\\b`).test(a.replace(/,/g, ''))
       const hit = all.find(([, s]) => {
+        const d = new Date(s)
         const label = norm(dayLabel(s))
-        const weekday = new Date(s).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-        return a === label || a.includes(weekday) || a.includes(weekday.slice(0, 3)) || label.includes(a)
+        const weekday = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+        const month = d.toLocaleDateString('en-US', { month: 'short' }).toLowerCase()
+        return a === label || word(weekday) || word(weekday.slice(0, 3)) || word(`${month}[a-z]* ${d.getDate()}(st|nd|rd|th)?`)
       })
       return hit ? next({ ...f, day: hit[0] }, 'time') : again(f, "I don't have an opening then.")
     }
     case 'time': {
       if (a === 'another day') return next({ ...f, day: undefined }, 'day')
       const times = f.slots.filter((s) => dayKey(s) === f.day)
-      const m = a.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?/)
+      // a whole time like "2", "2pm", "2:30 pm" or "1430", never a stray number in a sentence ("2 weeks")
+      const m = a.match(/^(?:(?:at|around|how about|maybe|ok|okay)\s+)?(\d{1,2})(?::?(\d{2}))?\s*(am|pm|a\.?m\.?|p\.?m\.?)?\s*(?:works|is good|please)?[.!?]?$/)
       const hit = times.find((s) => {
         if (a === norm(timeLabel(s))) return true
         if (!m) return false
@@ -113,6 +118,7 @@ export function answer(f: Flow, raw: string): Step {
         let h = Number(m[1])
         const pm = m[3]?.startsWith('p')
         if (pm && h < 12) h += 12
+        if (m[3] && !pm && h === 12) h = 0 // 12am is midnight
         if (!m[3] && h < 8) h += 12 // "at 2" means the afternoon
         return d.getHours() === h && d.getMinutes() === Number(m[2] ?? 0)
       })
@@ -137,6 +143,7 @@ export function answer(f: Flow, raw: string): Step {
     case 'confirm':
       if (a === norm(YES) || /^(yes|yep|yeah|sure|ok|okay|book|confirm|sounds good|perfect)\b/.test(a)) return { book: f }
       if (a === norm(CHANGE) || /change|different|another|other/.test(a)) return next({ ...f, start: undefined, day: undefined }, 'day')
+      if (/^(no|nope|nah)\b/.test(a)) return { done: { text: "No worries, I won't book it. If you'd like to pick another time later, just say so. What else can I tell you?" } }
       return again(f, '')
   }
 }

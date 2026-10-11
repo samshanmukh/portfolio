@@ -100,7 +100,7 @@ export async function POST(req: Request) {
   const asked = chat.filter((m) => m.role === 'user').map((m) => `- ${m.content.replace(/\s+/g, ' ')}`)
   const summary = await summarize(chat)
   const description = [
-    `Booked from the chat on samkarri.com by ${name} (${email}).`,
+    `Booked from the chat on samkarri.com by ${name} (${email}). Everything below was written by the visitor (or summarized from their chat), not checked.`,
     about && `They want to talk about: ${about}`,
     type === 'phone' && `Call them at ${phone}.`,
     type === 'inPerson' && `Place they suggested: ${place}`,
