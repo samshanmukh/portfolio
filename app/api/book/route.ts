@@ -1,4 +1,4 @@
-import { bookingEnabled, cancelBooking, createBooking, findPlace, getSlots, type MeetingType } from '../../lib/booking'
+import { bookingEnabled, cancelBooking, cancelWithCode, createBooking, findPlace, lookupBooking, getSlots, type MeetingType } from '../../lib/booking'
 
 // In-chat booking. GET: open slots on Sam's calendar. POST: book one, with a note on what the
 // visitor asked about in the chat, so the invite lands on Sam's calendar with that context.
@@ -11,13 +11,14 @@ export async function GET(req: Request) {
   const place = new URL(req.url).searchParams.get('place')
   if (place !== null) {
     // each lookup runs on Sam's Google quota, so a visitor gets a few dozen an hour
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local'
+    const ip = clientIp(req)
     if (lookupLimited(ip)) return Response.json({ address: null })
     try {
       return Response.json({ address: await findPlace(str(place, 160)) })
     } catch (e) {
       console.error('[book] place error', e)
-      return Response.json({ address: null })
+      // "unknown-action" means the live script is still an old version
+      return Response.json({ address: null, reason: e instanceof Error ? e.message.slice(0, 80) : 'unknown' })
     }
   }
   try {
@@ -54,6 +55,22 @@ function lookupLimited(ip: string): boolean {
   recent.push(now)
   lookups.set(ip, recent)
   if (lookups.size > 5000) lookups.clear()
+  return false
+}
+
+// Vercel sets x-real-ip (and rewrites x-forwarded-for) itself, so visitors can't pick their own
+function clientIp(req: Request): string {
+  return req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local'
+}
+
+const codes = new Map<string, number[]>()
+function codeLimited(key: string, max = 5): boolean {
+  const now = Date.now()
+  const recent = (codes.get(key) ?? []).filter((t) => now - t < HOUR_MS)
+  if (recent.length >= max) return true
+  recent.push(now)
+  codes.set(key, recent)
+  if (codes.size > 5000) codes.clear()
   return false
 }
 
@@ -117,6 +134,40 @@ export async function POST(req: Request) {
     }
   }
 
+  // cancel from another browser: look the meeting up by email, which emails them a code...
+  if (body.action === 'lookup') {
+    const email = str(body.email, 254)
+    if (!EMAIL.test(email)) return Response.json({ error: 'invalid' }, { status: 400 })
+    const ip = clientIp(req)
+    // each lookup can send an email, so only a handful per visitor and per address
+    if (codeLimited(`ip:${ip}`) || codeLimited(`email:${email.toLowerCase()}`)) return Response.json({ error: 'rate-limited' }, { status: 429 })
+    try {
+      // only whether a code went out; the meeting's details wait for the code
+      const { found } = await lookupBooking(email)
+      return Response.json({ found })
+    } catch (e) {
+      console.error('[book] lookup error', e)
+      return Response.json({ error: 'failed' }, { status: 502 })
+    }
+  }
+  // ...and the code from that email cancels it
+  if (body.action === 'cancelCode') {
+    const email = str(body.email, 254)
+    const code = str(body.code, 6)
+    if (!EMAIL.test(email) || !/^\d{6}$/.test(code)) return Response.json({ error: 'invalid' }, { status: 400 })
+    // guesses across re-sent codes stay few
+    const ip = clientIp(req)
+    if (codeLimited(`try-ip:${ip}`, 10) || codeLimited(`try:${email.toLowerCase()}`, 10)) return Response.json({ error: 'rate-limited' }, { status: 429 })
+    try {
+      return Response.json({ ok: true, ...(await cancelWithCode(email, code)) })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'bad-code' || msg === 'expired') return Response.json({ error: msg }, { status: 400 })
+      console.error('[book] cancel-code error', e)
+      return Response.json({ error: 'failed' }, { status: 502 })
+    }
+  }
+
   const type = body.type as MeetingType
   const start = str(body.start, 40)
   const name = str(body.name, 80)
@@ -129,7 +180,7 @@ export async function POST(req: Request) {
   if (type === 'phone' && phone.replace(/\D/g, '').length < 7) return Response.json({ error: 'phone' }, { status: 400 })
   if (type === 'inPerson' && !place) return Response.json({ error: 'place' }, { status: 400 })
 
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'local'
+  const ip = clientIp(req)
   if (limited(`ip:${ip}`) || limited(`email:${email.toLowerCase()}`))
     return Response.json({ error: 'rate-limited' }, { status: 429 })
 

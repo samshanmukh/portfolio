@@ -56,7 +56,8 @@ and email. Their "Yes, book it" books it onto Sam's
 Google Calendar with a note on what the visitor asked in the chat, and Google sends them the invite (with a Meet link
 for video). For in person, the place they name is looked up on Google Maps and checked with them, so the invite carries
 the address. Saying "cancel it" (or asking to reschedule) later from the same browser really takes the meeting off the
-calendar, and Google emails them the cancellation. It runs through a small Google Apps Script under Sam's own account,
+calendar, and Google emails them the cancellation. From any other browser the chat asks for the email they booked
+with and emails them a 6-digit code first, so only that inbox can cancel it. It runs through a small Google Apps Script under Sam's own account,
 so no Google Cloud project is needed. After changing the script, paste it again and deploy a new version (Deploy >
 Manage deployments > edit > New version) so the URL stays the same.
 
