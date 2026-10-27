@@ -2,6 +2,7 @@
 
 import type { View } from '../../lib/agent'
 import type { PostMeta } from '../../lib/posts'
+import dynamic from 'next/dynamic'
 import { AiTrainer } from '../ai-trainer'
 import { Blog } from './blog'
 import { Contact } from './contact'
@@ -17,17 +18,25 @@ import { Source } from './source'
 import { Status } from './status'
 import { Testimonials } from './testimonials'
 
+const Botmoji = dynamic(() => import('./botmoji').then((module) => module.Botmoji), {
+  loading: () => <div role="status" className="rounded-3xl border border-border p-5 text-sm text-muted">Getting your bot moji studio ready…</div>,
+})
+
 // Renders the rich card for an agent answer (the reference's tool renderer).
 export function ViewRenderer({
   view,
   posts,
   onAsk,
+  profileUrl,
 }: {
   view: View
   posts: PostMeta[]
   onAsk: (q: string) => void
+  profileUrl?: string
 }) {
   switch (view) {
+    case 'botmoji':
+      return <Botmoji initialUrl={profileUrl} />
     case 'me':
       return <Presentation />
     case 'projects':

@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Award, Code, Mail, MessageSquare } from 'lucide-react'
+import { Award, Code, Mail, MessageSquare, Sparkles } from 'lucide-react'
 import { profile } from '../../lib/data'
 
 const suggestions = [
@@ -9,6 +9,7 @@ const suggestions = [
   { icon: Code, text: 'What have you built?' },
   { icon: Award, text: "What's your stack?" },
   { icon: Mail, text: 'How can I reach you?' },
+  { icon: Sparkles, text: 'Make my bot moji' },
 ]
 
 const container = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }

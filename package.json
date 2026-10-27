@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:botmoji": "node --experimental-strip-types --test scripts/botmoji.test.mjs"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "framer-motion": "^13.4.6",
+    "gifenc": "^1.0.3",
     "gray-matter": "^4.0.3",
     "liquid-gooey": "0.2.2",
     "lucide-react": "^1.49.0",

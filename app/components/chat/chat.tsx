@@ -23,6 +23,7 @@ import { ChatLanding } from './chat-landing'
 import { HelperBoost } from './helper-boost'
 import { RichText } from './rich-text'
 import { morphArrived, morphing } from '../../lib/morph'
+import { isBotmojiRequest, profileUrlInText } from '../../lib/botmoji'
 
 type Msg = {
   role: 'user' | 'agent'
@@ -33,6 +34,7 @@ type Msg = {
   followups?: string[]
   status?: 'thinking' | 'typing' | 'done'
   shown?: number
+  profileUrl?: string
 }
 
 
@@ -74,6 +76,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const autoSubmitted = useRef(false)
+  const botmojiWaiting = useRef(false)
 
   useEffect(() => {
     hostedAvailable().then(setSmart)
@@ -394,7 +397,17 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
     // a quick-question pill mid-booking means they moved on
     if (flowRef.current && isPresetQuestion(q)) flowRef.current = null
     if (cancelAsk.current && isPresetQuestion(q)) cancelAsk.current = null
-    if (cancelAsk.current) {
+    const botmojiUrl = profileUrlInText(q)
+    if (isBotmojiRequest(q) || (botmojiWaiting.current && botmojiUrl)) {
+      flowRef.current = null
+      cancelAsk.current = null
+      botmojiWaiting.current = !botmojiUrl
+      setMessages((prev) => [...prev, {
+        role: 'agent', view: 'botmoji', profileUrl: botmojiUrl,
+        text: botmojiUrl ? 'I’ll look for your public profile details. You can customize your character, then download its GIF or copy the embed code and prompt.' : 'Share your LinkedIn or GitHub profile in the card above, or paste your headline. I’ll use your work to personalize your little sidekick.',
+        status: 'done', shown: Infinity,
+      }])
+    } else if (cancelAsk.current) {
       await finishCancel(q)
     } else if (wantsCancel(q)) {
       // cancelling a meeting comes first, even mid-way through booking another
@@ -524,7 +537,7 @@ export function Chat({ posts }: { posts: PostMeta[] }) {
                   >
                     {m.view && m.view !== 'book' && (
                       <div className="mb-3 w-full">
-                        <ViewRenderer view={m.view} posts={posts} onAsk={run} />
+                        <ViewRenderer view={m.view} posts={posts} onAsk={run} profileUrl={m.profileUrl} />
                       </div>
                     )}
                     <AgentText msg={m} onAsk={run} busy={busy} last={i === lastAgent} />

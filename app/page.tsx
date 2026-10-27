@@ -26,6 +26,7 @@ const GREETINGS = [
   { text: "Curious what I've built?" },
   { text: "Hiring? Let's talk!" },
   { text: 'Ask about my favorite stack' },
+  { text: 'Ask me to make your bot moji' },
 ]
 
 // Launch: only the send arrow, centred on screen → the ask box slowly grows out of it while the

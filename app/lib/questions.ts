@@ -26,6 +26,7 @@ export const quickKeys = (withEvents: boolean) => quickConfig.filter((q) => with
 
 // highlighted (dark) rows in the drawer
 export const specialQuestions = [
+  'Make my bot moji',
   'Try the AI trainer demo',
   'What are you building lately?',
   'Can I see your résumé?',
@@ -60,7 +61,7 @@ export const questionsByCategory: { id: string; name: string; questions: string[
   {
     id: 'fun',
     name: 'Fun',
-    questions: ['Tell me about the gym', 'Try the AI trainer demo'],
+    questions: ['Tell me about the gym', 'Try the AI trainer demo', 'Make my bot moji'],
   },
   {
     id: 'contact',

@@ -1,0 +1,5 @@
+Mode: built-in imagegen edit with transparent_background=true.
+Reference: public/botmoji/characters.png
+Output: public/botmoji/characters-transparent.png
+
+Background removal only. Convert this exact sprite atlas into a transparent PNG, removing ALL of the dark brown background and the brown ground from behind and between all 24 fluffy characters. Keep every character's exact appearance, identity, color, fur texture, facial expression, position, size, and every pixel of the delicate fur silhouette as closely as possible. Preserve the exact 1536 by 1024 canvas size and exact six-column four-row layout. Do not move, resize, rearrange, crop, restyle, or add any character. Preserve all soft wispy fur edges with natural alpha transparency. The entire background must be genuine alpha transparency, with no painted checkerboard, no brown rectangles, no dark color matte, no floor, no ground shadow. Nothing except the 24 characters should be visible.

@@ -12,6 +12,7 @@ import {
   gym,
   testimonials,
 } from './data'
+import { isBotmojiRequest } from './botmoji'
 
 export type Source = { label: string; href?: string; scrollTo?: string }
 
@@ -33,6 +34,7 @@ export type View =
   | 'blog'
   | 'events'
   | 'book'
+  | 'botmoji'
 
 export type AgentReply = {
   tool: string
@@ -60,6 +62,14 @@ const list = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1)
 
 export function ask(question: string): AgentReply {
   const q = question.toLowerCase().trim()
+
+  if (isBotmojiRequest(q)) {
+    return {
+      tool: 'create(botmoji)',
+      view: 'botmoji',
+      text: 'Let’s make you a little fluffy sidekick. Share your LinkedIn or GitHub profile in the card above, or paste your headline. Your work will inspire its look and personality.',
+    }
+  }
 
   // secret word easter egg
   if (has(q, SECRET_WORD)) {
@@ -336,5 +346,6 @@ const ASKS: [View, RegExp][] = [
 
 export function requestedView(question: string): View | undefined {
   const q = question.toLowerCase().trim()
+  if (isBotmojiRequest(q)) return 'botmoji'
   return ASKS.find(([, re]) => re.test(q))?.[0]
 }

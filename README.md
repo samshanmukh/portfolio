@@ -24,6 +24,52 @@ pnpm dev       # or: npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Bot moji creator
+
+Ask the portfolio chat **“Make my bot moji”**, or choose it in the chat suggestions / quick-question drawer.
+Visitors can share a LinkedIn `/in/` URL or GitHub profile, or enter their name and professional headline.
+The server reads public metadata only. If a profile cannot be read, the creator asks for pasted text instead of
+guessing a job from the URL. No profile data is persisted, and no additional API key is needed.
+
+Characters use the supplied six-column plush artwork at `public/botmoji/reference-plush.png`.
+The role chooses an initial character; the profile signature generates continuous personal colors,
+and subtle proportions. Characters have no accessory icons, props, or floating badges.
+Visitors can also choose any of the six plush shapes. The editor explains which profile signals
+inspired the palette. Canvas recoloring preserves the original fur lighting and facial features;
+local image warps animate the original eyes, eyebrows, and mouth without drawing a replacement face.
+Libraries.dev’s documented BotAvatar generates its own shapes, so it is not used to replace this artwork.
+No per-visitor image-generation API calls are needed.
+
+Visitors can remix the design, preview four animated expressions, pause or play the preview,
+download a transparent 384 × 384 looping GIF, and copy or preview the generation prompt.
+The profile generates the palette automatically; the creator does not show color controls or embed-code actions. The GIF encoder is loaded only when exporting; plush textures are cached during animation.
+
+Each mode has its own repeating performance: attending blinks and follows with its eyes; working
+scans side to side with moving serious brows and a pulsing red forehead; responding opens a closed
+smile into a wide grin. The shared timeline in `app/lib/botmoji-motion.ts` drives the preview,
+embed, and GIF export, so facial motion is preserved in the download. Each 15-second GIF includes
+the four expressions followed by the jump, full turn, landing squash and smile (176 frames).
+The short jump sequence is sampled at 20 fps; the expression sequence uses 10 fps.
+Selected modes continue animating, Pause freezes the current pose, and reduced-motion preferences
+show a still expression. Tapping or clicking the character (or pressing Enter/Space on it) uses
+Zup Fenn’s .24-second crouch, .68-second hop/full turn and .24-second landing squash, followed by a
+happy face. Only the character moves; the backdrop and labels stay still. During a turn, a closed
+WebGL pillow mesh preserves the original front artwork and uses matching fur on its back, with
+an in-canvas spin fallback if WebGL is disabled. Reduced-motion taps show a smile without a jump
+or turn. The interaction also works in embeds and the small creator previews.
+
+The embed at `/botmoji/embed` accepts `name`, `role`, `variation`, and a validated `design` JSON recipe.
+It reproduces the exact edited palette and silhouette without exposing the original profile
+text or profile URL. Accessory fields in legacy recipes are accepted but ignored. Invalid or old embed recipes fall back to a new safe design.
+
+Design generation, URL validation, prompts, and embed serialization live in `app/lib/botmoji.ts`;
+public LinkedIn metadata / JSON-LD extraction is in `app/lib/botmoji-profile.ts`; the plush renderer is
+in `app/lib/botmoji-render.ts`, with sprite crops and facial landmarks in `app/lib/botmoji-artwork.ts`.
+
+Run `pnpm test:botmoji` with Node 22.18+ to check role selection, same-profile reproducibility,
+same-role uniqueness, accessory-free profiles, profile extraction, URL restrictions, embed recipe
+validation, prompt personalization, blink timing, working expression / heat, smile growth, tap timing, and motion loops.
+
 ## Customize
 
 | What | Where |
