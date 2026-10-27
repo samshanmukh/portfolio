@@ -2,7 +2,7 @@
 
 import { Check, Copy, Download, ExternalLink, LoaderCircle, Pause, Play, RefreshCw, Sparkles } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { BOTMOJI_ROLES, BOTMOJI_STATES, botmojiInspirations, botmojiPrompt, createBotmojiConfig, type BotmojiConfig, type BotmojiProfile, type BotmojiRole } from '../../lib/botmoji'
+import { BOTMOJI_ROLES, BOTMOJI_STATES, botmojiInspirations, botmojiPrompt, createBotmojiConfig, profileUrlWithScheme, type BotmojiConfig, type BotmojiProfile, type BotmojiRole } from '../../lib/botmoji'
 import { BOTMOJI_ARTWORK_NAMES, botmojiArtwork } from '../../lib/botmoji-artwork'
 import { exportBotmojiGif } from '../../lib/botmoji-render'
 import { BotmojiPreview } from '../botmoji-preview'
@@ -42,13 +42,15 @@ export function Botmoji({ initialUrl }: { initialUrl?: string }) {
   }, [])
 
   async function create(profileUrl = url) {
+    const completedUrl = profileUrlWithScheme(profileUrl)
+    setUrl(completedUrl)
     setBusy(true)
     setError('')
     setNotice('')
     try {
       const response = await fetch('/api/botmoji/profile', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: profileUrl, name, text: pasted ? text : '' }), signal: AbortSignal.timeout(18_000),
+        body: JSON.stringify({ url: completedUrl, name, text: pasted ? text : '' }), signal: AbortSignal.timeout(18_000),
       })
       const data = await response.json()
       if (!mounted.current) return
@@ -122,13 +124,13 @@ export function Botmoji({ initialUrl }: { initialUrl?: string }) {
             {demoBotmojis.map((demo) => <div key={demo.name} className="h-28 w-28"><BotmojiPreview config={demo} state={0} compact /></div>)}
           </div>
           <div><h3 className="font-medium">First, a little about you.</h3><p className="mt-1 text-sm leading-relaxed text-muted">Share your LinkedIn or GitHub profile. I’ll turn your public headline, skills, and work into a unique fluffy character, with personal fur colors and expressions.</p></div>
-          <label className="block text-xs font-medium">Profile URL<input type="text" inputMode="url" autoComplete="url" placeholder="linkedin.com/in/your-name" value={url} onChange={(e) => setUrl(e.target.value)} disabled={busy} maxLength={300} className={`${field} mt-2`} /></label>
+          <label className="block text-xs font-medium">Profile URL<input type="text" inputMode="url" autoComplete="url" placeholder="linkedin.com/in/your-name" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={() => setUrl((value) => profileUrlWithScheme(value))} disabled={busy} maxLength={300} className={`${field} mt-2`} /></label>
           <button type="button" onClick={() => { setPasted(!pasted); setNotice('') }} aria-expanded={pasted} disabled={busy} className="cursor-pointer text-xs text-primary underline underline-offset-4">{pasted ? 'Use just my profile link' : 'Or tell me about yourself instead'}</button>
           {pasted && <div className="space-y-3"><label className="block text-xs font-medium">Your name<input className={`${field} mt-2`} value={name} onChange={(e) => setName(e.target.value)} maxLength={70} placeholder="Alex" autoComplete="given-name" required disabled={busy} /></label><label className="block text-xs font-medium">Headline or bio<textarea className={`${field} mt-2 min-h-24 resize-y`} placeholder="Product designer who loves thoughtful interfaces, typography, and making complex things feel simple." value={text} onChange={(e) => setText(e.target.value)} maxLength={4000} required disabled={busy} /></label></div>}
           <button disabled={busy || (!url.trim() && !text.trim())} type="submit" className={`${button} w-full border-transparent bg-foreground text-background hover:bg-foreground/85`}>
             {busy ? <LoaderCircle size={16} className="animate-spin" /> : <Sparkles size={16} />}{busy ? (pasted ? 'Personalizing your bot moji…' : 'Reading your public profile…') : 'Make my bot moji'}
           </button>
-          <p className="text-[11px] leading-relaxed text-muted">No sign-in needed. If a profile is private, you can paste your headline. Your profile details aren’t saved.</p>
+          <p className="text-[11px] leading-relaxed text-muted">No sign-in needed. LinkedIn may block profile imports even for public profiles. You can paste your headline instead. Your profile details aren’t saved.</p>
         </form>
       ) : (
         <div className="p-4 sm:p-5">

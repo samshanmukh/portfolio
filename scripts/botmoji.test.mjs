@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { inferBotmojiRole, isBotmojiRequest, normalizeProfileUrl, botmojiEmbed, botmojiPrompt, createBotmojiConfig, parseBotmojiDesign, botmojiInspirations } from '../app/lib/botmoji.ts'
+import { inferBotmojiRole, isBotmojiRequest, normalizeProfileUrl, profileUrlWithScheme, botmojiEmbed, botmojiPrompt, createBotmojiConfig, parseBotmojiDesign, botmojiInspirations } from '../app/lib/botmoji.ts'
 import { publicProfileMetadata } from '../app/lib/botmoji-profile.ts'
 import { botmojiFrame, botmojiMotion, botmojiTapMotion, botmojiGifTimeline, BOTMOJI_TAP_SECONDS, BOTMOJI_TAP_SMILE_SECONDS, BOTMOJI_LOOP_SECONDS, BOTMOJI_MODE_SECONDS } from '../app/lib/botmoji-motion.ts'
 import { botmojiArtwork, botmojiArtworkPose, BOTMOJI_ARTWORK_NAMES } from '../app/lib/botmoji-artwork.ts'
@@ -30,6 +30,26 @@ test('profile URLs cannot target private hosts, credentials, ports, or redirect 
   ]) assert.equal(normalizeProfileUrl(url), null, url)
   assert.deepEqual(normalizeProfileUrl('linkedin.com/in/alex/?trk=public'), { url: 'https://www.linkedin.com/in/alex', source: 'linkedin', slug: 'alex' })
   assert.equal(normalizeProfileUrl('https://github.com/alex/').source, 'github')
+})
+
+test('missing HTTPS is completed once while existing schemes stay unchanged', () => {
+  const full = 'https://www.linkedin.com/in/shanmukhsain'
+  for (const [input, expected] of [
+    ['linkedin.com/in/shanmukhsain', 'https://linkedin.com/in/shanmukhsain'],
+    ['  www.linkedin.com/in/shanmukhsain  ', full],
+    [full, full],
+    ['HTTPS://www.linkedin.com/in/shanmukhsain', 'HTTPS://www.linkedin.com/in/shanmukhsain'],
+    ['//www.linkedin.com/in/shanmukhsain', full],
+    ['github.com/alex', 'https://github.com/alex'],
+    ['http://linkedin.com/in/alex', 'http://linkedin.com/in/alex'],
+    ['javascript:alert(1)', 'javascript:alert(1)'],
+    ['  ', ''],
+  ]) {
+    assert.equal(profileUrlWithScheme(input), expected)
+    assert.equal(profileUrlWithScheme(expected), expected)
+  }
+  assert.equal(normalizeProfileUrl('  linkedin.com/in/shanmukhsain  ').url, full)
+  assert.equal(normalizeProfileUrl('javascript:alert(1)'), null)
 })
 
 test('a profile produces a stable original visual recipe', () => {

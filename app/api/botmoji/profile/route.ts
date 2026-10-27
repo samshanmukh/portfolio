@@ -68,5 +68,5 @@ export async function POST(request: Request) {
       return Response.json({ profile }, { headers: { 'Cache-Control': 'no-store' } })
     }
   } catch { /* Private pages and login walls use the explicit paste fallback. */ }
-  return Response.json({ needsText: true, message: `I couldn't read the public details on that ${link.source === 'linkedin' ? 'LinkedIn' : 'GitHub'} profile. Paste your headline or bio below so I can personalize your bot moji.` }, { headers: { 'Cache-Control': 'no-store' } })
+  return Response.json({ needsText: true, message: link.source === 'linkedin' ? 'Your LinkedIn link is valid, but the profile could not be read. LinkedIn may block automated access even when a profile is public. Enter your name and headline or bio above to continue.' : 'Your GitHub link is valid, but public profile details could not be read. Enter your name and headline or bio above to continue.' }, { headers: { 'Cache-Control': 'no-store' } })
 }

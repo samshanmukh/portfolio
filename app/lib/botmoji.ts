@@ -143,9 +143,16 @@ export function inferBotmojiRole(text: string): BotmojiRole {
   return matches[0]?.key ?? 'other'
 }
 
+// Complete a pasted address without duplicating or replacing an explicit scheme.
+export function profileUrlWithScheme(raw: string): string {
+  const value = raw.trim()
+  if (!value || /^[a-z][a-z\d+.-]*:/i.test(value)) return value
+  return value.startsWith('//') ? `https:${value}` : `https://${value}`
+}
+
 export function normalizeProfileUrl(raw: string): { url: string; source: 'linkedin' | 'github'; slug: string } | null {
   try {
-    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
+    const url = new URL(profileUrlWithScheme(raw))
     if (url.protocol !== 'https:' || url.username || url.password || url.port) return null
     const host = url.hostname.toLowerCase()
     const linkedin = /^(?:www\.)?linkedin\.com$/.test(host)
